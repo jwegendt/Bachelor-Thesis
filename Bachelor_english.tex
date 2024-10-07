@@ -14,6 +14,10 @@
 \usepackage[margin=10pt,font=small,labelfont=bf]{caption}
 \usepackage[utf8]{inputenc}
 
+\usepackage{amsmath}
+\usepackage{array} %for the \newcolumntype macro
+
+
 \textwidth 14cm
 \textheight 22cm
 \topmargin 0.0cm
@@ -28,6 +32,29 @@
 \sloppy
 
 \begin{document}
+
+
+%%%%% Macros
+
+\newcommand{\unifvar}{\alpha^?}
+
+%Macros for possible terms in ND:
+\newcommand{\constructor}{K(\overline{e})}
+\newcommand{\destructor}{e.d(\overline{e}) }
+\newcommand{\patmatch}{e.\textbf{case}\{\overline{K(\overline{x})\Rightarrow e}\}} 
+\newcommand{\copatmatch}{\textbf{cocase}\{\overline{d(\overline{x})\Rightarrow e}\}}
+
+%Macros for terms but for examples and such
+\newcommand{\exconstructor}[1]{K(\overline{#1})}
+\newcommand{\exdestructor}[1]{e.d(\overline{#1}) }
+\newcommand{\expatmatch}[1]{e.\textbf{case}\{#1\}} 
+\newcommand{\excopatmatch}[1]{\textbf{cocase}\{#1\}}
+
+%Macros for structural/technical latex stuff
+\newcolumntype{L}{>{$}l<{$}} % a left-aligned column in mathmode
+\newcolumntype{C}{>{$}c<{$}} % a center-aligned column in mathmode
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Layout Title page
@@ -115,9 +142,114 @@ Write here your acknowledgements.
 \setcounter{page}{1}
 
 \section{Introduction}
-aa
-\section{Main Part}
-bb
+
+%TODO
+
+\section{The Untyped Calculus ND}
+
+I will be introducing the Untyped Calculus ND, based on ... %TODO citation
+
+\subsubsection{Syntax}
+
+%TODO: introduction
+
+%% explanation of lists
+
+Some knowledge of notation is necessary to familiarize oneself with the syntax of the Untyped Calculus.
+$X$ represents a (possibly empty) sequence $X_1, ... X_i, ... X_n$.  
+%TODO: das mit dem simultaneos indexing besser verstehen
+%TODO: das mit dem X_1, ... 
+%TODO: will ich variablen und co auch hier einführen?
+\\
+A pattern match $e.\textbf{case}\{\overline{K(\overline{x})\Rightarrow e}\}$ 
+matches a term $e$ against a sequence of clauses, each clause consisting of a constructor and an expression.
+The expression associated with first constructor %TODO: oder kann es nur eine geben?  
+that matches the term is the result of the pattern match. %TODO: kann man hier überhaupt von result sprechen?
+For a copattern match $\textbf{cocase} \{\overline{d(\overline{x}) \Rightarrow e}\}$
+the same rules apply, but instead of constructers, the term is matched against destructors.
+
+\subsubsection{Definition of Syntax of ND}
+
+\iffalse
+\begin{equation}
+    \begin{split}
+        e ::&= x \quad \text{Variables} \\
+        &| \; \constructor       \quad \text{Constructors} \\
+        &| \; \destructor         \quad \text{Destructors} \\
+        &| \; \patmatch       \quad \text{Pattern match}\\
+        &| \; \copatmatch      \quad \text{Copattern match}
+    \end{split}
+\end{equation}
+\fi
+
+\begin{table}[!h]
+\centering
+    \begin{tabular}{L C L l}
+        e & ::= & x & Variable \\
+          & | & \constructor & Constructor \\
+          & | & \destructor & Destructor\\
+          & | & \patmatch & Pattern match\\
+          & | & \copatmatch & Copattern match
+    \end{tabular}
+\end{table}
+
+
+In pattern and copattern matches, every con- or destructor may occur no more than once.
+%TODO: erklären warum? => verstehen warum (das reicht)?
+
+Let's look at some examples to ... %TODO: Formulierung 
+All rudimentary datatypes can be constructed through constructors: %TODO: zu blanket statement/stimmt das wirlich? 
+\\
+The Booleans \texttt{True} and \texttt{False} are constructors on an empty sequence.\\
+%TODO: integers müssen wir genau so machen, oder?
+%TODO: gibt es noch andere interessante/einleuchtende beispiele?
+%TODO: Idee für Strings: wir machen das gleiche mit buchstaben wie bei booleans 
+%      und representieren dann strings als konstruktoren die eine liste an buchstaben nehmen?
+
+Abstract data types like lists, arrays, records etc. can similarly be defined through constructors:\\
+\texttt{Cons(True, Cons(False, Nil))} and \texttt{Date(...)} %TODO: wie werden nummern repräsentiert?
+
+We can use Pattern matching to represent conditionals:
+Lik this if statement: "$\textbf{if} e_1 \textbf{then} e_2 \textbf{else} e_3$" which is analogous to:
+$e_1.\textbf{case}\{\texttt{True}\Rightarrow e_2, \texttt{False}\Rightarrow e_3\}$
+Or the expression which tests whether a given list contains the number 5:
+$e.\textbf{case}\{\}$
+
+\subsection{The unification problem}
+
+The Unification Problem is described by a set of equations with expressions on each side $e=e$ with unknown unification variables $\unifvar$,
+where our goal is to find a number of pairs/mappings $\unifvar \mapsto e$ consisting of unification variables and expressions, 
+such that when substituting the expressions for the unification variables both sides of the 
+given equations are the same. %TODO: das als listen darstellen oder lieber nicht?
+\\
+To describe this formally, we need to expand our syntax to be able to represent unification variables.
+
+\begin{table}[!h]
+    \centering
+        \begin{tabular}{L C L l}
+            e & ::= & \unifvar & Unification variable \\
+              & | & x & Variable \\
+              & | & \constructor & Constructor \\
+              & | & \destructor & Destructor\\
+              & | & \patmatch & Pattern match\\
+              & | & \copatmatch & Copattern match
+        \end{tabular}
+\end{table}
+
+For some unification problems, there exists a solution and it is obvious:
+The solution to $\unifvar = True$ is $\unifvar \mapsto True$
+
+For some unification problems, it is rather obvious that there is no solution on the other hand:
+There is no mapping of unification variables that make both sides of $True = False$ the same.
+
+Solutions aren't necessarily unique, either. The problem $\unifvar 5 = 5$ has multiple solutions: 
+$\unifvar \mapsto \lambda x.x$ and $\unifvar \mapsto \lambda x.5$. %TODO: are these actually the only solutions?
+
+The interesting unification problems are those where it is not clear at first sight whether there exists a solution.
+%TODO: die formulierung ist ekelhaft
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Bibliography
