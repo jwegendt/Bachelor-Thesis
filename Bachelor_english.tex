@@ -64,6 +64,7 @@
 \newcommand{\listofexpr}{e_1,...e_n}
 \newcommand{\listofvar}{x_1,...x_n}
 \newcommand{\betaconv}{\equiv_{\beta}^1}
+\newcommand{\etaconv}{\equiv_{\eta}^1}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Layout Title page
@@ -302,15 +303,20 @@ The composition of two substitutions $\sigma_2 \circ \sigma_1$ which is equivale
     A single step of beta-conversion $e_1 \betaconv e_2$ is defined as follows:
     \begin{align*}
         \constructor.\textbf{case}\{\dots,\exconstructor{\overline{x}\Rightarrow e}\} 
-        \betaconv & e[\overline{e}/x]\qquad (\beta\text{-Data})\\
+        \betaconv & e[\overline{e}/x] \tag{$\beta$-Data}\\
         \excopatmatch{\dots,d(\overline{x} \Rightarrow e, \dots)}.d(\overline{e})
-        \betaconv & e[\overline{e}/x]\qquad (\beta\text{-Codata})
+        \betaconv & e[\overline{e}/x]  \tag{$\beta$-Codata}
     \end{align*}
     %TODO: Hier verstehe ich nicht was gleich viele argumente haben soll!
 \end{definition}
 
 \begin{definition}[Eta-Conversion for Codata]
-    
+    A single step of eta-conversion $e_1 \etaconv e_2$ is defined as follows:
+    \begin{align*}
+        \expatmatch{K(\overline{x})\Rightarrow K(\overline{x})} \etaconv & e \tag{$\eta$-Data}\\
+        \excopatmatch{d(\overline{x})\Rightarrow e.d(\overline{x})} 
+        \etaconv & e \quad (\text{if } \overline{x}\notin \FV{e}) \tag{$\eta$-Codata}
+    \end{align*}
 \end{definition}
 
 
