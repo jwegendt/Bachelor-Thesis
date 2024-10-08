@@ -16,6 +16,8 @@
 
 \usepackage{amsmath}
 \usepackage{array} %for the \newcolumntype macro
+\usepackage{amsthm} %for theorems/definitions
+\usepackage{thmtools} %for listofheorems TODO: remove/integrate?
 
 
 \textwidth 14cm
@@ -37,6 +39,10 @@
 %%%%% Macros
 
 \newcommand{\unifvar}{\alpha^?}
+
+%Macros for Theorems/Definitions/...
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
 
 %Macros for possible terms in ND:
 \newcommand{\constructor}{K(\overline{e})}
@@ -132,6 +138,8 @@ Write here your acknowledgements.
 \renewcommand{\baselinestretch}{1}
 \small\normalsize
 
+\listoftheorems
+
 \cleardoublepage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -149,7 +157,7 @@ Write here your acknowledgements.
 
 I will be introducing the Untyped Calculus ND, based on ... %TODO citation
 
-\subsubsection{Syntax}
+\subsection{Syntax of the Untyped Calculus ND}
 
 %TODO: introduction
 
@@ -168,8 +176,6 @@ that matches the term is the result of the pattern match. %TODO: kann man hier Ã
 For a copattern match $\textbf{cocase} \{\overline{d(\overline{x}) \Rightarrow e}\}$
 the same rules apply, but instead of constructers, the term is matched against destructors.
 
-\subsubsection{Definition of Syntax of ND}
-
 \iffalse
 \begin{equation}
     \begin{split}
@@ -182,6 +188,8 @@ the same rules apply, but instead of constructers, the term is matched against d
 \end{equation}
 \fi
 
+\begin{definition}[Terms of the Calculus ND]
+
 \begin{table}[!h]
 \centering
     \begin{tabular}{L C L l}
@@ -192,6 +200,8 @@ the same rules apply, but instead of constructers, the term is matched against d
           & | & \copatmatch & Copattern match
     \end{tabular}
 \end{table}
+\end{definition}
+
 
 
 In pattern and copattern matches, every con- or destructor may occur no more than once.
@@ -214,6 +224,44 @@ Lik this if statement: "$\textbf{if} e_1 \textbf{then} e_2 \textbf{else} e_3$" w
 $e_1.\textbf{case}\{\texttt{True}\Rightarrow e_2, \texttt{False}\Rightarrow e_3\}$
 Or the expression which tests whether a given list contains the number 5:
 $e.\textbf{case}\{\}$
+
+\subsection{Free Variables, Subsitutions, Contexts}
+
+\begin{definition}[Free Variables]
+    
+\end{definition}
+
+
+\begin{definition}[Substitution]
+    
+\end{definition}
+
+
+\begin{definition}[Domain and Range of a Substitution]
+    
+\end{definition}
+
+
+\begin{definition}[Action of a Substitution]
+    
+\end{definition}
+
+
+\begin{definition}[Composition of Subsitutions]
+    
+\end{definition}
+
+\subsection{Conversion}
+
+
+\begin{definition}[Beta-Conversion]
+    
+\end{definition}
+
+\begin{definition}[Eta-Conversion for Codata]
+    
+\end{definition}
+
 
 \subsection{The unification problem}
 
