@@ -38,7 +38,6 @@
 
 %%%%% Macros
 
-\newcommand{\unifvar}{\alpha^?}
 
 %Macros for Theorems/Definitions/...
 \theoremstyle{definition}
@@ -51,8 +50,8 @@
 \newcommand{\copatmatch}{\textbf{cocase}\{\overline{d(\overline{x})\Rightarrow e}\}}
 
 %Macros for terms but for examples and such
-\newcommand{\exconstructor}[1]{K(\overline{#1})}
-\newcommand{\exdestructor}[1]{e.d(\overline{#1}) }
+\newcommand{\exconstructor}[1]{K(#1)}
+\newcommand{\exdestructor}[1]{e.d(#1) }
 \newcommand{\expatmatch}[1]{e.\textbf{case}\{#1\}} 
 \newcommand{\excopatmatch}[1]{\textbf{cocase}\{#1\}}
 
@@ -60,7 +59,11 @@
 \newcolumntype{L}{>{$}l<{$}} % a left-aligned column in mathmode
 \newcolumntype{C}{>{$}c<{$}} % a center-aligned column in mathmode
 
-
+\newcommand{\unifvar}{\alpha^?}
+\newcommand{\FV}[1]{\text{FV}(#1)}
+\newcommand{\listofexpr}{e_1,...e_n}
+\newcommand{\listofvar}{x_1,...x_n}
+\newcommand{\betaconv}{\equiv_{\beta}^1}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Layout Title page
@@ -174,7 +177,7 @@ matches a term $e$ against a sequence of clauses, each clause consisting of a co
 The expression associated with first constructor %TODO: oder kann es nur eine geben?  
 that matches the term is the result of the pattern match. %TODO: kann man hier überhaupt von result sprechen?
 For a copattern match $\textbf{cocase} \{\overline{d(\overline{x}) \Rightarrow e}\}$
-the same rules apply, but instead of constructers, the term is matched against destructors.
+the same rules apply, but instead of constructors, the term is matched against destructors.
 
 \iffalse
 \begin{equation}
@@ -225,37 +228,85 @@ $e_1.\textbf{case}\{\texttt{True}\Rightarrow e_2, \texttt{False}\Rightarrow e_3\
 Or the expression which tests whether a given list contains the number 5:
 $e.\textbf{case}\{\}$
 
-\subsection{Free Variables, Subsitutions, Contexts}
+\subsection{Free Variables, Substitutions, Contexts}
 
 \begin{definition}[Free Variables]
-    
+    The set of free variables of a term $e$ is FV($e$). A term is closed if this set is empty.
+    Free Variables are defined recursively over the structure of terms as follows:
+    \begin{align*}
+        \begin{split}
+            \FV{x} &:= \{x\}\\
+            \FV{\exconstructor{\listofexpr}} &:= \FV{e_1} \cup \dots\cup \FV{e_n}\\
+            \FV{\exdestructor{e_1,...e_n}} &:= \FV{e}\cup FV(e_1) \cup \dots \cup \FV{e_n}\\
+            \FV{\patmatch} &:= \FV{e}\cup (\FV{e_1}\backslash\overline{x})\cup \dots\cup (\FV{e_n}\backslash\overline{x})\\
+            \FV{\copatmatch} &:= (\FV{e_1}\backslash\overline{x})\cup \dots\cup (\FV{e_n}\backslash\overline{x})
+        \end{split}
+    \end{align*}
+%TODO: explanation
 \end{definition}
 
 
 \begin{definition}[Substitution]
-    
+    A simultaneous substitution $\sigma$ of the terms $\listofexpr$ for the distinct variables $\listofvar$ is defined as follows:
+    \begin{align*} %TODO: geht das mit dem distinct da oben unter?
+        \sigma ::= [\listofexpr \backslash\listofvar]
+    \end{align*}
 \end{definition}
 
+The set of variables for which the substitution is defined is called the domain.
+The set of free variables which appear in the substitution is called the range. %TODO: formulierung ausschmücken?
 
 \begin{definition}[Domain and Range of a Substitution]
-    
+    The definitions of Domain and Range of a Substitution are as follows:
+    \begin{align*}
+        \texttt{dom}([\listofexpr/\listofvar]) &:= \{\listofvar\}\\
+        \texttt{rng}([\listofexpr/\listofvar]) &:= \FV{e_1}\cup \dots\cup\FV{e_n}
+    \end{align*}
 \end{definition}
 
+What is actually interesting is what happens when we appy a substitution to an expression
 
 \begin{definition}[Action of a Substitution]
-    
+    The action of a substitution $\sigma$ on a term $e$, written as $e \sigma$ and is defined as follows:
+    \begin{align*}
+        x[\listofexpr / \listofvar] :=& e_i \quad(\text{if } x=x_i) \\
+        y\sigma :=& y\quad (\text{if }y\notin \texttt{dom}(\sigma))\\
+        (\exconstructor{\listofexpr})\sigma :=& \exconstructor{e_1 \sigma,\dots , e_n \sigma}\\
+        (\exdestructor{\listofexpr}) \sigma:=& (e \sigma).d(e_1 \sigma,\dots , e_n \sigma)\\
+        (\patmatch)\sigma:=& (e\sigma).\textbf{case}\{\overline{K(\overline{y}\Rightarrow (e\sigma')\sigma)}\}\\
+        (\copatmatch)\sigma:=& \excopatmatch{\overline{(d(\overline{y})\Rightarrow(e\sigma')\sigma)}}
+    \end{align*} 
+    Where $\sigma'$ is a substitution that ensures that we don't bind new variables: 
+    $\sigma'$ has the form $[y_1,\dots, y_n/\listofvar]$ and all $y_i$ are fresh for both the domain and the range of $\sigma$.
 \end{definition}
 
+The composition of two substitutions $\sigma_2 \circ \sigma_1$ which is equivalent to first applying the substitution $\sigma_1$, then the substitution $\sigma_2$.
 
 \begin{definition}[Composition of Subsitutions]
-    
+    Given two substitutions
+    \begin{align*}
+        \sigma_1 := [\listofexpr/\listofvar],\qquad \sigma_2 := [t_1,\dots,t_m/y_1,\dots,y_m]
+    \end{align*}
+    Composition is defined as:
+    \begin{align*}
+        \sigma_2\circ\sigma_1 := [e_1\sigma_2,\dots,e_n\sigma_2,t_j,\dots,t_k/\listofvar,y_j,\dots,y_k]
+    \end{align*}
+    Where $j, \dots, k$ ist the greatest sub-range of indices $1,\dots,m$ such that none of the variables $y_j$ to $y_k$ is in the domain of $\sigma_1$ 
+    %TODO: kann man das besser formulieren?
 \end{definition}
 
 \subsection{Conversion}
 
 
 \begin{definition}[Beta-Conversion]
-    
+    A single step of beta-conversion $e_1 \betaconv e_2$ is defined as follows:
+    \begin{align*}
+        \constructor.\textbf{case}\{\dots,\exconstructor{\overline{x}\Rightarrow e}\} 
+        \betaconv & e[\overline{e}/x]\qquad (\beta\text{-Data})\\
+        \excopatmatch{\dots,d(\overline{x} \Rightarrow e, \dots)}.d(\overline{e})
+        \betaconv & e[\overline{e}/x]\qquad (\beta\text{-Codata})
+    \end{align*}
+    %TODO: Hier verstehe ich nicht was gleich viele argumente haben soll!
 \end{definition}
 
 \begin{definition}[Eta-Conversion for Codata]
@@ -263,7 +314,7 @@ $e.\textbf{case}\{\}$
 \end{definition}
 
 
-\subsection{The unification problem}
+\section{The Unification Problem}
 
 The Unification Problem is described by a set of equations with expressions on each side $e=e$ with unknown unification variables $\unifvar$,
 where our goal is to find a number of pairs/mappings $\unifvar \mapsto e$ consisting of unification variables and expressions, 
