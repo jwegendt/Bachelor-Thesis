@@ -322,10 +322,9 @@ The composition of two substitutions $\sigma_2 \circ \sigma_1$ which is equivale
 
 \section{The Unification Problem}
 
-The Unification Problem is described by a set of equations with expressions on each side $e=e$ with unknown unification variables $\unifvar$,
-where our goal is to find a number of pairs/mappings $\unifvar \mapsto e$ consisting of unification variables and expressions, 
-such that when substituting the expressions for the unification variables both sides of the 
-given equations are the same. %TODO: das als listen darstellen oder lieber nicht?
+The Unification Problem is described by a set of equations with expressions on each side $\overline{e=e}$ containing unknown unification variables $\unifvar$,
+where our goal is to find a simultaneous substitution $[\listofexpr / \unifvar_1, \dots, \unifvar_n]$ which substitutes expressions for unification variables, 
+such that the sides of the given equations are the same (respectively). 
 \\
 To describe this formally, we need to expand our syntax to be able to represent unification variables.
 
@@ -341,14 +340,22 @@ To describe this formally, we need to expand our syntax to be able to represent 
         \end{tabular}
 \end{table}
 
+In unification, we are not concerned with syntactic equality, but ... equality.
+Thus, I will use $\equiv$ for unification problems, where two terms are either syntactically equivalent, beta-equivalent or eta-equivalent.
+This essentially means that two terms are equivalent if they are equivalent after function application and/or are equivalent externally.
+
 For some unification problems, there exists a solution and it is obvious:
-The solution to $\unifvar = True$ is $\unifvar \mapsto True$
+The solution to $\unifvar \equiv True$ is $[True/\unifvar]$
 
 For some unification problems, it is rather obvious that there is no solution on the other hand:
-There is no mapping of unification variables that make both sides of $True = False$ the same.
+There is no mapping of unification variables that make both sides of $True \equiv False$ the same.
 
-Solutions aren't necessarily unique, either. The problem $\unifvar 5 = 5$ has multiple solutions: 
-$\unifvar \mapsto \lambda x.x$ and $\unifvar \mapsto \lambda x.5$. %TODO: are these actually the only solutions?
+Solutions aren't necessarily unique, either. The problem $\unifvar 5 \equiv 5$ has multiple solutions: 
+%$\unifvar \mapsto \lambda x.x$ and $\unifvar \mapsto \lambda x.5$. %TODO: are these actually the only solutions?
+
+$[\excopatmatch{\texttt{Ap}(x)\Rightarrow x} / \unifvar]$ and $[\excopatmatch{\texttt{Ap}(x)\Rightarrow 5} / \unifvar]$,\\
+where \texttt{Ap} is a function applicator. 
+Thus, the two given solutions are the identity function and the constant function 5, which when consuming the argument 5, both give back 5.
 
 The interesting unification problems are those where it is not clear at first sight whether there exists a solution.
 %TODO: die formulierung ist ekelhaft
