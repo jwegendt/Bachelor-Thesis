@@ -353,6 +353,44 @@ $\unifvar \mapsto \lambda x.x$ and $\unifvar \mapsto \lambda x.5$. %TODO: are th
 The interesting unification problems are those where it is not clear at first sight whether there exists a solution.
 %TODO: die formulierung ist ekelhaft
 
+\subsection{Types Of Solutions} %TODO: besserer name
+
+To be able to discuss the algorithm for solving the unification problem, we need to define some helpful concepts first.
+
+\begin{definition}[Idempotency]
+    A solution $\sigma$ is idempotent, iff. $\sigma \circ \sigma = \sigma$.
+    Concretely, this means that it doesn't matter how often we apply a solution to a given problem.
+\end{definition}
+
+% For example, $\alpha \mapsto x$ is a solution for $\lamba\alpha.x = \lambda x.\alpha$
+For example, $[\lambda x.x / y]$ is idempotent, since:
+\begin{align*}
+    [\lambda x.x / y] \circ [\lambda x.x / y] = [(\lambda x.x)[\lambda x.x / y] / y]
+    = [\lambda x.x / y] 
+\end{align*}
+On the other hand, the solution $[\lambda y. x / x]$ is not idempotent, since:
+\begin{align*}
+    [\lambda y. x / x] \circ [\lambda y. x / x] = [(\lambda y.x)[\lambda y.x / x] / x] 
+    = [\lambda yy.x / x] \neq [\lambda y. x / x]
+\end{align*}
+
+
+\begin{definition}[More General] %TODO: oder generality?
+    A solution $\sigma$ is more general than a solution $\theta$, iff. there exists a mapping $\tau$, such that: $\theta = \tau \circ \sigma$.
+\end{definition} % TODO: andere namen? maybe
+
+For example, for the problem $\alpha x = zx$, both $\sigma_1 = [z/\alpha]$ and $\sigma_2 = [\lambda y.zx, \lambda y.zx/ \alpha, z]$ are solutions, %TODO: zeigen warum?
+but $\sigma_1$ is more general than $\sigma_2$, since there exists a substitution $\sigma_3 = [\lambda y.zx/z]$, and:
+\begin{align*}
+    \sigma_3 \circ \sigma_1 = [z[\lambda y.zx/z], \lambda y.zx /\alpha, z] = [(\lambda y.zx), \lambda y.zx /\alpha, z] = \sigma_2 %TODO: wirklich? 
+\end{align*}
+    
+
+\begin{definition}[Most General]
+    A solution is the most general unifier (mgu), iff. it is more general than all other solutions.
+\end{definition}
+
+
 
 
 
