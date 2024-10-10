@@ -7,12 +7,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \documentclass[twoside,12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
 %\usepackage{reportpage}
 \usepackage{epsf}
 \usepackage{graphics, graphicx}
 \usepackage{latexsym}
 \usepackage[margin=10pt,font=small,labelfont=bf]{caption}
-\usepackage[utf8]{inputenc}
 
 \usepackage{amsmath}
 \usepackage{array} %for the \newcolumntype macro
@@ -42,6 +42,7 @@
 %Macros for Theorems/Definitions/...
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
+\newtheorem{theorem}{Theorem}[section]
 
 %Macros for possible terms in ND:
 \newcommand{\constructor}{K(\overline{e})}
@@ -76,11 +77,11 @@
   {\large Mathematisch-Naturwissenschaftliche Fakultät \\
 Wilhelm-Schickard-Institut f\"ur Informatik\\[4cm]}
   {\huge Bachelor Thesis Computer Science\\[2cm]}
-  {\Large\bf  Higher-Order Unification for Data and Codata -Types\\[1.5cm]}
+  {\Large\bf  Higher-Order Unification for Data and Codata Types\\[1.5cm]}
  {\large Julia Wegendt}\\[0.5cm]
 Date\\[3cm]
 {\small\bf Reviewer}\\[0.5cm]
- {\large Prof.Dr. Klaus Ostermann}\\
+ {\large Prof. Dr. Klaus Ostermann}\\
   {\footnotesize Department of Computer Science\\
 	University of T\"ubingen}
 \end{center}
@@ -93,8 +94,8 @@ Date\\[3cm]
 \thispagestyle{empty}
 \vspace*{\fill}
 \begin{minipage}{11.2cm}
-\textbf{Name, first name: Wegendt, Julia}\\
-\emph{Higher-Order Unification for Data and Codata -Types}\\ Bachelor Thesis Computer Science\\
+\textbf{Wegendt, Julia}\\
+\emph{Higher-Order Unification for Data and Codata Types}\\ Bachelor Thesis Computer Science\\
 Eberhard Karls Universit\"at T\"ubingen\\
 Period: from-till
 \end{minipage}
@@ -199,6 +200,16 @@ the same rules apply, but instead of constructors, the term is matched against d
 \end{definition}
 
 
+\iffalse
+\begin{align*}
+    e  ::&=  x  \tag*{Variable} \\
+        &| \quad \constructor \tag*{Constructor} \\
+        &| \quad \destructor  \tag*{Destructor}\\
+        &| \quad \patmatch  \tag*{Pattern match}\\
+        &| \quad \copatmatch  \tag*{Copattern match}
+\end{align*}
+\fi
+
 
 In pattern and copattern matches, every con- or destructor may occur no more than once.
 %TODO: erklären warum? => verstehen warum (das reicht)?
@@ -288,24 +299,54 @@ The composition of two substitutions $\sigma_2 \circ \sigma_1$ which is equivale
     %TODO: kann man das besser formulieren?
 \end{definition}
 
+\begin{definition}[Idempotency]
+    A substitution $\sigma$ is idempotent, iff. $\sigma \circ \sigma = \sigma$.
+    Concretely, this means that it doesn't matter how often we apply a substitution to a given problem.
+\end{definition}
+
+% For example, $\alpha \mapsto x$ is a substitution for $\lamba\alpha.x = \lambda x.\alpha$
+For example, $[\lambda x.x / y]$ is idempotent, since:
+\begin{align*}
+    [\lambda x.x / y] \circ [\lambda x.x / y] = [(\lambda x.x)[\lambda x.x / y] / y]
+    = [\lambda x.x / y] 
+\end{align*}
+On the other hand, the substitution $[\lambda y. x / x]$ is not idempotent, since:
+\begin{align*}
+    [\lambda y. x / x] \circ [\lambda y. x / x] = [(\lambda y.x)[\lambda y.x / x] / x] 
+    = [\lambda yy.x / x] \neq [\lambda y. x / x]
+\end{align*}
+
+
+\begin{definition}[More General] %TODO: oder generality?
+    A substitution $\sigma$ is more general than a substitution $\theta$, iff. there exists a mapping $\tau$, such that: $\theta = \tau \circ \sigma$.
+\end{definition} % TODO: andere namen? maybe
+
+For example, for the problem $\alpha x = zx$, both $\sigma_1 = [z/\alpha]$ and $\sigma_2 = [\lambda y.zx, \lambda y.zx/ \alpha, z]$ are solutions, %TODO: zeigen warum?
+but $\sigma_1$ is more general than $\sigma_2$, since there exists a substitution $\sigma_3 = [\lambda y.zx/z]$, and:
+\begin{align*}
+    \sigma_3 \circ \sigma_1 = [z[\lambda y.zx/z], \lambda y.zx /\alpha, z] = [(\lambda y.zx), \lambda y.zx /\alpha, z] = \sigma_2 %TODO: wirklich? 
+\end{align*}
+%% TODO: convert to ND
+
+
 \subsection{Conversion}
 
 
 \begin{definition}[Beta-Conversion]
     A single step of beta-conversion $e_1 \betaconv e_2$ is defined as follows:
     \begin{align*}
-        \constructor.\textbf{case}\{\dots,\exconstructor{\overline{x}\Rightarrow e}\} 
+        \constructor.\textbf{case}\{\dots,\exconstructor{\overline{x}}\Rightarrow e\} 
         \betaconv & e[\overline{e}/x] \tag{$\beta$-Data}\\
-        \excopatmatch{\dots,d(\overline{x} \Rightarrow e, \dots)}.d(\overline{e})
+        \excopatmatch{\dots,d(\overline{x}) \Rightarrow e, \dots}.d(\overline{e})
         \betaconv & e[\overline{e}/x]  \tag{$\beta$-Codata}
     \end{align*}
-    %TODO: Hier verstehe ich nicht was gleich viele argumente haben soll!
+    We require that the constructor $K(\overline{e})$ and the constructor $\exconstructor{\overline{x}}$ have the same number of arguments.
+    This, in short ensures that we don't generate stuck terms, i.e. Terms that can't be evaluated. %TODO: warum hier und nicht in der syntaxdefinition?
 \end{definition}
 
 \begin{definition}[Eta-Conversion for Codata]
     A single step of eta-conversion $e_1 \etaconv e_2$ is defined as follows:
     \begin{align*}
-        \expatmatch{K(\overline{x})\Rightarrow K(\overline{x})} \etaconv & e \tag{$\eta$-Data}\\
         \excopatmatch{d(\overline{x})\Rightarrow e.d(\overline{x})} 
         \etaconv & e \quad (\text{if } \overline{x}\notin \FV{e}) \tag{$\eta$-Codata}
     \end{align*}
@@ -317,7 +358,7 @@ The composition of two substitutions $\sigma_2 \circ \sigma_1$ which is equivale
 The Unification Problem is described by a set of equations with expressions on each side $\overline{e=e}$ containing unknown unification variables $\unifvar$,
 where our goal is to find a simultaneous substitution $[\listofexpr / \unifvar_1, \dots, \unifvar_n]$ which substitutes expressions for unification variables, 
 such that the sides of the given equations are the same (respectively). 
-\\
+\\ %TODO: hier weniger formell/nochmal umformulieren?
 To describe this formally, we need to expand our syntax to be able to represent unification variables.
 
 \begin{table}[!h]
@@ -332,9 +373,22 @@ To describe this formally, we need to expand our syntax to be able to represent 
         \end{tabular}
 \end{table}
 
-In unification, we are not concerned with syntactic equality, but ... equality.
+In unification, we are not concerned with syntactic equality, but want a broader set of terms to be equal to one another.
+Depending on the type of unification problem one wants to solve, they may want to only include beta-equality or both 
+beta- and eta-equality.
+
 Thus, I will use $\equiv$ for unification problems, where two terms are either syntactically equivalent, beta-equivalent or eta-equivalent.
 This essentially means that two terms are equivalent if they are equivalent after function application and/or are equivalent externally.
+
+\begin{definition}[(Higher-Order) Unification Problem]
+    A unification problem is a set of equations consisting of expressions $\overline{e \equiv e}$ consisting of our expanded syntax.
+\end{definition}
+
+\begin{definition}[Solution]
+    A solution to a given unification problem is described by a simultaneous substitution $[\listofexpr / \unifvar_1, \dots, \unifvar_n]$
+    which when applied to the problem solves it, i.e. makes the sides of the equations equal %TODO: formellere formulierung?
+\end{definition}
+
 
 For some unification problems, there exists a solution and it is obvious:
 The solution to $\unifvar \equiv True$ is $[True/\unifvar]$
@@ -342,7 +396,7 @@ The solution to $\unifvar \equiv True$ is $[True/\unifvar]$
 For some unification problems, it is rather obvious that there is no solution on the other hand:
 There is no mapping of unification variables that make both sides of $True \equiv False$ the same.
 
-Solutions aren't necessarily unique, either. The problem $\unifvar 5 \equiv 5$ has multiple solutions: 
+Solutions aren't necessarily unique, either. The problem $\unifvar.\texttt{Ap}(5) \equiv 5$ has multiple solutions: 
 %$\unifvar \mapsto \lambda x.x$ and $\unifvar \mapsto \lambda x.5$. %TODO: are these actually the only solutions?
 
 $[\excopatmatch{\texttt{Ap}(x)\Rightarrow x} / \unifvar]$ and $[\excopatmatch{\texttt{Ap}(x)\Rightarrow 5} / \unifvar]$,\\
@@ -352,44 +406,48 @@ Thus, the two given solutions are the identity function and the constant functio
 The interesting unification problems are those where it is not clear at first sight whether there exists a solution.
 %TODO: die formulierung ist ekelhaft
 
-\subsection{Types Of Solutions} %TODO: besserer name
+
+
+
+\subsection{Types Of Solutions} %TODO: besserer name?
 
 To be able to discuss the algorithm for solving the unification problem, we need to define some helpful concepts first.
-
-\begin{definition}[Idempotency]
-    A solution $\sigma$ is idempotent, iff. $\sigma \circ \sigma = \sigma$.
-    Concretely, this means that it doesn't matter how often we apply a solution to a given problem.
-\end{definition}
-
-% For example, $\alpha \mapsto x$ is a solution for $\lamba\alpha.x = \lambda x.\alpha$
-For example, $[\lambda x.x / y]$ is idempotent, since:
-\begin{align*}
-    [\lambda x.x / y] \circ [\lambda x.x / y] = [(\lambda x.x)[\lambda x.x / y] / y]
-    = [\lambda x.x / y] 
-\end{align*}
-On the other hand, the solution $[\lambda y. x / x]$ is not idempotent, since:
-\begin{align*}
-    [\lambda y. x / x] \circ [\lambda y. x / x] = [(\lambda y.x)[\lambda y.x / x] / x] 
-    = [\lambda yy.x / x] \neq [\lambda y. x / x]
-\end{align*}
-
-
-\begin{definition}[More General] %TODO: oder generality?
-    A solution $\sigma$ is more general than a solution $\theta$, iff. there exists a mapping $\tau$, such that: $\theta = \tau \circ \sigma$.
-\end{definition} % TODO: andere namen? maybe
-
-For example, for the problem $\alpha x = zx$, both $\sigma_1 = [z/\alpha]$ and $\sigma_2 = [\lambda y.zx, \lambda y.zx/ \alpha, z]$ are solutions, %TODO: zeigen warum?
-but $\sigma_1$ is more general than $\sigma_2$, since there exists a substitution $\sigma_3 = [\lambda y.zx/z]$, and:
-\begin{align*}
-    \sigma_3 \circ \sigma_1 = [z[\lambda y.zx/z], \lambda y.zx /\alpha, z] = [(\lambda y.zx), \lambda y.zx /\alpha, z] = \sigma_2 %TODO: wirklich? 
-\end{align*}
     
 
 \begin{definition}[Most General]
     A solution is the most general unifier (mgu), iff. it is more general than all other solutions.
+\end{definition} 
+
+There does not always exist a mgu, for instance in the problem provided above ($\unifvar.\texttt{Ap}(5) \equiv 5$) %TODO: lieber dem bsp einen namen geben? oder noch eine hyperref?
+
+\subsection{Fundamental Results}
+
+\begin{definition}[First order unification]
+
+\begin{table}[!h]
+    \centering
+        \begin{tabular}{L C L l}
+            e & ::= & \unifvar & Unification variable \\
+                & | & x & Variable \\
+                & | & \constructor & Constructor \\
+        \end{tabular}
+\end{table}
 \end{definition}
 
+\begin{theorem}[Decidability Of First-order Unification]
+    There exists an algorithm which always terminates, and returns the solution if there exists one. 
+    In particular, this solution is always a mgu (i.e. if there is a solution, then there always exists a most general one).
+\end{theorem} %TODO: was steht im buch dazu?
 
+\begin{theorem}[Decidability of Higher-Order Unification]
+    In higher-order unification includes unification problems containing higher-order terms (equivalent to lambda abstractions),
+    and is covered by our introduced syntax. %TODO: bessere formulierung?
+    Higher-order unification is not decidable.
+\end{theorem}
+
+\section{The Pattern Fragment}
+
+The pattern fragment is a subset of higher order unification problems for which mgus exist. 
 
 
 
