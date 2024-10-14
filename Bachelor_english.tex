@@ -28,7 +28,7 @@
 %\footskip 2cm
 \parskip0.5explus0.1exminus0.1ex
 
-% Kann von Student auch nach pers\"onlichem Geschmack ver\"andert werden.
+% Kann von Student auch nach persönlichem Geschmack verändert werden.
 \pagestyle{headings}
 
 \sloppy
@@ -66,6 +66,7 @@
 \newcommand{\listofvar}{x_1,...x_n}
 \newcommand{\betaconv}{\equiv_{\beta}^1}
 \newcommand{\etaconv}{\equiv_{\eta}^1}
+\newcommand{\Ap}[1]{\texttt{Ap}(#1)}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Layout Title page
@@ -73,9 +74,9 @@
  
 \begin{titlepage}
  \begin{center}
-  {\LARGE Eberhard Karls Universit\"at T\"ubingen}\\
+  {\LARGE Eberhard Karls Universität Tübingen}\\
   {\large Mathematisch-Naturwissenschaftliche Fakultät \\
-Wilhelm-Schickard-Institut f\"ur Informatik\\[4cm]}
+Wilhelm-Schickard-Institut für Informatik\\[4cm]}
   {\huge Bachelor Thesis Computer Science\\[2cm]}
   {\Large\bf  Higher-Order Unification for Data and Codata Types\\[1.5cm]}
  {\large Julia Wegendt}\\[0.5cm]
@@ -83,7 +84,7 @@ Date\\[3cm]
 {\small\bf Reviewer}\\[0.5cm]
  {\large Prof. Dr. Klaus Ostermann}\\
   {\footnotesize Department of Computer Science\\
-	University of T\"ubingen}
+	University of Tübingen}
 \end{center}
 	
 \end{titlepage}
@@ -96,7 +97,7 @@ Date\\[3cm]
 \begin{minipage}{11.2cm}
 \textbf{Wegendt, Julia}\\
 \emph{Higher-Order Unification for Data and Codata Types}\\ Bachelor Thesis Computer Science\\
-Eberhard Karls Universit\"at T\"ubingen\\
+Eberhard Karls Universität Tübingen\\
 Period: from-till
 \end{minipage}
 \newpage
@@ -434,20 +435,38 @@ There does not always exist a mgu, for instance in the problem provided above ($
 \end{table}
 \end{definition}
 
-\begin{theorem}[Decidability Of First-order Unification]
-    There exists an algorithm which always terminates, and returns the solution if there exists one. 
+\begin{theorem}[Decidability of First-Order Unification]
+    For first-order unification, there exists an algorithm which always terminates, and returns the solution if there exists one. 
     In particular, this solution is always a mgu (i.e. if there is a solution, then there always exists a most general one).
 \end{theorem} %TODO: was steht im buch dazu?
 
 \begin{theorem}[Decidability of Higher-Order Unification]
-    In higher-order unification includes unification problems containing higher-order terms (equivalent to lambda abstractions),
+    Higher-order unification includes unification problems containing higher-order terms (equivalent to lambda abstractions),
     and is covered by our introduced syntax. %TODO: bessere formulierung?
-    Higher-order unification is not decidable.
+    Higher-order unification is not decidable. This can be proven through reducing Hilbert's tenth problem to the unification problem.
 \end{theorem}
 
-\section{The Pattern Fragment}
+\section{Patterns Unification}
 
-The pattern fragment is a subset of higher order unification problems for which mgus exist. 
+Patterns Unification, also sometimes called the Pattern Fragment %TODO: oder anders rum?
+is a subsection of Higher-Order Unification. It is an extension of First-Order unification
+with its solution being similarly simple as the one to first-order unification.
+It was described fitst by Miller in ... %TODO: citation
+
+%TODO: citation miller
+\begin{definition}[Patterns unification / Pattern fragment]
+    A pattern in a unification problem is any term $t$ where for its subterms of the form $\unifvar.\Ap{e_1.\Ap{... e_{n-1}.\Ap{e_n}}}$ 
+    it holds that all $\listofexpr$ are distinct and bound variables in $t$ (NOT arbitrary expressions).
+    %TODO: das mit dem listofexpr hier ist irreführend?
+\end{definition}
+
+The intuition here is that in the above case, $\unifvar$ is an unknown function, and anytime we apply an unknown function. ...
+%TODO: ich kann die intuition nicht erklären...
+
+\begin{theorem}[Decidability of Patterns Unification]
+    Patterns Unification is decidable. If there exists a solution, there also exists an mgu.
+\end{theorem}
+
 
 
 
@@ -469,14 +488,14 @@ The pattern fragment is a subset of higher order unification problems for which 
 %%% Erklaerung
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \thispagestyle{empty}
-\section*{Selbst\"andigkeitserkl\"arung}
+\section*{Selbständigkeitserklärung}
 
 Hiermit versichere ich, dass ich die vorliegende Bachelorarbeit 
-selbst\"andig und nur mit den angegebenen Hilfsmitteln angefertigt habe und dass alle Stellen, die dem Wortlaut oder dem 
+selbständig und nur mit den angegebenen Hilfsmitteln angefertigt habe und dass alle Stellen, die dem Wortlaut oder dem 
 Sinne nach anderen Werken entnommen sind, durch Angaben von Quellen als 
 Entlehnung kenntlich gemacht worden sind. 
-Diese Bachelorarbeit wurde in gleicher oder \"ahnlicher Form in keinem anderen 
-Studiengang als Pr\"ufungsleistung vorgelegt. 
+Diese Bachelorarbeit wurde in gleicher oder ähnlicher Form in keinem anderen 
+Studiengang als Prüfungsleistung vorgelegt. 
 
 \vskip 3cm
 
