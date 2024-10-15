@@ -438,7 +438,33 @@ There does not always exist a mgu, for instance in the problem provided above ($
 \begin{theorem}[Decidability of First-Order Unification]
     For first-order unification, there exists an algorithm which always terminates, and returns the solution if there exists one. 
     In particular, this solution is always a mgu (i.e. if there is a solution, then there always exists a most general one).
-\end{theorem} %TODO: was steht im buch dazu?
+\end{theorem} %TODO: was steht im buch dazu? Nichts basically
+
+In first-order unification, we are interested in syntactic equality. I will thus use $=$. %TODO: ausschmücken?
+
+\begin{definition}[Unification algorithm for First-Order Unification ]
+    Let $G$ be a set of equations, let $t$ be any term. $\perp$ is the symbol for fail.
+    The algorithm is defined by non-deterministically applying the below rules:
+    \begin{align*}
+        G & \cup \{ t = t\} \Rightarrow G \tag{delete}\\
+        G & \cup \{\exconstructor{t_1 ... t_n} = \exconstructor{s_1 ... s_n}\} \Rightarrow G \cup \{t_1 = s_1, ... t_n = s_n\}\tag{decompose}\\
+        G & \cup \{K_1(t_1,...t_n) = K_2(s_1, ..., s_m)\}  \Rightarrow \perp \quad\text{if $K_1 \neq K_2$ or if $n=m$} \tag{conflict}\\
+        G & \cup \{t = \unifvar\} \Rightarrow G \cup \{\unifvar = t\}\tag{swap}\\ 
+        G & \cup \{\unifvar = t\} \Rightarrow G[t/\unifvar] \cup \{\unifvar = t\} \quad\text{if $\unifvar \in G$ and $\unifvar \notin t$}  \tag{eliminate}\\
+        G & \cup \{\unifvar = K(t_1,...t_n)\}\Rightarrow \perp \text{if $\unifvar \in K(t_1,...t_n)$} \tag{check} 
+    \end{align*}
+\end{definition}
+%TODO: macht das sinn mit dem check, also kann ich den konstruktor einfach so annehmen? 
+%TODO: will ich die regeln umsortieren?
+
+This algorithm is based on the version presented by Martelli and Montanari \cite{10.1145/357162.357169},
+adapted to our syntax.
+
+
+
+
+
+
 
 In Automated Reasoning (Volume 2) Chapter 16 \cite{DBLP:books/el/RV01/Dowek01}, ...
 
@@ -482,7 +508,8 @@ However, these terms are not patterns:
         t_5 &= \excopatmatch{\Ap{x}\Rightarrow (\unifvar.\Ap{x}).\Ap{x}}
     \end{split}
 \end{align*}
-as they all don't contain exactly one cocase per variable which would bind that variable distinctly. 
+as they all don't contain exactly one cocase per variable which would bind that variable distinctly.
+%TODO: macht das sinn mit dem distinctly? 
 
 \begin{theorem}[Decidability of Patterns Unification]
     Patterns Unification is decidable. If there exists a solution, there also exists a mgu.
