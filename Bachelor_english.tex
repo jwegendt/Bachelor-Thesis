@@ -440,6 +440,8 @@ There does not always exist a mgu, for instance in the problem provided above ($
     In particular, this solution is always a mgu (i.e. if there is a solution, then there always exists a most general one).
 \end{theorem} %TODO: was steht im buch dazu?
 
+In Automated Reasoning (Volume 2) Chapter 16 \cite{DBLP:books/el/RV01/Dowek01}, ...
+
 \begin{theorem}[Decidability of Higher-Order Unification]
     Higher-order unification includes unification problems containing higher-order terms (equivalent to lambda abstractions),
     and is covered by our introduced syntax. %TODO: bessere formulierung?
@@ -451,20 +453,39 @@ There does not always exist a mgu, for instance in the problem provided above ($
 Patterns Unification, also sometimes called the Pattern Fragment %TODO: oder anders rum?
 is a subsection of Higher-Order Unification. It is an extension of First-Order unification
 with its solution being similarly simple as the one to first-order unification.
-It was described fitst by Miller in ... %TODO: citation
+It was described first by Miller in ... %TODO: citation
 
 %TODO: citation miller
-\begin{definition}[Patterns unification / Pattern fragment]
-    A pattern in a unification problem is any term $t$ where for its subterms of the form $\unifvar.\Ap{e_1.\Ap{... e_{n-1}.\Ap{e_n}}}$ 
-    it holds that all $\listofexpr$ are distinct and bound variables in $t$ (NOT arbitrary expressions).
+\begin{definition}[Pattern]
+    A pattern is any term $t$ where for its subterms of the form 
+    $(...(\unifvar.\Ap{e_1})...).\Ap{e_n}$, it holds that all $\listofexpr$ are distinct and bound variables in $t$ (NOT arbitrary expressions).
     %TODO: das mit dem listofexpr hier ist irreführend?
 \end{definition}
 
-The intuition here is that in the above case, $\unifvar$ is an unknown function, and anytime we apply an unknown function. ...
-%TODO: ich kann die intuition nicht erklären...
+The intuition here is that in the above case, $\unifvar$ is an unknown function applied to its arguments $\listofexpr$, 
+and anytime we apply an unknown function, we should read the problem as a definition for the function.
+%TODO: mehr erklärung?
+Some examples of patterns:
+\begin{align*}
+    \begin{split}
+    t_1 &= \excopatmatch{\Ap{x}\Rightarrow \unifvar.\Ap{x}} \\
+    t_2 &= \excopatmatch{\Ap{x}\Rightarrow \excopatmatch{\Ap{y}\Rightarrow (\unifvar.\Ap{y}).\Ap{x}}}    
+    \end{split}
+\end{align*} 
+In each of these terms, our unification variable is applied to distinct variables which are bound through  cocases.
+
+However, these terms are not patterns:
+\begin{align*}
+    \begin{split}
+        t_3 &= (\unifvar.\Ap{x}).\Ap{y}\\
+        t_4 &= \excopatmatch{\Ap{y}\Rightarrow (\unifvar.\Ap{x})}\\
+        t_5 &= \excopatmatch{\Ap{x}\Rightarrow (\unifvar.\Ap{x}).\Ap{x}}
+    \end{split}
+\end{align*}
+as they all don't contain exactly one cocase per variable which would bind that variable distinctly. 
 
 \begin{theorem}[Decidability of Patterns Unification]
-    Patterns Unification is decidable. If there exists a solution, there also exists an mgu.
+    Patterns Unification is decidable. If there exists a solution, there also exists a mgu.
 \end{theorem}
 
 
@@ -476,8 +497,8 @@ The intuition here is that in the above case, $\unifvar$ is an unknown function,
 
 %\addcontentsline{toc}{chapter}{Bibliography}
 
-%\bibliographystyle{alpha}
-%\bibliography{mylit}
+\bibliographystyle{abbrv}
+\bibliography{mylit}
 %% Obige Anweisung legt fest, dass BibTeX-Datei `mylit.bib' verwendet
 %% wird. Hier koennen mehrere Dateinamen mit Kommata getrennt aufgelistet
 %% werden.
