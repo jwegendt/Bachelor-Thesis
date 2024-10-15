@@ -451,7 +451,7 @@ In first-order unification, we are interested in syntactic equality. I will thus
         G & \cup \{K_1(t_1,...t_n) = K_2(s_1, ..., s_m)\}  \Rightarrow \perp \quad\text{if $K_1 \neq K_2$ or if $n=m$} \tag{conflict}\\
         G & \cup \{t = \unifvar\} \Rightarrow G \cup \{\unifvar = t\}\tag{swap}\\ 
         G & \cup \{\unifvar = t\} \Rightarrow G[t/\unifvar] \cup \{\unifvar = t\} \quad\text{if $\unifvar \in G$ and $\unifvar \notin t$}  \tag{eliminate}\\
-        G & \cup \{\unifvar = K(t_1,...t_n)\}\Rightarrow \perp \text{if $\unifvar \in K(t_1,...t_n)$} \tag{check} 
+        G & \cup \{\unifvar = K(t_1,...t_n)\}\Rightarrow \perp \text{if $\unifvar \in t_1,...t_n$} \tag{check} 
     \end{align*}
 \end{definition}
 %TODO: macht das sinn mit dem check, also kann ich den konstruktor einfach so annehmen? 
