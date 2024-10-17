@@ -33,10 +33,12 @@
 
 \sloppy
 
+\usepackage{hyperref}
+
 \begin{document}
 
 
-%%%%% Macros
+%%%%% Macros %TODO: sollten die wo anders hin/in ein eigenes file?
 
 
 %Macros for Theorems/Definitions/...
@@ -67,6 +69,8 @@
 \newcommand{\betaconv}{\equiv_{\beta}^1}
 \newcommand{\etaconv}{\equiv_{\eta}^1}
 \newcommand{\Ap}[1]{\texttt{Ap}(#1)}
+
+\newcommand{\partition}{\;|\;}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Layout Title page
@@ -305,18 +309,19 @@ The composition of two substitutions $\sigma_2 \circ \sigma_1$ which is equivale
     Concretely, this means that it doesn't matter how often we apply a substitution to a given problem.
 \end{definition}
 
-% For example, $\alpha \mapsto x$ is a substitution for $\lamba\alpha.x = \lambda x.\alpha$
-For example, $[\lambda x.x / y]$ is idempotent, since:
+For example, $[\excopatmatch{\Ap{x}\Rightarrow x} / y]$ is idempotent, since:
 \begin{align*}
-    [\lambda x.x / y] \circ [\lambda x.x / y] = [(\lambda x.x)[\lambda x.x / y] / y]
-    = [\lambda x.x / y] 
-\end{align*}
-On the other hand, the substitution $[\lambda y. x / x]$ is not idempotent, since:
-\begin{align*}
-    [\lambda y. x / x] \circ [\lambda y. x / x] = [(\lambda y.x)[\lambda y.x / x] / x] 
-    = [\lambda yy.x / x] \neq [\lambda y. x / x]
+    &[\excopatmatch{\Ap{x}\Rightarrow x} / y] \circ [\excopatmatch{\Ap{x}\Rightarrow x} / y] \\
+    &= [\excopatmatch{\Ap{x}\Rightarrow x}[\excopatmatch{\Ap{x}\Rightarrow x} / y] / y] \\
+    &= [\excopatmatch{\Ap{x}\Rightarrow x} / y] 
 \end{align*}
 
+On the other hand, the substitution $[\excopatmatch{\Ap{y}\Rightarrow x} / x]$ is not idempotent, since:
+\begin{align*}
+    &[\excopatmatch{\Ap{y}\Rightarrow x} / x] \circ [\excopatmatch{\Ap{y}\Rightarrow x} / x]\\ 
+    &= [\excopatmatch{\Ap{y}\Rightarrow x}[\excopatmatch{\Ap{y}\Rightarrow x} / x] / x] \\
+    &= \excopatmatch{\Ap{y}\Rightarrow (\Ap{y}\Rightarrow x) } \neq [\excopatmatch{\Ap{y}\Rightarrow x} / x]
+\end{align*}
 
 \begin{definition}[More General] %TODO: oder generality?
     A substitution $\sigma$ is more general than a substitution $\theta$, iff. there exists a mapping $\tau$, such that: $\theta = \tau \circ \sigma$.
@@ -428,7 +433,7 @@ There does not always exist a mgu, for instance in the problem provided above ($
 \begin{table}[!h]
     \centering
         \begin{tabular}{L C L l}
-            e & ::= & \unifvar & Unification variable \\
+            e, t & ::= & \unifvar & Unification variable \\
                 & | & x & Variable \\
                 & | & \constructor & Constructor \\
         \end{tabular}
@@ -436,22 +441,20 @@ There does not always exist a mgu, for instance in the problem provided above ($
 \end{definition}
 
 \begin{theorem}[Decidability of First-Order Unification]
-    For first-order unification, there exists an algorithm which always terminates, and returns the solution if there exists one. 
+    For first-order unification, there exists an algorithm on equations $E$, which always terminates, and returns the solution if there exists one. 
     In particular, this solution is always a mgu (i.e. if there is a solution, then there always exists a most general one).
-\end{theorem} %TODO: was steht im buch dazu? Nichts basically
-
-In first-order unification, we are interested in syntactic equality. I will thus use $=$. %TODO: ausschmücken?
+\end{theorem}
 
 \begin{definition}[Unification algorithm for First-Order Unification ]
-    Let $G$ be a set of equations, let $t$ be any term. $\perp$ is the symbol for fail.
+    $\perp$ is the symbol for fail.
     The algorithm is defined by non-deterministically applying the below rules:
     \begin{align*}
-        G & \cup \{ t = t\} \Rightarrow G \tag{delete}\\
-        G & \cup \{\exconstructor{t_1 ... t_n} = \exconstructor{s_1 ... s_n}\} \Rightarrow G \cup \{t_1 = s_1, ... t_n = s_n\}\tag{decompose}\\
-        G & \cup \{K_1(t_1,...t_n) = K_2(s_1, ..., s_m)\}  \Rightarrow \perp \quad\text{if $K_1 \neq K_2$ or if $n=m$} \tag{conflict}\\
-        G & \cup \{t = \unifvar\} \Rightarrow G \cup \{\unifvar = t\}\tag{swap}\\ 
-        G & \cup \{\unifvar = t\} \Rightarrow G[t/\unifvar] \cup \{\unifvar = t\} \quad\text{if $\unifvar \in G$ and $\unifvar \notin t$}  \tag{eliminate}\\
-        G & \cup \{\unifvar = K(t_1,...t_n)\}\Rightarrow \perp \text{if $\unifvar \in t_1,...t_n$} \tag{check} 
+        E & \cup \{ e \equiv e\} \Rightarrow E \tag{delete}\\
+        E & \cup \{\exconstructor{e_1 ... e_n} \equiv \exconstructor{t_1 ... t_n}\} \Rightarrow E \cup \{e_1 \equiv t_1, ... e_n \equiv t_n\}\tag{decompose}\\
+        E & \cup \{K_1(e_1,...e_n) \equiv K_2(t_1, ..., t_m)\}  \Rightarrow \perp \quad\text{if $K_1 \neq K_2$ or if $n\neq m$} \tag{conflict}\\
+        E & \cup \{e \equiv \unifvar\} \Rightarrow E \cup \{\unifvar \equiv e\}\tag{swap}\\ 
+        E & \cup \{\unifvar \equiv e\} \Rightarrow E[e/\unifvar] \cup \{\unifvar \equiv e\} \quad\text{if $\unifvar \in E$ and $\unifvar \notin e$}  \tag{eliminate}\\
+        E & \cup \{\unifvar \equiv K(e_1,...e_n)\}\Rightarrow \perp \quad \text{if $\unifvar \in e_1,...e_n$} \tag{check} 
     \end{align*}
 \end{definition}
 %TODO: macht das sinn mit dem check, also kann ich den konstruktor einfach so annehmen? 
@@ -481,7 +484,14 @@ is a subsection of Higher-Order Unification. It is an extension of First-Order u
 with its solution being similarly simple as the one to first-order unification.
 It was described first by Miller in ... %TODO: citation
 
-%TODO: citation miller
+\begin{definition}[Normal Form]
+    The normal form \textbf{NF} is defined as follows:
+    \begin{align*}
+        n &::= x \partition \unifvar \partition n.d(\overline{v})\partition n.\textbf{case}{\overline{K(\overline{x}\Rightarrow v)}}\\
+        v &::= n \partition K(\overline{v}) \partition \excopatmatch{\overline{d(\overline{x}\Rightarrow v)}}
+    \end{align*}
+\end{definition}
+
 \begin{definition}[Pattern]
     A pattern is any term $t$ where for its subterms of the form 
     $(...(\unifvar.\Ap{e_1})...).\Ap{e_n}$, it holds that all $\listofexpr$ are distinct and bound variables in $t$ (NOT arbitrary expressions).
