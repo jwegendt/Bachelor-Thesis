@@ -323,7 +323,7 @@ On the other hand, the substitution $[\excopatmatch{\Ap{y}\Rightarrow x} / x]$ i
     &= \excopatmatch{\Ap{y}\Rightarrow (\Ap{y}\Rightarrow x) } \neq [\excopatmatch{\Ap{y}\Rightarrow x} / x]
 \end{align*}
 
-\begin{definition}[More General] %TODO: oder generality?
+\begin{definition}[More General] 
     A substitution $\sigma$ is more general than a substitution $\theta$, iff. there exists a mapping $\tau$, such that: $\theta = \tau \circ \sigma$.
 \end{definition} % TODO: andere namen? maybe
 
@@ -428,7 +428,9 @@ There does not always exist a mgu, for instance in the problem provided above ($
 
 \subsection{Fundamental Results}
 
-\begin{definition}[First order unification]
+\begin{definition}[First-Order unification]
+To better understand higher-order unification, we first want to take a look at some simpler unification problems.
+First-order unification is pretty limited, but in many applications all we need, as in most type checking.
 
 \begin{table}[!h]
     \centering
@@ -439,6 +441,14 @@ There does not always exist a mgu, for instance in the problem provided above ($
         \end{tabular}
 \end{table}
 \end{definition}
+
+For example: $Int\rightarrow \unifvar \equiv Int \rightarrow Bool$ is a first-order unification problem on types which has the solution 
+$[Bool/\unifvar]$. 
+Note that we are dealing with type constructors, i.e. the type $Int\rightarrow Bool$ would be constructed as $Type(Int, Bool)$ where $Type(\cdot)$ is a constructor.
+
+On the other hand, $\unifvar\equiv List(\unifvar)$ should not have a solution. This is the negative example for the occur check rule below.
+
+Also note that even though we are still using $\equiv$ in equations, in practice this amounts to syntactic equality, since we can't have any beta- or eta- redexes. 
 
 \begin{theorem}[Decidability of First-Order Unification]
     For first-order unification, there exists an algorithm on equations $E$, which always terminates, and returns the solution if there exists one. 
@@ -454,14 +464,14 @@ There does not always exist a mgu, for instance in the problem provided above ($
         E & \cup \{K_1(e_1,...e_n) \equiv K_2(t_1, ..., t_m)\}  \Rightarrow \perp \quad\text{if $K_1 \neq K_2$ or if $n\neq m$} \tag{conflict}\\
         E & \cup \{e \equiv \unifvar\} \Rightarrow E \cup \{\unifvar \equiv e\}\tag{swap}\\ 
         E & \cup \{\unifvar \equiv e\} \Rightarrow E[e/\unifvar] \cup \{\unifvar \equiv e\} \quad\text{if $\unifvar \in E$ and $\unifvar \notin e$}  \tag{eliminate}\\
-        E & \cup \{\unifvar \equiv K(e_1,...e_n)\}\Rightarrow \perp \quad \text{if $\unifvar \in e_1,...e_n$} \tag{check} 
+        E & \cup \{\unifvar \equiv K(e_1,...e_n)\}\Rightarrow \perp \quad \text{if $\unifvar \in e_1,...e_n$} \tag{occurs check} 
     \end{align*}
-\end{definition}
-%TODO: macht das sinn mit dem check, also kann ich den konstruktor einfach so annehmen? 
+\end{definition} 
 %TODO: will ich die regeln umsortieren?
 
 This algorithm is based on the version presented by Martelli and Montanari \cite{10.1145/357162.357169},
 adapted to our syntax.
+
 
 
 
@@ -477,30 +487,26 @@ In Automated Reasoning (Volume 2) Chapter 16 \cite{DBLP:books/el/RV01/Dowek01}, 
     Higher-order unification is not decidable. This can be proven through reducing Hilbert's tenth problem to the unification problem.
 \end{theorem}
 
-\section{Patterns Unification}
+\section{Pattern Unification}
 
-Patterns Unification, also sometimes called the Pattern Fragment %TODO: oder anders rum?
+Pattern Unification, also sometimes called the Pattern Fragment %TODO: oder anders rum?
 is a subsection of Higher-Order Unification. It is an extension of First-Order unification
 with its solution being similarly simple as the one to first-order unification.
-It was described first by Miller in ... %TODO: citation
-
-\begin{definition}[Normal Form]
-    The normal form \textbf{NF} is defined as follows:
-    \begin{align*}
-        n &::= x \partition \unifvar \partition n.d(\overline{v})\partition n.\textbf{case}{\overline{K(\overline{x}\Rightarrow v)}}\\
-        v &::= n \partition K(\overline{v}) \partition \excopatmatch{\overline{d(\overline{x}\Rightarrow v)}}
-    \end{align*}
-\end{definition}
+It was described first by Miller in \cite{10.1093/logcom/1.4.497}.
+Since we are dealing with what amounts to an extension to the lambda calculus (as our syntax also contains constructors), we need to extend our definition to more than just function applications. 
+This means that (in practice,) the pattern fragment described by Miller is a subset of our definition.
 
 \begin{definition}[Pattern]
-    A pattern is any term $t$ where for its subterms of the form 
-    $(...(\unifvar.\Ap{e_1})...).\Ap{e_n}$, it holds that all $\listofexpr$ are distinct and bound variables in $t$ (NOT arbitrary expressions).
-    %TODO: das mit dem listofexpr hier ist irreführend?
+    A pattern is any term $p$ 
+    \begin{align*}
+        p ::= \unifvar \partition p.d(\listofvar)
+    \end{align*}
+    where it holds that all $\listofvar$ are distinct and bound variables in $p$.
 \end{definition}
-
-The intuition here is that in the above case, $\unifvar$ is an unknown function applied to its arguments $\listofexpr$, 
-and anytime we apply an unknown function, we should read the problem as a definition for the function.
+%The intuition here is that in the above case, $\unifvar$ is an unknown function applied to its arguments $\listofexpr$, 
+%and anytime we apply an unknown function, we should read the problem as a definition for the function.
 %TODO: mehr erklärung?
+
 Some examples of patterns:
 \begin{align*}
     \begin{split}
@@ -524,6 +530,30 @@ as they all don't contain exactly one cocase per variable which would bind that 
 \begin{theorem}[Decidability of Patterns Unification]
     Patterns Unification is decidable. If there exists a solution, there also exists a mgu.
 \end{theorem}
+
+
+To be able to talk about the algorithms for solving unification problems, we need some another definition: %TODO: umformulieren
+\begin{definition}[Normal Form]
+    The normal form \textbf{NF} is defined as follows:
+    \begin{align*}
+        n &::= x \partition \unifvar \partition n.d(\overline{v})\partition n.\textbf{case}{\overline{K(\overline{x}\Rightarrow v)}}\\
+        v &::= n \partition K(\overline{v}) \partition \excopatmatch{\overline{d(\overline{x}\Rightarrow v)}}
+    \end{align*}
+    Terms that satisfy the $n$-definition are called neutral terms, $v$-terms are called variables.
+\end{definition}
+Note that these are the terms that do not contain beta-redexes. 
+A beta-redex is a term that can be transformed using a beta-conversion. 
+%TODO: examples
+
+\begin{theorem}
+    If a unification problem has a solution, that solution is the same for the normal form of that same problem. 
+    No normal form of a problem that doesn't have a solution has a solution either.
+\end{theorem}
+
+Furthermore, we will only be looking at terms that have a normal form. This is enough in most applications. %TODO: ausschmücken?
+
+This is helpful for us, since we only have to consider normal forms in our algorithm, as in: 
+Met with a term, we first reduce it to its normal form, and then solve for our solution.
 
 
 
