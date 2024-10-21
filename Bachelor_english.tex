@@ -523,8 +523,28 @@ To be able to talk about the algorithms for solving unification problems, we nee
     Terms that satisfy the $n$-definition are called neutral terms, $v$-terms are called values.
 \end{definition}
 Note that these are the terms that do not contain beta-redexes. 
-A beta-redex is a term that can be transformed using a beta-conversion. 
-%TODO: examples
+A beta-redex is a term that can be transformed using a beta-conversion.
+
+This is apparent when one tries to construct terms containing beta-redexes in normal form: 
+To construct the first kind of beta-redex: $\constructor.\textbf{case}\{\dots,\exconstructor{\overline{x}}\Rightarrow e\}$,
+we start with the term $n.\textbf{case}\{\overline{K(\overline{x})\Rightarrow v}\}$, now wanting to subtitute $K(\overline{e})$ for $n$. 
+This is not possible because we are limited to neutral terms, which constructors are not part of.
+Similarly with the second kind of beta-redex:
+$\excopatmatch{\dots,d(\overline{x}) \Rightarrow e, \dots}.d(\overline{e})$, where we could not substitute the cocase in $n.d(\overline{e})$ because we are limited to neutral terms.
+        
+This underlines the intuition that neutral terms are terms that cannot be reduced because
+they contain an term we can't further evaluate (either a variable or a unification variable) in the front.
+Values, where we don't have this assurance cannot contain the building blocks for a beta-redex.
+
+Some examples: 
+\begin{align*}
+    \begin{split}
+        t_1 &= \unifvar.\Ap{\excopatmatch{\Ap{x}\Rightarrow x}}, \\
+        t_2 &= \excopatmatch{\Ap{x}\Rightarrow \texttt{cons(x cons(y Nil))}},   \\
+        t_3 &= \unifvar.\Ap{x_1, x_2, x_3}
+    \end{split}    
+\end{align*}
+$t_1$ and $t_2$ are in normal form and $t_3$ is a pattern in normal form.
 
 \begin{theorem}
     If a unification problem has a solution, that solution is the same for the normal form of that same problem. 
