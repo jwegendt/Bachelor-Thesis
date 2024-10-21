@@ -469,17 +469,9 @@ Also note that even though we are still using $\equiv$ in equations, in practice
 \end{definition} 
 %TODO: will ich die regeln umsortieren?
 
-This algorithm is based on the version presented by Martelli and Montanari \cite{10.1145/357162.357169},
+This algorithm is based on the version presented by Martelli and Montanari in \cite{10.1145/357162.357169},
 adapted to our syntax.
 
-
-
-
-
-
-
-
-In Automated Reasoning (Volume 2) Chapter 16 \cite{DBLP:books/el/RV01/Dowek01}, ...
 
 \begin{theorem}[Decidability of Higher-Order Unification]
     Higher-order unification includes unification problems containing higher-order terms (equivalent to lambda abstractions),
@@ -490,7 +482,7 @@ In Automated Reasoning (Volume 2) Chapter 16 \cite{DBLP:books/el/RV01/Dowek01}, 
 \section{Pattern Unification}
 
 Pattern Unification, also sometimes called the Pattern Fragment %TODO: oder anders rum?
-is a subsection of Higher-Order Unification. It is an extension of First-Order unification
+is a subsection of Higher-Order Unification. It can be seen as an extension of first-order unification
 with its solution being similarly simple as the one to first-order unification.
 It was described first by Miller in \cite{10.1093/logcom/1.4.497}.
 Since we are dealing with what amounts to an extension to the lambda calculus (as our syntax also contains constructors), we need to extend our definition to more than just function applications. 
@@ -501,45 +493,34 @@ This means that (in practice,) the pattern fragment described by Miller is a sub
     \begin{align*}
         p ::= \unifvar \partition p.d(\listofvar)
     \end{align*}
-    where it holds that all $\listofvar$ are distinct and bound variables in $p$.
+    where it holds that all $\listofvar$ are distinct variables.
 \end{definition}
 %The intuition here is that in the above case, $\unifvar$ is an unknown function applied to its arguments $\listofexpr$, 
 %and anytime we apply an unknown function, we should read the problem as a definition for the function.
 %TODO: mehr erklärung?
 
-Some examples of patterns:
-\begin{align*}
-    \begin{split}
-    t_1 &= \excopatmatch{\Ap{x}\Rightarrow \unifvar.\Ap{x}} \\
-    t_2 &= \excopatmatch{\Ap{x}\Rightarrow \excopatmatch{\Ap{y}\Rightarrow (\unifvar.\Ap{y}).\Ap{x}}}    
-    \end{split}
-\end{align*} 
-In each of these terms, our unification variable is applied to distinct variables which are bound through  cocases.
+If You are familiar with other definitions of patterns, You might have noticed that 
+we have omitted the part about the variables being bound. We require this later on when looking at patterns as subterms.
 
-However, these terms are not patterns:
-\begin{align*}
-    \begin{split}
-        t_3 &= (\unifvar.\Ap{x}).\Ap{y}\\
-        t_4 &= \excopatmatch{\Ap{y}\Rightarrow (\unifvar.\Ap{x})}\\
-        t_5 &= \excopatmatch{\Ap{x}\Rightarrow (\unifvar.\Ap{x}).\Ap{x}}
-    \end{split}
-\end{align*}
-as they all don't contain exactly one cocase per variable which would bind that variable distinctly.
-%TODO: macht das sinn mit dem distinctly? 
+%TODO: beispiele mit anderem destruktor??
 
-\begin{theorem}[Decidability of Patterns Unification]
+\begin{theorem}[Decidability of Pattern Unification]
     Patterns Unification is decidable. If there exists a solution, there also exists a mgu.
 \end{theorem}
+
+Note that first-order unification is not a subset of pattern unification. 
+Equations containing first-order terms that don't contain patterns still remain solvable.
+%TODO: ist das offensichtlich? bzw soll ich das in der einleitung klar machen oder besser beschreiben?
 
 
 To be able to talk about the algorithms for solving unification problems, we need some another definition: %TODO: umformulieren
 \begin{definition}[Normal Form]
     The normal form \textbf{NF} is defined as follows:
     \begin{align*}
-        n &::= x \partition \unifvar \partition n.d(\overline{v})\partition n.\textbf{case}{\overline{K(\overline{x}\Rightarrow v)}}\\
-        v &::= n \partition K(\overline{v}) \partition \excopatmatch{\overline{d(\overline{x}\Rightarrow v)}}
+        n &::= x \partition \unifvar \partition n.d(\overline{v})\partition n.\textbf{case}\{\overline{K(\overline{x})\Rightarrow v}\}\\
+        v &::= n \partition K(\overline{v}) \partition \excopatmatch{\overline{d(\overline{x})\Rightarrow v}}
     \end{align*}
-    Terms that satisfy the $n$-definition are called neutral terms, $v$-terms are called variables.
+    Terms that satisfy the $n$-definition are called neutral terms, $v$-terms are called values.
 \end{definition}
 Note that these are the terms that do not contain beta-redexes. 
 A beta-redex is a term that can be transformed using a beta-conversion. 
@@ -554,6 +535,10 @@ Furthermore, we will only be looking at terms that have a normal form. This is e
 
 This is helpful for us, since we only have to consider normal forms in our algorithm, as in: 
 Met with a term, we first reduce it to its normal form, and then solve for our solution.
+
+\section{The Algorithm For Higher-Order Unification}
+(Nur weil ich eine Citation irgendwo brauche)
+In \cite{DBLP:books/el/RV01/Dowek01}, Huet's algorithm is described. %TODO: spelling?
 
 
 
@@ -595,3 +580,26 @@ Ort, Datum	\hfill Unterschrift \hfill
 
 \end{document}
 
+\iffalse
+Für wenn wir patterns in mehr kontext behandeln i guess
+
+Some examples of patterns:
+\begin{align*}
+    \begin{split}
+    t_1 &= \excopatmatch{\Ap{x}\Rightarrow \unifvar.\Ap{x}} \\
+    t_2 &= \excopatmatch{\Ap{x}\Rightarrow \excopatmatch{\Ap{y}\Rightarrow (\unifvar.\Ap{y}).\Ap{x}}}    
+    \end{split}
+\end{align*} 
+In each of these terms, our unification variable is applied to distinct variables which are bound through  cocases.
+
+However, these terms are not patterns:
+\begin{align*}
+    \begin{split}
+        t_3 &= (\unifvar.\Ap{x}).\Ap{y}\\
+        t_4 &= \excopatmatch{\Ap{y}\Rightarrow (\unifvar.\Ap{x})}\\
+        t_5 &= \excopatmatch{\Ap{x}\Rightarrow (\unifvar.\Ap{x}).\Ap{x}}
+    \end{split}
+\end{align*}
+as they all don't contain exactly one cocase per variable which would bind that variable distinctly.
+%TODO: macht das sinn mit dem distinctly? 
+\fi
