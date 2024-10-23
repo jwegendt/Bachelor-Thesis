@@ -71,6 +71,7 @@
 \newcommand{\Ap}[1]{\texttt{Ap}(#1)}
 
 \newcommand{\partition}{\;|\;}
+\newcommand{\code}[1]{\texttt{#1}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Layout Title page
@@ -327,13 +328,27 @@ On the other hand, the substitution $[\excopatmatch{\Ap{y}\Rightarrow x} / x]$ i
     A substitution $\sigma$ is more general than a substitution $\theta$, iff. there exists a mapping $\tau$, such that: $\theta = \tau \circ \sigma$.
 \end{definition} % TODO: andere namen? maybe
 
+For example, look at the following unification problem where we are trying to substitute types for two unification variables:
+\begin{align*}
+    \texttt{List}(\unifvar) &\equiv \texttt{List}(\beta^?)\\
+    \unifvar &\equiv \texttt{Int}
+\end{align*}
+
+One solution might be: $\theta = [Int, Int / \unifvar, \beta^?]$, 
+so substituting Int for both unification variables.
+The more general solution is $\sigma = [Int,\unifvar / \unifvar, \beta^?]$ (substituting $\unifvar$ for $\beta^?$, and substituting Int for $\unifvar$), however.
+This is because there exists a mapping $\tau = [Int / \unifvar]$, such that:
+\begin{align*}
+    \tau \circ \sigma &= [Int[Int/\unifvar], \unifvar[Int/\unifvar] / \unifvar, \beta^?]= [Int, Int / \unifvar, \beta^?]= \theta
+\end{align*}
+%TODO: das ist ein vorgriff! diese sektion doch weiter runter schieben? oder die definition von lösung weiter oben oder so? oder eben ein anderes beispiel was nicht mit unifikation zu tun hat?
+\iffalse
 For example, for the problem $\alpha x = zx$, both $\sigma_1 = [z/\alpha]$ and $\sigma_2 = [\lambda y.zx, \lambda y.zx/ \alpha, z]$ are solutions, %TODO: zeigen warum?
 but $\sigma_1$ is more general than $\sigma_2$, since there exists a substitution $\sigma_3 = [\lambda y.zx/z]$, and:
 \begin{align*}
     \sigma_3 \circ \sigma_1 = [z[\lambda y.zx/z], \lambda y.zx /\alpha, z] = [(\lambda y.zx), \lambda y.zx /\alpha, z] = \sigma_2 %TODO: wirklich? 
 \end{align*}
-%% TODO: convert to ND
-
+\fi
 
 \subsection{Conversion}
 
@@ -555,6 +570,13 @@ Furthermore, we will only be looking at terms that have a normal form. This is e
 
 This is helpful for us, since we only have to consider normal forms in our algorithm, as in: 
 Met with a term, we first reduce it to its normal form, and then solve for our solution.
+
+As an example, the problem $True.\textbf{case} \{ True => a?, False => 2 \} \equiv 3 $ has the solution $[3/\unifvar]$, 
+but this is more obvious afrer using a beta-reduction on the left-hand side bringing it into normal form:
+\begin{align*}
+    &True.\textbf{case} \{ True => a?, False => 2 \} \betaconv \unifvar  \\
+    &\implies \unifvar \equiv 3   
+\end{align*}
 
 \section{The Algorithm For Higher-Order Unification}
 (Nur weil ich eine Citation irgendwo brauche)
