@@ -223,13 +223,15 @@ $e_1.\textbf{case}\{\texttt{True}\Rightarrow e_2, \texttt{False}\Rightarrow e_3\
 Or the expression which tests whether a given list starts with \True:
 $e.\expatmatch{\texttt{cons(True x)}\Rightarrow \code{True}, \code{Nil }\Rightarrow\code{False}, \code{cons(x y)}\Rightarrow \code{False}}$
 %TODO: die fucking leerzeichen fixen
+
 \subsection{Data Types}
-There are of course endless constructors (and destructors) one can define using our syntax, but there are two common ones we want to touch on to be able to discuss them in examples.
-There is the pair: $pair(x,y)$ and its destructors \textit{fst} and \textit{snd}.
+There are of course endless constructors one can define using our syntax, but one can also use copattern matching and destructors to define the same constructs. 
+Take the pair: $pair(x,y)$, which we can also define through its destructors \textit{fst} and \textit{snd}:
+$\excopatmatch{fst \Rightarrow ..., snd \Rightarrow ...}$, as in $pair(\code{True}, \code{False}).\excopatmatch{fst \Rightarrow \code{True}, snd \Rightarrow\code{False}}$
 Streams $\excopatmatch{head \Rightarrow ..., tail \Rightarrow ...}$ are a bit less intuitive, 
 but take the example of the stream consisting of \code{Trues}:
 $\code{Trues} = \excopatmatch{head \Rightarrow \code{True}, tail \Rightarrow \code{Trues}}$  
-%TODO: besser einführen. ich bin lost..
+%TODO: formell wie? oder gar nicht formell?? lost..
 
 \subsection{Free Variables, Substitutions, Contexts}
 
@@ -542,6 +544,9 @@ This means that (in practice,) the pattern fragment described by Miller is a sub
 
 If You are familiar with other definitions of patterns, You might have noticed that 
 we have omitted the part about the variables being bound. We require this later on when looking at patterns as subterms.
+Some examples:
+$\alphaunifvar.\Ap{x}.\Ap{y}\equiv x$ is a pattern and has the solution $[\excopatmatch{\Ap{x}\Rightarrow\excopatmatch{\Ap{y}\Rightarrow x}}/\alphaunifvar]$.
+$\alphaunifvar.fst \equiv 2$ is a pattern and has the solution $[pair(2,x)/\alphaunifvar]$.
 
 %TODO: beispiele mit anderem destruktor??
 
@@ -616,7 +621,14 @@ but this is more obvious after using a beta-reduction on the left-hand side brin
     &\implies \alphaunifvar \equiv 3   
 \end{align*}
 
-
+Let's take a look at another example:
+\begin{align*}
+    &\alphaunifvar \equiv \True \\
+    &\alphaunifvar.\expatmatch{\True \Rightarrow 2, \False \Rightarrow 3} \equiv \betaunifvar
+\end{align*}
+To find out that $[2/\betaunifvar]$ is the solution to the second equation, we first need to find out that
+$[\code{True}/\alphaunifvar]$ is the solution to the first equation and substitute it in the second.
+This is what is called \textit{dynamic} pattern unification, where we hold off on solving some equations we don't have all the information for yet until we know more. 
 
 \section{The Algorithm For Higher-Order Unification}
 (Nur weil ich eine Citation irgendwo brauche)
