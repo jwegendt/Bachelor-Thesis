@@ -55,14 +55,15 @@
 %Macros for terms but for examples and such
 \newcommand{\exconstructor}[1]{K(#1)}
 \newcommand{\exdestructor}[1]{e.d(#1) }
-\newcommand{\expatmatch}[1]{e.\textbf{case}\{#1\}} 
+\newcommand{\expatmatch}[1]{\textbf{case}\{#1\}} 
 \newcommand{\excopatmatch}[1]{\textbf{cocase}\{#1\}}
 
 %Macros for structural/technical latex stuff
 \newcolumntype{L}{>{$}l<{$}} % a left-aligned column in mathmode
 \newcolumntype{C}{>{$}c<{$}} % a center-aligned column in mathmode
 
-\newcommand{\unifvar}{\alpha^?}
+\newcommand{\alphaunifvar}{\alpha^?}
+\newcommand{\betaunifvar}{\beta^?}
 \newcommand{\FV}[1]{\text{FV}(#1)}
 \newcommand{\listofexpr}{e_1,...e_n}
 \newcommand{\listofvar}{x_1,...x_n}
@@ -72,6 +73,8 @@
 
 \newcommand{\partition}{\;|\;}
 \newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\True}{\texttt{True }}
+\newcommand{\False}{\texttt{False }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Layout Title page
@@ -221,22 +224,25 @@ In pattern and copattern matches, every con- or destructor may occur no more tha
 %TODO: erklären warum? => verstehen warum (das reicht)?
 
 Let's look at some examples to ... %TODO: Formulierung 
-All rudimentary datatypes can be constructed through constructors: %TODO: zu blanket statement/stimmt das wirlich? 
-\\
-The Booleans \texttt{True} and \texttt{False} are constructors on an empty sequence.\\
-%TODO: integers müssen wir genau so machen, oder?
-%TODO: gibt es noch andere interessante/einleuchtende beispiele?
-%TODO: Idee für Strings: wir machen das gleiche mit buchstaben wie bei booleans 
-%      und representieren dann strings als konstruktoren die eine liste an buchstaben nehmen?
+All rudimentary datatypes can be constructed through constructors: 
+The Booleans \True and \False are constructors on an empty sequence. We can of course represent integers as peano numbers using constructors.
 
-Abstract data types like lists, arrays, records etc. can similarly be defined through constructors:\\
-\texttt{Cons(True, Cons(False, Nil))} and \texttt{Date(...)} %TODO: wie werden nummern repräsentiert?
+Abstract data types like lists, arrays, records etc. can similarly be defined through constructors:
+\texttt{cons(True, cons(False, Nil))} and \texttt{Date(...)} 
 
 We can use Pattern matching to represent conditionals:
-Lik this if statement: "$\textbf{if} e_1 \textbf{then} e_2 \textbf{else} e_3$" which is analogous to:
+Like if statements: if $e_1$ $e_2$ else $e_3$ which is analogous to:
 $e_1.\textbf{case}\{\texttt{True}\Rightarrow e_2, \texttt{False}\Rightarrow e_3\}$
-Or the expression which tests whether a given list contains the number 5:
-$e.\textbf{case}\{\}$
+Or the expression which tests whether a given list starts with \True:
+$e.\expatmatch{\texttt{cons(True x)}\Rightarrow \code{True}, \code{Nil }\Rightarrow\code{False}, \code{cons(x y)}\Rightarrow \code{False}}$
+%TODO: die fucking leerzeichen fixen
+\subsection{Data Types}
+There are of course endless constructors (and destructors) one can define using our syntax, but there are two common ones we want to touch on to be able to discuss them in examples.
+There is the pair: $pair(x,y)$ and its destructors \textit{fst} and \textit{snd}.
+Streams $\excopatmatch{head \Rightarrow ..., tail \Rightarrow ...}$ are a bit less intuitive, 
+but take the example of the stream consisting of \code{Trues}:
+$\code{Trues} = \excopatmatch{head \Rightarrow \code{True}, tail \Rightarrow \code{Trues}}$  
+%TODO: besser einführen. ich bin lost..
 
 \subsection{Free Variables, Substitutions, Contexts}
 
@@ -330,23 +336,23 @@ On the other hand, the substitution $[\excopatmatch{\Ap{y}\Rightarrow x} / x]$ i
 
 For example, look at the following unification problem where we are trying to substitute types for two unification variables:
 \begin{align*}
-    \texttt{List}(\unifvar) &\equiv \texttt{List}(\beta^?)\\
-    \unifvar &\equiv \texttt{Int}
+    \texttt{List}(\alphaunifvar) &\equiv \texttt{List}(\betaunifvar)\\
+    \alphaunifvar &\equiv \texttt{Int}
 \end{align*}
 
-One solution might be: $\theta = [Int, Int / \unifvar, \beta^?]$, 
+One solution might be: $\theta = [Int, Int / \alphaunifvar, \betaunifvar]$, 
 so substituting Int for both unification variables.
-The more general solution is $\sigma = [Int,\unifvar / \unifvar, \beta^?]$ (substituting $\unifvar$ for $\beta^?$, and substituting Int for $\unifvar$), however.
-This is because there exists a mapping $\tau = [Int / \unifvar]$, such that:
+The more general solution is $\sigma = [Int,\alphaunifvar / \alphaunifvar, \betaunifvar]$ (substituting $\alphaunifvar$ for $\betaunifvar$, and substituting Int for $\alphaunifvar$), however.
+This is because there exists a mapping $\tau = [Int / \alphaunifvar]$, such that:
 \begin{align*}
-    \tau \circ \sigma &= [Int[Int/\unifvar], \unifvar[Int/\unifvar] / \unifvar, \beta^?]= [Int, Int / \unifvar, \beta^?]= \theta
+    \tau \circ \sigma &= [Int[Int/\alphaunifvar], \alphaunifvar[Int/\alphaunifvar] / \alphaunifvar, \betaunifvar]= [Int, Int / \alphaunifvar, \betaunifvar]= \theta
 \end{align*}
 %TODO: das ist ein vorgriff! diese sektion doch weiter runter schieben? oder die definition von lösung weiter oben oder so? oder eben ein anderes beispiel was nicht mit unifikation zu tun hat?
 \iffalse
 For example, for the problem $\alpha x = zx$, both $\sigma_1 = [z/\alpha]$ and $\sigma_2 = [\lambda y.zx, \lambda y.zx/ \alpha, z]$ are solutions, %TODO: zeigen warum?
 but $\sigma_1$ is more general than $\sigma_2$, since there exists a substitution $\sigma_3 = [\lambda y.zx/z]$, and:
 \begin{align*}
-    \sigma_3 \circ \sigma_1 = [z[\lambda y.zx/z], \lambda y.zx /\alpha, z] = [(\lambda y.zx), \lambda y.zx /\alpha, z] = \sigma_2 %TODO: wirklich? 
+    \sigma_3 \circ \sigma_1 = [z[\lambda y.zx/z], \lambda y.zx /\alpha, z] = [(\lambda y.zx), \lambda y.zx /\alpha, z] = \sigma_2  
 \end{align*}
 \fi
 
@@ -356,14 +362,21 @@ but $\sigma_1$ is more general than $\sigma_2$, since there exists a substitutio
 \begin{definition}[Beta-Conversion]
     A single step of beta-conversion $e_1 \betaconv e_2$ is defined as follows:
     \begin{align*}
-        \constructor.\textbf{case}\{\dots,\exconstructor{\overline{x}}\Rightarrow e\} 
-        \betaconv & e[\overline{e}/x] \tag{$\beta$-Data}\\
+        \constructor.\textbf{case}\{\dots,\exconstructor{\overline{x}}\Rightarrow e,\dots\} 
+        \betaconv & e[\overline{e}/\overline{x}] \tag{$\beta$-Data}\\
         \excopatmatch{\dots,d(\overline{x}) \Rightarrow e, \dots}.d(\overline{e})
-        \betaconv & e[\overline{e}/x]  \tag{$\beta$-Codata}
+        \betaconv & e[\overline{e}/\overline{x}]  \tag{$\beta$-Codata}
     \end{align*}
     We require that the constructor $K(\overline{e})$ and the constructor $\exconstructor{\overline{x}}$ have the same number of arguments.
-    This, in short ensures that we don't generate stuck terms, i.e. Terms that can't be evaluated. %TODO: warum hier und nicht in der syntaxdefinition?
+    This, in short ensures that we don't generate stuck terms, i.e. terms that can't be evaluated. %TODO: warum hier und nicht in der syntaxdefinition?
 \end{definition}
+Some examples:
+\begin{align*}
+    &\code{True}.\expatmatch{\False\Rightarrow \True, \True \Rightarrow \False}\betaconv\False\\
+    &\excopatmatch{\Ap{x}\Rightarrow \True}.\Ap{x}\betaconv \True[x/x] = \True \\
+    &\excopatmatch{\Ap{y}\Rightarrow y}.\Ap{x} \betaconv y[x/y]= x
+\end{align*}
+Intuitively, beta-conversion means function application or the reduction under pattern or copattern matching. %TODO: macht das so sinn? sollte ich das mehr erklären? sind die beispiele hier überhaupt gut?
 
 \begin{definition}[Eta-Conversion for Codata]
     A single step of eta-conversion $e_1 \etaconv e_2$ is defined as follows:
@@ -376,8 +389,8 @@ but $\sigma_1$ is more general than $\sigma_2$, since there exists a substitutio
 
 \section{The Unification Problem}
 
-The Unification Problem is described by a set of equations with expressions on each side $\overline{e=e}$ containing unknown unification variables $\unifvar$,
-where our goal is to find a simultaneous substitution $[\listofexpr / \unifvar_1, \dots, \unifvar_n]$ which substitutes expressions for unification variables, 
+The Unification Problem is described by a set of equations with expressions on each side $\overline{e=e}$ containing unknown unification variables $\alphaunifvar$,
+where our goal is to find a simultaneous substitution $[\listofexpr / \alphaunifvar_1, \dots, \alphaunifvar_n]$ which substitutes expressions for unification variables, 
 such that the sides of the given equations are the same (respectively). 
 \\ %TODO: hier weniger formell/nochmal umformulieren?
 To describe this formally, we need to expand our syntax to be able to represent unification variables.
@@ -385,7 +398,7 @@ To describe this formally, we need to expand our syntax to be able to represent 
 \begin{table}[!h]
     \centering
         \begin{tabular}{L C L l}
-            e & ::= & \unifvar & Unification variable \\
+            e & ::= & \alphaunifvar, \betaunifvar  & Unification variable \\
               & | & x & Variable \\
               & | & \constructor & Constructor \\
               & | & \destructor & Destructor\\
@@ -406,21 +419,21 @@ This essentially means that two terms are equivalent if they are equivalent afte
 \end{definition}
 
 \begin{definition}[Solution]
-    A solution to a given unification problem is described by a simultaneous substitution $[\listofexpr / \unifvar_1, \dots, \unifvar_n]$
+    A solution to a given unification problem is described by a simultaneous substitution $[\listofexpr / \alphaunifvar_1, \dots, \alphaunifvar_n]$
     which when applied to the problem solves it, i.e. makes the sides of the equations equal %TODO: formellere formulierung?
 \end{definition}
 
 
 For some unification problems, there exists a solution and it is obvious:
-The solution to $\unifvar \equiv True$ is $[True/\unifvar]$
+The solution to $\alphaunifvar \equiv True$ is $[True/\alphaunifvar]$
 
 For some unification problems, it is rather obvious that there is no solution on the other hand:
 There is no mapping of unification variables that make both sides of $True \equiv False$ the same.
 
-Solutions aren't necessarily unique, either. The problem $\unifvar.\texttt{Ap}(5) \equiv 5$ has multiple solutions: 
-%$\unifvar \mapsto \lambda x.x$ and $\unifvar \mapsto \lambda x.5$. %TODO: are these actually the only solutions?
+Solutions aren't necessarily unique, either. The problem $\alphaunifvar.\texttt{Ap}(5) \equiv 5$ has multiple solutions: 
+%$\alphaunifvar \mapsto \lambda x.x$ and $\alphaunifvar \mapsto \lambda x.5$. %TODO: are these actually the only solutions?
 
-$[\excopatmatch{\texttt{Ap}(x)\Rightarrow x} / \unifvar]$ and $[\excopatmatch{\texttt{Ap}(x)\Rightarrow 5} / \unifvar]$,\\
+$[\excopatmatch{\texttt{Ap}(x)\Rightarrow x} / \alphaunifvar]$ and $[\excopatmatch{\texttt{Ap}(x)\Rightarrow 5} / \alphaunifvar]$,\\
 where \texttt{Ap} is a function applicator. 
 Thus, the two given solutions are the identity function and the constant function 5, which when consuming the argument 5, both give back 5.
 
@@ -439,7 +452,7 @@ To be able to discuss the algorithm for solving the unification problem, we need
     A solution is the most general unifier (mgu), iff. it is more general than all other solutions.
 \end{definition} 
 
-There does not always exist a mgu, for instance in the problem provided above ($\unifvar.\texttt{Ap}(5) \equiv 5$) %TODO: lieber dem bsp einen namen geben? oder noch eine hyperref?
+There does not always exist a mgu, for instance in the problem provided above ($\alphaunifvar.\texttt{Ap}(5) \equiv 5$) %TODO: lieber dem bsp einen namen geben? oder noch eine hyperref?
 
 \subsection{Fundamental Results}
 
@@ -450,18 +463,18 @@ First-order unification is pretty limited, but in many applications all we need,
 \begin{table}[!h]
     \centering
         \begin{tabular}{L C L l}
-            e, t & ::= & \unifvar & Unification variable \\
+            e, t & ::= & \alphaunifvar & Unification variable \\
                 & | & x & Variable \\
                 & | & \constructor & Constructor \\
         \end{tabular}
 \end{table}
 \end{definition}
 
-For example: $Int\rightarrow \unifvar \equiv Int \rightarrow Bool$ is a first-order unification problem on types which has the solution 
-$[Bool/\unifvar]$. 
+For example: $Int\rightarrow \alphaunifvar \equiv Int \rightarrow Bool$ is a first-order unification problem on types which has the solution 
+$[Bool/\alphaunifvar]$. 
 Note that we are dealing with type constructors, i.e. the type $Int\rightarrow Bool$ would be constructed as $Type(Int, Bool)$ where $Type(\cdot)$ is a constructor.
 
-On the other hand, $\unifvar\equiv List(\unifvar)$ should not have a solution. This is the negative example for the occur check rule below.
+On the other hand, $\alphaunifvar\equiv List(\alphaunifvar)$ should not have a solution. This is the negative example for the occur check rule below.
 
 Also note that even though we are still using $\equiv$ in equations, in practice this amounts to syntactic equality, since we can't have any beta- or eta- redexes. 
 
@@ -477,9 +490,9 @@ Also note that even though we are still using $\equiv$ in equations, in practice
         E & \cup \{ e \equiv e\} \Rightarrow E \tag{delete}\\
         E & \cup \{\exconstructor{e_1 ... e_n} \equiv \exconstructor{t_1 ... t_n}\} \Rightarrow E \cup \{e_1 \equiv t_1, ... e_n \equiv t_n\}\tag{decompose}\\
         E & \cup \{K_1(e_1,...e_n) \equiv K_2(t_1, ..., t_m)\}  \Rightarrow \perp \quad\text{if $K_1 \neq K_2$ or if $n\neq m$} \tag{conflict}\\
-        E & \cup \{e \equiv \unifvar\} \Rightarrow E \cup \{\unifvar \equiv e\}\tag{swap}\\ 
-        E & \cup \{\unifvar \equiv e\} \Rightarrow E[e/\unifvar] \cup \{\unifvar \equiv e\} \quad\text{if $\unifvar \in E$ and $\unifvar \notin e$}  \tag{eliminate}\\
-        E & \cup \{\unifvar \equiv K(e_1,...e_n)\}\Rightarrow \perp \quad \text{if $\unifvar \in e_1,...e_n$} \tag{occurs check} 
+        E & \cup \{e \equiv \alphaunifvar\} \Rightarrow E \cup \{\alphaunifvar \equiv e\}\tag{swap}\\ 
+        E & \cup \{\alphaunifvar \equiv e\} \Rightarrow E[e/\alphaunifvar] \cup \{\alphaunifvar \equiv e\} \quad\text{if $\alphaunifvar \in E$ and $\alphaunifvar \notin e$}  \tag{eliminate}\\
+        E & \cup \{\alphaunifvar \equiv K(e_1,...e_n)\}\Rightarrow \perp \quad \text{if $\alphaunifvar \in e_1,...e_n$} \tag{occurs check} 
     \end{align*}
 \end{definition} 
 %TODO: will ich die regeln umsortieren?
@@ -496,8 +509,9 @@ adapted to our syntax.
 
 \section{Pattern Unification}
 
-Pattern Unification, also sometimes called the Pattern Fragment %TODO: oder anders rum?
-is a subsection of Higher-Order Unification. It can be seen as an extension of first-order unification
+Pattern unification, also sometimes called the pattern fragment
+is a subsection of Higher-Order Unification,
+% It can be seen as an extension of first-order unification
 with its solution being similarly simple as the one to first-order unification.
 It was described first by Miller in \cite{10.1093/logcom/1.4.497}.
 Since we are dealing with what amounts to an extension to the lambda calculus (as our syntax also contains constructors), we need to extend our definition to more than just function applications. 
@@ -506,11 +520,11 @@ This means that (in practice,) the pattern fragment described by Miller is a sub
 \begin{definition}[Pattern]
     A pattern is any term $p$ 
     \begin{align*}
-        p ::= \unifvar \partition p.d(\listofvar)
+        p ::= \alphaunifvar \partition p.d(\listofvar)
     \end{align*}
     where it holds that all $\listofvar$ are distinct variables.
 \end{definition}
-%The intuition here is that in the above case, $\unifvar$ is an unknown function applied to its arguments $\listofexpr$, 
+%The intuition here is that in the above case, $\alphaunifvar$ is an unknown function applied to its arguments $\listofexpr$, 
 %and anytime we apply an unknown function, we should read the problem as a definition for the function.
 %TODO: mehr erklärung?
 
@@ -520,19 +534,31 @@ we have omitted the part about the variables being bound. We require this later 
 %TODO: beispiele mit anderem destruktor??
 
 \begin{theorem}[Decidability of Pattern Unification]
-    Patterns Unification is decidable. If there exists a solution, there also exists a mgu.
+    Pattern Unification is decidable. If there exists a solution, there also exists a mgu.
 \end{theorem}
 
 Note that first-order unification is not a subset of pattern unification. 
 Equations containing first-order terms that don't contain patterns still remain solvable.
 %TODO: ist das offensichtlich? bzw soll ich das in der einleitung klar machen oder besser beschreiben?
 
+The reason there always exists an mgu lies in the constraint we put on our definition: All the variables must be distinct. 
 
-To be able to talk about the algorithms for solving unification problems, we need some another definition: %TODO: umformulieren
+To illustrate this, take the problem $\alphaunifvar.\Ap{x}.\Ap{x}\equiv x$ (where the variables are \textbf{not} distinct). 
+We can name two solutions:
+\begin{align*}
+    \sigma_1 &= [\excopatmatch{\Ap{x}\Rightarrow \excopatmatch{\Ap{y}\Rightarrow x}}/\alphaunifvar]\\
+    \sigma_2 &=[\excopatmatch{\Ap{x}\Rightarrow \excopatmatch{\Ap{y}\Rightarrow y}}/\alphaunifvar]  
+\end{align*}
+(Intuitively, the solutions say to select the first or second argument of the function applications, respectively.)
+These solutions are equivalent, in that no solution is more general than the other. There exists no mgu for this problem.
+The solutions aren't unique because the variables aren't unique.
+%TODO: ist das beispiel zu ausführlich?
+
+To be able to talk about the algorithms for solving unification problems, we need another definition: %TODO: umformulieren
 \begin{definition}[Normal Form]
     The normal form \textbf{NF} is defined as follows:
     \begin{align*}
-        n &::= x \partition \unifvar \partition n.d(\overline{v})\partition n.\textbf{case}\{\overline{K(\overline{x})\Rightarrow v}\}\\
+        n &::= x \partition \alphaunifvar \partition n.d(\overline{v})\partition n.\textbf{case}\{\overline{K(\overline{x})\Rightarrow v}\}\\
         v &::= n \partition K(\overline{v}) \partition \excopatmatch{\overline{d(\overline{x})\Rightarrow v}}
     \end{align*}
     Terms that satisfy the $n$-definition are called neutral terms, $v$-terms are called values.
@@ -554,9 +580,9 @@ Values, where we don't have this assurance cannot contain the building blocks fo
 Some examples: 
 \begin{align*}
     \begin{split}
-        t_1 &= \unifvar.\Ap{\excopatmatch{\Ap{x}\Rightarrow x}}, \\
+        t_1 &= \alphaunifvar.\Ap{\excopatmatch{\Ap{x}\Rightarrow x}}, \\
         t_2 &= \excopatmatch{\Ap{x}\Rightarrow \texttt{cons(x cons(y Nil))}},   \\
-        t_3 &= \unifvar.\Ap{x_1, x_2, x_3}
+        t_3 &= \alphaunifvar.\Ap{x_1, x_2, x_3}
     \end{split}    
 \end{align*}
 $t_1$ and $t_2$ are in normal form and $t_3$ is a pattern in normal form.
@@ -571,12 +597,14 @@ Furthermore, we will only be looking at terms that have a normal form. This is e
 This is helpful for us, since we only have to consider normal forms in our algorithm, as in: 
 Met with a term, we first reduce it to its normal form, and then solve for our solution.
 
-As an example, the problem $True.\textbf{case} \{ True => a?, False => 2 \} \equiv 3 $ has the solution $[3/\unifvar]$, 
-but this is more obvious afrer using a beta-reduction on the left-hand side bringing it into normal form:
+As an example, the problem $\code{True}.\textbf{case} \{ \code{True} => a?, False => 2 \} \equiv 3 $ has the solution $[3/\alphaunifvar]$, 
+but this is more obvious after using a beta-reduction on the left-hand side bringing it into normal form:
 \begin{align*}
-    &True.\textbf{case} \{ True => a?, False => 2 \} \betaconv \unifvar  \\
-    &\implies \unifvar \equiv 3   
+    &\code{True}.\textbf{case} \{ \True => a?, \False => 2 \} \betaconv \alphaunifvar  \\
+    &\implies \alphaunifvar \equiv 3   
 \end{align*}
+
+
 
 \section{The Algorithm For Higher-Order Unification}
 (Nur weil ich eine Citation irgendwo brauche)
@@ -628,8 +656,8 @@ Für wenn wir patterns in mehr kontext behandeln i guess
 Some examples of patterns:
 \begin{align*}
     \begin{split}
-    t_1 &= \excopatmatch{\Ap{x}\Rightarrow \unifvar.\Ap{x}} \\
-    t_2 &= \excopatmatch{\Ap{x}\Rightarrow \excopatmatch{\Ap{y}\Rightarrow (\unifvar.\Ap{y}).\Ap{x}}}    
+    t_1 &= \excopatmatch{\Ap{x}\Rightarrow \alphaunifvar.\Ap{x}} \\
+    t_2 &= \excopatmatch{\Ap{x}\Rightarrow \excopatmatch{\Ap{y}\Rightarrow (\alphaunifvar.\Ap{y}).\Ap{x}}}    
     \end{split}
 \end{align*} 
 In each of these terms, our unification variable is applied to distinct variables which are bound through  cocases.
@@ -637,9 +665,9 @@ In each of these terms, our unification variable is applied to distinct variable
 However, these terms are not patterns:
 \begin{align*}
     \begin{split}
-        t_3 &= (\unifvar.\Ap{x}).\Ap{y}\\
-        t_4 &= \excopatmatch{\Ap{y}\Rightarrow (\unifvar.\Ap{x})}\\
-        t_5 &= \excopatmatch{\Ap{x}\Rightarrow (\unifvar.\Ap{x}).\Ap{x}}
+        t_3 &= (\alphaunifvar.\Ap{x}).\Ap{y}\\
+        t_4 &= \excopatmatch{\Ap{y}\Rightarrow (\alphaunifvar.\Ap{x})}\\
+        t_5 &= \excopatmatch{\Ap{x}\Rightarrow (\alphaunifvar.\Ap{x}).\Ap{x}}
     \end{split}
 \end{align*}
 as they all don't contain exactly one cocase per variable which would bind that variable distinctly.
