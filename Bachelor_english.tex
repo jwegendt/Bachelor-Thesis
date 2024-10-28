@@ -182,20 +182,17 @@ that matches the term is the result of the pattern match. %TODO: kann man hier Ã
 For a copattern match $\textbf{cocase} \{\overline{d(\overline{x}) \Rightarrow e}\}$
 the same rules apply, but instead of constructors, the term is matched against destructors.
 
-\iffalse
-\begin{equation}
-    \begin{split}
-        e ::&= x \quad \text{Variables} \\
-        &| \; \constructor       \quad \text{Constructors} \\
-        &| \; \destructor         \quad \text{Destructors} \\
-        &| \; \patmatch       \quad \text{Pattern match}\\
-        &| \; \copatmatch      \quad \text{Copattern match}
-    \end{split}
-\end{equation}
-\fi
-
 \begin{definition}[Terms of the Calculus ND]
+\begin{align*}
+    e  ::&=  x  \tag*{Variable} \\
+        &\partition\constructor \tag*{Constructor} \\
+        &\partition\destructor  \tag*{Destructor}\\
+        &\partition\patmatch  \tag*{Pattern match}\\
+        &\partition\copatmatch  \tag*{Copattern match}
+\end{align*}
+\end{definition}
 
+\iffalse
 \begin{table}[!h]
 \centering
     \begin{tabular}{L C L l}
@@ -207,16 +204,6 @@ the same rules apply, but instead of constructors, the term is matched against d
     \end{tabular}
 \end{table}
 \end{definition}
-
-
-\iffalse
-\begin{align*}
-    e  ::&=  x  \tag*{Variable} \\
-        &| \quad \constructor \tag*{Constructor} \\
-        &| \quad \destructor  \tag*{Destructor}\\
-        &| \quad \patmatch  \tag*{Pattern match}\\
-        &| \quad \copatmatch  \tag*{Copattern match}
-\end{align*}
 \fi
 
 
@@ -395,6 +382,8 @@ such that the sides of the given equations are the same (respectively).
 \\ %TODO: hier weniger formell/nochmal umformulieren?
 To describe this formally, we need to expand our syntax to be able to represent unification variables.
 
+
+\iffalse
 \begin{table}[!h]
     \centering
         \begin{tabular}{L C L l}
@@ -406,6 +395,20 @@ To describe this formally, we need to expand our syntax to be able to represent 
               & | & \copatmatch & Copattern match
         \end{tabular}
 \end{table}
+\fi
+
+\begin{definition}[Syntax in Unification Problems]
+    \begin{align*}
+        e  ::&= \alphaunifvar, \betaunifvar \\ 
+            &\partition x  \tag*{Variable} \\
+            &\partition\constructor \tag*{Constructor} \\
+            &\partition\destructor  \tag*{Destructor}\\
+            &\partition\patmatch  \tag*{Pattern match}\\
+            &\partition\copatmatch  \tag*{Copattern match}
+    \end{align*}
+\end{definition}
+
+
 
 In unification, we are not concerned with syntactic equality, but want a broader set of terms to be equal to one another.
 Depending on the type of unification problem one wants to solve, they may want to only include beta-equality or both 
@@ -460,6 +463,14 @@ There does not always exist a mgu, for instance in the problem provided above ($
 To better understand higher-order unification, we first want to take a look at some simpler unification problems.
 First-order unification is pretty limited, but in many applications all we need, as in most type checking.
 
+\begin{align*}
+    e, t ::&= \alphaunifvar, \betaunifvar \tag*{Unification variable}\\
+    &\partition x\tag*{Variable} \\
+    &\partition \constructor \tag*{Constructor}
+\end{align*}
+\end{definition}
+
+\iffalse
 \begin{table}[!h]
     \centering
         \begin{tabular}{L C L l}
@@ -468,7 +479,8 @@ First-order unification is pretty limited, but in many applications all we need,
                 & | & \constructor & Constructor \\
         \end{tabular}
 \end{table}
-\end{definition}
+\fi
+
 
 For example: $Int\rightarrow \alphaunifvar \equiv Int \rightarrow Bool$ is a first-order unification problem on types which has the solution 
 $[Bool/\alphaunifvar]$. 
