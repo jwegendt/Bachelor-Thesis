@@ -458,9 +458,9 @@ adapted to our syntax.
 
 \section{Higher-Order Unification}
 
-\begin{definition}[Syntax in Unification Problems]
+\begin{definition}[Higher-Order Unification]
     \begin{align*}
-        e  ::&= \alphaunifvar, \betaunifvar \tag*{Unification Variables}\\ 
+        e  ::&= \alphaunifvar\sigma, \betaunifvar\sigma \tag*{Unification Variables with substitution}\\ %TODO: name? 
             &\partition x  \tag*{Variable} \\
             &\partition\constructor \tag*{Constructor} \\
             &\partition\destructor  \tag*{Destructor}\\
@@ -469,9 +469,20 @@ adapted to our syntax.
     \end{align*}
 \end{definition}
 
-Note that this is just our syntax expanded by unfification variables.
+Note that this is encompassed our syntax described in Section 2, %TODO: schlechter stil?
+but with the addition of unification variables with substitutions. 
+To illustrate the need for this substitution, look at what problem arises when omitting the substitution:
+Take the following example: $\excopatmatch{\Ap{x}\Rightarrow\alphaunifvar}.\Ap{y}\equiv\betaunifvar$. 
+First focus on the left side and notice that there is a redex. What happens if we reduce it?
 
-%TODO: erweiterung mit der substitution und erklärung!
+\begin{align*}
+    \excopatmatch{\Ap{x}\Rightarrow\alphaunifvar}.\Ap{y}\betaconv\alphaunifvar[y/x]    
+\end{align*}
+
+This motivates our need for substitutions: We may need to apply substitutions to unification variables.
+Note that this is \textit{not} possible in first-order unification, since we don't create subsitutions through redexes! 
+
+When there is no substitution necessary, we may  write $\alphaunifvar, \betaunifvar$ instead of using the identity substitution. %TODO: das vorher einführen und dann definition verwenden?
 
 Here, in contrast to in First-Order unification, we are not interested in syntactic equality,but want a broader set of terms to be equal to one another.
 Depending on the type of unification problem one wants to solve, they may want to only include beta-equality or both 
@@ -501,7 +512,7 @@ This means that (in practice,) the pattern fragment described by Miller is a sub
 \begin{definition}[Pattern]
     A pattern is any term $p$ 
     \begin{align*}
-        p ::= \alphaunifvar \partition p.d(\listofvar)
+        p ::= \alphaunifvar, \betaunifvar \partition p.d(\listofvar)
     \end{align*}
     where it holds that all $\listofvar$ are distinct variables.
 \end{definition}
@@ -601,6 +612,7 @@ This is what is called \textit{dynamic} pattern unification, where we hold off o
 (Nur weil ich eine Citation irgendwo brauche)
 In \cite{DBLP:books/el/RV01/Dowek01}, Huet's algorithm is described. %TODO: spelling?
 
+In \cite{10.5555/2021953.2021960}, the authors describe a unification algorithm for an extension to the pattern unification discussed above.
 
 
 
