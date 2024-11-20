@@ -380,6 +380,10 @@ Intuitively, beta-conversion means function application or the reduction under p
 
 \section{First-Order Unification}
 
+We want to slowly make our way to higher-order unification, and thus touch on simpler problems first. 
+Furthermore, we need a couple concepts more to be able to talk about unification problems and describe our algorithm. 
+
+%TODO: a? the? unification problem? 
 The Unification Problem is described by a set of equations with expressions on each side $\overline{e\equiv e}$ containing unknown unification variables $\alphaunifvar_1, \alphaunifvar_2, ...$, %TODO: lieber mit alpha_n oder lieber nur alpha? 
 where our goal is to find a simultaneous substitution $[\listofexpr / \alphaunifvar_1, \dots, \alphaunifvar_n]$ which substitutes expressions for unification variables, 
 such that the sides of the given equations are the same (respectively). 
@@ -388,38 +392,15 @@ such that the sides of the given equations are the same (respectively).
     A solution to a given unification problem is described by a simultaneous substitution $[\listofexpr / \alphaunifvar_1, \dots, \alphaunifvar_n]$
     which when applied to the problem solves it, i.e. makes the sides of the equations equal %TODO: formellere formulierung?
 \end{definition}
-
-%TODO: reform this section i dont like it
-For some unification problems, there exists a solution and it is obvious:
-The solution to $\alphaunifvar \equiv True$ is $[True/\alphaunifvar]$
-
-For some unification problems, it is rather obvious that there is no solution on the other hand:
-There is no mapping of unification variables that make both sides of $True \equiv False$ the same.
-
-Solutions aren't necessarily unique, either. The problem $\alphaunifvar.\texttt{Ap}(5) \equiv 5$ has multiple solutions: 
-%$\alphaunifvar \mapsto \lambda x.x$ and $\alphaunifvar \mapsto \lambda x.5$. %TODO: are these actually the only solutions?
-
-$[\excopatmatch{\texttt{Ap}(x)\Rightarrow x} / \alphaunifvar]$ and $[\excopatmatch{\texttt{Ap}(x)\Rightarrow 5} / \alphaunifvar]$,\\
-where \texttt{Ap} is a function applicator. 
-Thus, the two given solutions are the identity function and the constant function 5, which when consuming the argument 5, both give back 5.
-
-The interesting unification problems are those where it is not clear at first sight whether there exists a solution.
-%TODO: die formulierung ist ekelhaft
-
-To be able to discuss the algorithm for solving the unification problem, we need to define some helpful concepts first.
     
 \begin{definition}[Most General]
     A solution is the most general unifier (mgu), iff. it is more general than all other solutions.
 \end{definition} 
 
-There does not always exist a mgu, for instance in the problem provided above ($\alphaunifvar.\texttt{Ap}(5) \equiv 5$) %TODO: lieber dem bsp einen namen geben? oder noch eine hyperref?
-
-
-To better understand higher-order unification, we first want to take a look at some simpler unification problems.
-First-order unification is pretty limited, but in many applications all we need, as in most type checking.
+Now let's take a look at first-order unification, which is a pretty limited subproblem, 
+but in many applications all we need, as in most type checking.
 
 \begin{definition}[First-Order unification]
-
 \begin{align*}
     e, t ::&= \alphaunifvar, \betaunifvar \tag*{Unification variable}\\
     &\partition x\tag*{Variable} \\
@@ -427,11 +408,15 @@ First-order unification is pretty limited, but in many applications all we need,
 \end{align*}
 \end{definition}
 
-For example: $Int\rightarrow \alphaunifvar \equiv Int \rightarrow Bool$ is a first-order unification problem on types which has the solution 
-$[Bool/\alphaunifvar]$. 
+Some examples:
+$\alphaunifvar \equiv True$ has the solution $[True/\alphaunifvar]$.
+$True \equiv False$ doesn't have a solution.
+
+$Int\rightarrow \alphaunifvar \equiv Int \rightarrow Bool$ has the solution $[Bool/\alphaunifvar]$. 
 Note that we are dealing with type constructors, i.e. the type $Int\rightarrow Bool$ would be constructed as $Type(Int, Bool)$ where $Type(\cdot)$ is a constructor.
 
 On the other hand, $\alphaunifvar\equiv List(\alphaunifvar)$ should not have a solution. This is the negative example for the occur check rule below.
+
 
 
 \begin{theorem}[Decidability of First-Order Unification]
@@ -491,6 +476,14 @@ beta- and eta-equality.
 This further motivates our use of the symbol $\equiv$ so far. Whereas in first-order unification it just stands for syntactic equality, 
 in higher-order unification, I use it to mean syntactically equality, beta-equality or eta-equality.
 This essentially means that two terms are equivalent if they are equivalent after function application and/or are equivalent externally.
+
+Let's next consider a few examples:
+The problem $\alphaunifvar.\texttt{Ap}(5) \equiv 5$ has multiple solutions:
+$[\excopatmatch{\texttt{Ap}(x)\Rightarrow x} / \alphaunifvar]$ and $[\excopatmatch{\texttt{Ap}(x)\Rightarrow 5} / \alphaunifvar]$,\\
+where \texttt{Ap} is a function applicator. 
+Thus, the two given solutions are the identity function and the constant function 5, which when consuming the argument 5, both give back 5.
+In this case there also doesn't exist an mgu.
+%TODO: more!
 
 \begin{theorem}[Decidability of Higher-Order Unification]
     Higher-order unification includes unification problems containing higher-order terms (equivalent to lambda abstractions),
