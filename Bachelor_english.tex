@@ -416,7 +416,7 @@ $Int\rightarrow \alphaunifvar \equiv Int \rightarrow Bool$ has the solution $[Bo
 Note that we are dealing with type constructors, i.e. the type $Int\rightarrow Bool$ would be constructed as $Type(Int, Bool)$ where $Type(\cdot)$ is a constructor.
 
 On the other hand, $\alphaunifvar\equiv List(\alphaunifvar)$ should not have a solution. This is the negative example for the occur check rule below.
-
+%TODO: anders?
 
 
 \begin{theorem}[Decidability of First-Order Unification]
@@ -469,7 +469,7 @@ Note that this is \textit{not} possible in first-order unification, since we don
 
 When there is no substitution necessary, we may  write $\alphaunifvar, \betaunifvar$ instead of using the identity substitution. %TODO: das vorher einführen und dann definition verwenden?
 
-Here, in contrast to in First-Order unification, we are not interested in syntactic equality,but want a broader set of terms to be equal to one another.
+In higher-order unification in contrast to in first-order unification, we are not interested in syntactic equality,but want a broader set of terms to be equal to one another.
 Depending on the type of unification problem one wants to solve, they may want to only include beta-equality or both 
 beta- and eta-equality.
 
