@@ -373,7 +373,7 @@ Intuitively, beta-conversion means function application or the reduction under p
 \begin{definition}[Eta-Conversion for Codata]
     A single step of eta-conversion $e_1 \etaconv e_2$ is defined as follows:
     \begin{align*}
-        \excopatmatch{d(\overline{x})\Rightarrow e.d(\overline{x})} 
+        \excopatmatch{\overline{d(\overline{x})\Rightarrow e.d(\overline{x})}}
         \etaconv & e \quad (\text{if } \overline{x}\notin \FV{e}) \tag{$\eta$-Codata}
     \end{align*}
 \end{definition}
@@ -467,7 +467,7 @@ First focus on the left side and notice that there is a redex. What happens if w
 This motivates our need for substitutions: We may need to apply substitutions to unification variables.
 Note that this is \textit{not} possible in first-order unification, since we don't create subsitutions through redexes! 
 
-When there is no substitution necessary, we may  write $\alphaunifvar, \betaunifvar$ instead of using the identity substitution. %TODO: das vorher einführen und dann definition verwenden?
+When the substitution is trivial, we may  write $\alphaunifvar, \betaunifvar$ instead.
 
 In higher-order unification in contrast to in first-order unification, we are not interested in syntactic equality,but want a broader set of terms to be equal to one another.
 Depending on the type of unification problem one wants to solve, they may want to only include beta-equality or both 
@@ -602,10 +602,34 @@ $[\code{True}/\alphaunifvar]$ is the solution to the first equation and substitu
 This is what is called \textit{dynamic} pattern unification, where we hold off on solving some equations we don't have all the information for yet until we know more. 
 
 \section{The Algorithm For Higher-Order Unification}
+
+\subsection{Decomposing Constraints}
+
+\begin{align*}
+    \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv 
+    \excopatmatch{\overline{d(\overline{x})\Rightarrow t}}
+    \mapsto \overline{d(\overline{x}) = d(\overline{x})} \land \overline{e \equiv t}\tag*{1,4}\\
+    \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t \mapsto \overline{e \equiv t.d(\overline{x})} \tag*{2,5}\\
+    t&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow e}} \mapsto \overline{t.d(\overline{x}) \equiv e} \tag*{3,6}
+\end{align*}
+These rules are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
+
+Note that 2,5 (as well as 3,6 with being just the mirror of 2,5) are possible through eta-conversion:
+
+\begin{align*}
+    \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t \tag*{$\equiv_{\eta}$}\\
+    \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow t.d(\overline{x})}} \tag*{1,4}\\
+    &\mapsto \overline{e \equiv t.d(\overline{x})}
+\end{align*}
+(Annotations on the right are supposed to show what rule is being used to get to the statement below.)
+
+
+
+
+
+\newpage
 (Nur weil ich eine Citation irgendwo brauche)
 In \cite{DBLP:books/el/RV01/Dowek01}, Huet's algorithm is described. %TODO: spelling?
-
-In \cite{10.5555/2021953.2021960}, the authors describe a unification algorithm for an extension to the pattern unification discussed above.
 
 
 
