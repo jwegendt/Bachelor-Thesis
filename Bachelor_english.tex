@@ -420,7 +420,7 @@ On the other hand, $\alphaunifvar\equiv List(\alphaunifvar)$ should not have a s
 
 
 \begin{theorem}[Decidability of First-Order Unification]
-    For first-order unification, there exists an algorithm on equations $E$, which always terminates, and returns the solution if there exists one. 
+    For first-order unification, there exists an algorithm on equneutralations $E$, which always terminates, and returns the solution if there exists one. 
     In particular, this solution is always a mgu (i.e. if there is a solution, then there always exists a most general one).
 \end{theorem}
 
@@ -604,6 +604,14 @@ This is what is called \textit{dynamic} pattern unification, where we hold off o
 \section{The Algorithm For Higher-Order Unification}
 
 \subsection{Decomposing Constraints}
+In this section, we want to explore how to simplify constraints.
+Let's look at some examples to get started:
+\begin{align*}
+    x \vdash x.\pi_1 \equiv x.\pi_2 \mapsto \top\\
+    x,y \vdash x.\pi_1 \equiv y.\pi_2 \mapsto \bot \\
+    x \vdash x.\Ap{e_1}\equiv x.\Ap{e_2} \mapsto x\vdash e_1\equiv e_2
+\end{align*}
+These all demonstrate different rule applications.
 
 \begin{align*}
     \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv 
@@ -622,6 +630,7 @@ Note that 2,5 (as well as 3,6 with being just the mirror of 2,5) are possible th
     &\mapsto \overline{e \equiv t.d(\overline{x})}
 \end{align*}
 (Annotations on the right are supposed to show what rule is being used to get to the statement below.)
+
 
 
 
