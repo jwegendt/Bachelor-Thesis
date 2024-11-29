@@ -79,6 +79,8 @@
 \newcommand{\True}{\texttt{True }}
 \newcommand{\False}{\texttt{False }}
 
+\newcommand{\constraints}{\mathcal{K}}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Layout Title page
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -485,6 +487,17 @@ Thus, the two given solutions are the identity function and the constant functio
 In this case there also doesn't exist an mgu.
 %TODO: more!
 
+
+To be able to discuss unification equations in more depth, we need one more concept:
+
+\begin{definition}[Constraint]
+    \begin{align*}
+        K ::= \top \partition \bot \partition x_1, ... x_n \vdash e\equiv t\\
+        \mathcal{K} ::= K \wedge \mathcal{K}
+    \end{align*}
+\end{definition}
+%TODO: was bedeuten die 
+
 \begin{theorem}[Decidability of Higher-Order Unification]
     Higher-order unification includes unification problems containing higher-order terms (equivalent to lambda abstractions),
     and is covered by our introduced syntax. %TODO: bessere formulierung?
@@ -609,16 +622,19 @@ Let's look at some examples to get started:
 \begin{align*}
     x \vdash x.\pi_1 \equiv x.\pi_2 \mapsto \top\\
     x,y \vdash x.\pi_1 \equiv y.\pi_2 \mapsto \bot \\
+    x \vdash x.\pi_1 \equiv x.\pi_2 \mapsto \bot \\
     x \vdash x.\Ap{e_1}\equiv x.\Ap{e_2} \mapsto x\vdash e_1\equiv e_2
 \end{align*}
 These all demonstrate different rule applications.
 
 \begin{align*}
-    \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv 
+    \Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv 
     \excopatmatch{\overline{d(\overline{x})\Rightarrow t}}
-    \mapsto \overline{d(\overline{x}) = d(\overline{x})} \land \overline{e \equiv t}\tag*{1,4}\\
-    \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t \mapsto \overline{e \equiv t.d(\overline{x})} \tag*{2,5}\\
-    t&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow e}} \mapsto \overline{t.d(\overline{x}) \equiv e} \tag*{3,6}
+    \mapsto \Psi, \overline{x}\vdash \overline{e \equiv t}\tag*{1,4}\\
+    \Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t 
+    \mapsto \Psi,\overline{x} \vdash\overline{e \equiv t.d(\overline{x})} \tag*{2,5}\\
+    \Psi\vdash t&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow e}} 
+    \mapsto \Psi, \overline{x}\vdash \overline{t.d(\overline{x}) \equiv e} \tag*{3,6}
 \end{align*}
 These rules are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
 
@@ -631,6 +647,16 @@ Note that 2,5 (as well as 3,6 with being just the mirror of 2,5) are possible th
 \end{align*}
 (Annotations on the right are supposed to show what rule is being used to get to the statement below.)
 
+
+Let's  take a look at normal forms:
+\begin{align*}
+    \Psi \vdash n_1.d({\overline{v}})\equiv n_2.d({\overline{w}})
+    \mapsto n_1 \equiv n_2 \wedge \overline{v\equiv w}\\
+    \Psi \vdash n_1.\expatmatch{\overline{K(\overline{x})\Rightarrow v}}\equiv n_2.\expatmatch{\overline{K(\overline{x})\Rightarrow w}}
+    \mapsto \Psi, \overline{x} \vdash n_1 \equiv n_2\wedge \overline{v\equiv w}\\
+    \Psi \vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow v}}\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow w}}
+    \mapsto\Psi,\overline{x} \vdash \overline{v \equiv w}
+\end{align*}
 
 
 
