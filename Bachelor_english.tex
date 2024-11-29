@@ -79,7 +79,7 @@
 \newcommand{\True}{\texttt{True }}
 \newcommand{\False}{\texttt{False }}
 
-\newcommand{\constraints}{\mathcal{K}}
+\newcommand{\constraints}{\mathcal{C}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Layout Title page
@@ -492,11 +492,19 @@ To be able to discuss unification equations in more depth, we need one more conc
 
 \begin{definition}[Constraint]
     \begin{align*}
-        K ::= \top \partition \bot \partition x_1, ... x_n \vdash e\equiv t\\
-        \mathcal{K} ::= K \wedge \mathcal{K}
+        C ::= \top \partition \bot \partition \Psi \vdash e\equiv t\\
+        \mathcal{C} ::= C \wedge \mathcal{C}
     \end{align*}
+    $\Psi$, called context is just a list of variables $x_1,...x_n$ and may be empty.
 \end{definition}
-%TODO: was bedeuten die 
+Why do we need a formal definition here? We don't solve our unification problem in one huge step, but
+work on it incrementally, solving parts of terms and remembering the information we have learned from these parts.
+We want to be able to talk about these processes formally.
+
+We formulate our constraints from a given unification problem as follows:
+We take each given equation and formulate a constraint $K$ with empty context $\Psi$. We join them using ands: %TODO: formulierung?
+$\overline{e\equiv t}$ becomes: $\constraints = C_1 \wedge ... \wedge C_n  \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
+
 
 \begin{theorem}[Decidability of Higher-Order Unification]
     Higher-order unification includes unification problems containing higher-order terms (equivalent to lambda abstractions),
@@ -617,8 +625,11 @@ This is what is called \textit{dynamic} pattern unification, where we hold off o
 \section{The Algorithm For Higher-Order Unification}
 
 \subsection{Decomposing Constraints}
-In this section, we want to explore how to simplify constraints.
-Let's look at some examples to get started:
+
+It is helpful to simplify our equations a bit before starting the unification process.
+We do this by taking out unnecessary equations, spotting clearly contradictory equations or splitting our equations in smaller parts which we can further simplify and unify.
+
+Let's look at some equations to get startet:
 \begin{align*}
     x \vdash x.\pi_1 \equiv x.\pi_2 \mapsto \top\\
     x,y \vdash x.\pi_1 \equiv y.\pi_2 \mapsto \bot \\
@@ -647,14 +658,13 @@ Note that 2,5 (as well as 3,6 with being just the mirror of 2,5) are possible th
 \end{align*}
 (Annotations on the right are supposed to show what rule is being used to get to the statement below.)
 
-
 Let's  take a look at normal forms:
 \begin{align*}
-    \Psi \vdash n_1.d({\overline{v}})\equiv n_2.d({\overline{w}})
+    \Psi \vdash n_1.d({\overline{v}})&\equiv n_2.d({\overline{w}})
     \mapsto n_1 \equiv n_2 \wedge \overline{v\equiv w}\\
-    \Psi \vdash n_1.\expatmatch{\overline{K(\overline{x})\Rightarrow v}}\equiv n_2.\expatmatch{\overline{K(\overline{x})\Rightarrow w}}
+    \Psi \vdash n_1.\expatmatch{\overline{K(\overline{x})\Rightarrow v}}&\equiv n_2.\expatmatch{\overline{K(\overline{x})\Rightarrow w}}
     \mapsto \Psi, \overline{x} \vdash n_1 \equiv n_2\wedge \overline{v\equiv w}\\
-    \Psi \vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow v}}\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow w}}
+    \Psi \vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow v}}&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow w}}
     \mapsto\Psi,\overline{x} \vdash \overline{v \equiv w}
 \end{align*}
 
