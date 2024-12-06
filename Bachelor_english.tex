@@ -495,8 +495,13 @@ To be able to discuss unification equations in more depth, we need one more conc
         C ::= \top \partition \bot \partition \Psi \vdash e\equiv t\\
         \mathcal{C} ::= C \wedge \mathcal{C}
     \end{align*}
-    $\Psi$, called context is just a list of variables $x_1,...x_n$ and may be empty.
+    $\Psi$, called context is just a list of distinct variables $x_1,...x_n$ and may be empty.
 \end{definition}
+$\Psi \vdash e\equiv t$ means that given the variables $\Psi$, we deduce that $e\equiv t$.
+$\Psi$ may contain variables that occur in or are even bound in $e,t$. 
+$\Psi$ contains those variables we have seen before and want to remember. This motivates the naming of $\Psi$ as context, as well.
+%TODO: ist das offensichtlich?
+
 Why do we need a formal definition here? We don't solve our unification problem in one huge step, but
 work on it incrementally, solving parts of terms and remembering the information we have learned from these parts.
 We want to be able to talk about these processes formally.
@@ -505,6 +510,9 @@ We formulate our constraints from a given unification problem as follows:
 We take each given equation and formulate a constraint $K$ with empty context $\Psi$. We join them using ands: %TODO: formulierung?
 $\overline{e\equiv t}$ becomes: $\constraints = C_1 \wedge ... \wedge C_n  \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
 
+For clarification, $C \wedge \mathcal{C}$ is the regular logical and thus, 
+and $\top \wedge \constraints = \constraints$ as well as $\bot \wedge \constraints = \bot$
+%TODO: ist das offensichtlich?
 
 \begin{theorem}[Decidability of Higher-Order Unification]
     Higher-order unification includes unification problems containing higher-order terms (equivalent to lambda abstractions),
@@ -627,16 +635,16 @@ This is what is called \textit{dynamic} pattern unification, where we hold off o
 \subsection{Decomposing Constraints}
 
 It is helpful to simplify our equations a bit before starting the unification process.
-We do this by taking out unnecessary equations, spotting clearly contradictory equations or splitting our equations in smaller parts which we can further simplify and unify.
+We do this by taking out redundant equations, spotting clearly contradictory equations or splitting our equations into smaller parts which we can further simplify and unify.
 
-Let's look at some equations to get startet:
+Let's look at some examples. We would like the following to be true:
 \begin{align*}
     &x \vdash x.\pi_1 \equiv x.\pi_1 &&\mapsto&& \top\\
     &x,y \vdash x.\pi_1 \equiv y.\pi_1 &&\mapsto&& \bot \\
     &x \vdash x.\pi_1 \equiv x.\pi_2 &&\mapsto&& \bot \\
     &x \vdash x.\Ap{e_1}\equiv x.\Ap{e_2} &&\mapsto&& x\vdash e_1\equiv e_2 \\
     &\vdash \excopatmatch{\Ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\Ap{x}\Rightarrow\betaunifvar} &&\mapsto&& \vdash \alphaunifvar \equiv \betaunifvar\\
-    &\vdash x.\expatmatch{True \Rightarrow e} \equiv y.\expatmatch{True \Rightarrow t}&&\mapsto&& \vdash x= y, e = t
+    &\vdash x.\expatmatch{True \Rightarrow e} \equiv y.\expatmatch{True \Rightarrow t}&&\mapsto&& \vdash x\equiv y, e \equiv t
 \end{align*}
 Note that none of these examples contain redexes, meaning the only way for the terms on each side of the equations to be equivalent,
 is for them to be equivalent \textit{syntactically}.
@@ -681,7 +689,7 @@ Note that 7 (as well as 8 with being just the mirror of 7) are possible through 
 
 \begin{align*}
     \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t \tag*{$\equiv_{\eta}$}\\
-    \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow t.d(\overline{x})}} \tag*{1,4}\\
+    \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow t.d(\overline{x})}} \tag*{6}\\
     &\mapsto \overline{e \equiv t.d(\overline{x})}
 \end{align*}
 (Annotations on the right are supposed to show what rule is being used to get to the statement below.)
