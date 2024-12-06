@@ -639,12 +639,18 @@ We do this by taking out redundant equations, spotting clearly contradictory equ
 
 Let's look at some examples. We would like the following to be true:
 \begin{align*}
-    &x \vdash x.\pi_1 \equiv x.\pi_1 &&\mapsto&& \top\\
-    &x,y \vdash x.\pi_1 \equiv y.\pi_1 &&\mapsto&& \bot \\
-    &x \vdash x.\pi_1 \equiv x.\pi_2 &&\mapsto&& \bot \\
-    &x \vdash x.\Ap{e_1}\equiv x.\Ap{e_2} &&\mapsto&& x\vdash e_1\equiv e_2 \\
-    &\vdash \excopatmatch{\Ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\Ap{x}\Rightarrow\betaunifvar} &&\mapsto&& \vdash \alphaunifvar \equiv \betaunifvar\\
-    &\vdash x.\expatmatch{True \Rightarrow e} \equiv y.\expatmatch{True \Rightarrow t}&&\mapsto&& \vdash x\equiv y, e \equiv t
+    &x \vdash x.\pi_1 \equiv x.\pi_1 &\mapsto& \top\\
+    &x,y \vdash x.\pi_1 \equiv y.\pi_1 &\mapsto& \bot \\
+    &x \vdash x.\pi_1 \equiv x.\pi_2 &\mapsto& \bot \\
+    &\vdash \texttt{Cons(x, Nil)} \equiv \texttt{Cons(y, Nil)}
+    &\mapsto& \bot\\
+    &\vdash \texttt{Cons(}\alphaunifvar, \texttt{Nil)}\equiv\texttt{Cons(}\alphaunifvar, \texttt{Nil)}
+    &\mapsto&\alphaunifvar\equiv \betaunifvar\\
+    &x \vdash x.\Ap{e_1}\equiv x.\Ap{e_2} &\mapsto& x\vdash e_1\equiv e_2 \\
+    &\vdash \excopatmatch{\Ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\Ap{x}\Rightarrow\betaunifvar} 
+    &\mapsto&\vdash \alphaunifvar \equiv \betaunifvar\\
+    &\vdash x.\expatmatch{True \Rightarrow e} \equiv y.\expatmatch{True \Rightarrow t}
+    &\mapsto& \vdash x\equiv y, e \equiv t
 \end{align*}
 Note that none of these examples contain redexes, meaning the only way for the terms on each side of the equations to be equivalent,
 is for them to be equivalent \textit{syntactically}.
