@@ -631,25 +631,53 @@ We do this by taking out unnecessary equations, spotting clearly contradictory e
 
 Let's look at some equations to get startet:
 \begin{align*}
-    x \vdash x.\pi_1 \equiv x.\pi_2 \mapsto \top\\
-    x,y \vdash x.\pi_1 \equiv y.\pi_2 \mapsto \bot \\
-    x \vdash x.\pi_1 \equiv x.\pi_2 \mapsto \bot \\
-    x \vdash x.\Ap{e_1}\equiv x.\Ap{e_2} \mapsto x\vdash e_1\equiv e_2
+    &x \vdash x.\pi_1 \equiv x.\pi_1 &&\mapsto&& \top\\
+    &x,y \vdash x.\pi_1 \equiv y.\pi_1 &&\mapsto&& \bot \\
+    &x \vdash x.\pi_1 \equiv x.\pi_2 &&\mapsto&& \bot \\
+    &x \vdash x.\Ap{e_1}\equiv x.\Ap{e_2} &&\mapsto&& x\vdash e_1\equiv e_2 \\
+    &\vdash \excopatmatch{\Ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\Ap{x}\Rightarrow\betaunifvar} &&\mapsto&& \vdash \alphaunifvar \equiv \betaunifvar\\
+    &\vdash x.\expatmatch{True \Rightarrow e} \equiv y.\expatmatch{True \Rightarrow t}&&\mapsto&& \vdash x= y, e = t
 \end{align*}
-These all demonstrate different rule applications.
+Note that none of these examples contain redexes, meaning the only way for the terms on each side of the equations to be equivalent,
+is for them to be equivalent \textit{syntactically}.
+We want to formulate rules which help us simplify equations like these.
 
+Our rules for simplifying constraints will mostly cover terms in normal form. It is thus helpful to remind oneself of 
+the definition of normal form again while reading these rules.
+Note in particular that $n_1, n_2$ are neutral terms, \textit{not} arbitrary ones!
 \begin{align*}
-    \Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv 
+    &\Psi \vdash x\equiv x&\mapsto&\top
+    \tag*{1}\\
+    &\Psi \vdash \alphaunifvar \equiv \alphaunifvar&\mapsto& \top
+    \tag*{2}\\
+    &\Psi \vdash n_1.d({\overline{e}})\equiv n_2.d({\overline{t}})
+    &\mapsto& n_1 \equiv n_2 \wedge \overline{e\equiv t}
+    \tag*{3}\\
+    &\Psi \vdash n_1.\expatmatch{\overline{K(\overline{x})\Rightarrow v}}\equiv n_2.\expatmatch{\overline{K(\overline{x})\Rightarrow w}}
+    &\mapsto& \Psi, \overline{x} \vdash n_1 \equiv n_2\wedge \overline{v\equiv w}
+    \tag*{4}\\
+    &\Psi\vdash K(\overline{e})\equiv K(\overline{t})&\mapsto&\Psi\vdash\overline{e\equiv t}
+    \tag*{5}\\
+    &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv 
     \excopatmatch{\overline{d(\overline{x})\Rightarrow t}}
-    \mapsto \Psi, \overline{x}\vdash \overline{e \equiv t}\tag*{1,4}\\
-    \Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t 
-    \mapsto \Psi,\overline{x} \vdash\overline{e \equiv t.d(\overline{x})} \tag*{2,5}\\
-    \Psi\vdash t&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow e}} 
-    \mapsto \Psi, \overline{x}\vdash \overline{t.d(\overline{x}) \equiv e} \tag*{3,6}
+    &\mapsto& \Psi, \overline{x}\vdash \overline{e \equiv t}
+    \tag*{6}\\
+    &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv t 
+    &\mapsto& \Psi,\overline{x} \vdash\overline{e \equiv t.d(\overline{x})}
+    \tag*{7}\\
+    &\Psi\vdash t\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow e}} 
+    &\mapsto& \Psi, \overline{x}\vdash \overline{t.d(\overline{x}) \equiv e}
+    \tag*{8}\\
 \end{align*}
-These rules are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
+The last three rules are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
+When writing $... d(\overline{x})...\equiv ... d(\overline{x})....$ or $...K(\overline{x})...\equiv... K(\overline{x})...$,
+we require syntactic equality among destructors, constructors and variables (respectively). If this is not given, we can simplify to $\bot$.
 
-Note that 2,5 (as well as 3,6 with being just the mirror of 2,5) are possible through eta-conversion:
+
+Note that 7 (as well as 8 with being just the mirror of 7) are possible through eta-conversion:
+
+
+
 
 \begin{align*}
     \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t \tag*{$\equiv_{\eta}$}\\
@@ -658,21 +686,7 @@ Note that 2,5 (as well as 3,6 with being just the mirror of 2,5) are possible th
 \end{align*}
 (Annotations on the right are supposed to show what rule is being used to get to the statement below.)
 
-Let's  take a look at normal forms:
-\begin{align*}
-    \Psi \vdash n_1.d({\overline{v}})&\equiv n_2.d({\overline{w}})
-    \mapsto n_1 \equiv n_2 \wedge \overline{v\equiv w}\\
-    \Psi \vdash n_1.\expatmatch{\overline{K(\overline{x})\Rightarrow v}}&\equiv n_2.\expatmatch{\overline{K(\overline{x})\Rightarrow w}}
-    \mapsto \Psi, \overline{x} \vdash n_1 \equiv n_2\wedge \overline{v\equiv w}\\
-    \Psi \vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow v}}&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow w}}
-    \mapsto\Psi,\overline{x} \vdash \overline{v \equiv w}
-\end{align*}
-
-
-
-
-
-\newpage
+\newpage 
 (Nur weil ich eine Citation irgendwo brauche)
 In \cite{DBLP:books/el/RV01/Dowek01}, Huet's algorithm is described. %TODO: spelling?
 
