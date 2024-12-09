@@ -34,6 +34,7 @@
 % Kann von Student auch nach persönlichem Geschmack verändert werden.
 \pagestyle{headings}
 
+\usepackage[symbol]{footmisc}
 \usepackage{hyperref}
 
 \sloppy
@@ -190,28 +191,13 @@ the same rules apply, but instead of constructors, the term is matched against d
 
 \begin{definition}[Terms of the Calculus ND]
 \begin{align*}
-    e  ::&=  x  \tag*{Variable} \\
+    e,r,s,t ::&=  x,y  \tag*{Variable} \\
         &\partition\constructor \tag*{Constructor} \\
         &\partition\destructor  \tag*{Destructor}\\
         &\partition\patmatch  \tag*{Pattern match}\\
         &\partition\copatmatch  \tag*{Copattern match}
 \end{align*}
 \end{definition}
-
-\iffalse
-\begin{table}[!h]
-\centering
-    \begin{tabular}{L C L l}
-        e & ::= & x & Variable \\
-          & | & \constructor & Constructor \\
-          & | & \destructor & Destructor\\
-          & | & \patmatch & Pattern match\\
-          & | & \copatmatch & Copattern match
-    \end{tabular}
-\end{table}
-\end{definition}
-\fi
-
 
 In pattern and copattern matches, every con- or destructor may occur no more than once.
 %TODO: erklären warum? => verstehen warum (das reicht)?
@@ -407,7 +393,7 @@ but in many applications all we need, as in most type checking.
 
 \begin{definition}[First-Order unification]
 \begin{align*}
-    e, t ::&= \alphaunifvar, \betaunifvar \tag*{Unification variable}\\
+    e,r,s,t ::&= \alphaunifvar, \betaunifvar \tag*{Unification variable}\\
     &\partition x\tag*{Variable} \\
     &\partition \constructor \tag*{Constructor}
 \end{align*}
@@ -450,7 +436,7 @@ adapted to our syntax.
 
 \begin{definition}[Higher-Order Unification]
     \begin{align*}
-        e  ::&= \alphaunifvar\sigma, \betaunifvar\sigma \tag*{Unification Variables with substitution}\\ %TODO: name? 
+        e,r,s,t  ::&= \alphaunifvar\sigma, \betaunifvar\sigma \tag*{Unification Variables with substitution}\\ %TODO: name? 
             &\partition x  \tag*{Variable} \\
             &\partition\constructor \tag*{Constructor} \\
             &\partition\destructor  \tag*{Destructor}\\
@@ -600,24 +586,24 @@ Values, where we don't have this assurance cannot contain the building blocks fo
 Some examples: 
 \begin{align*}
     \begin{split}
-        t_1 &= \alphaunifvar.\Ap{\excopatmatch{\Ap{x}\Rightarrow x}}, \\
-        t_2 &= \excopatmatch{\Ap{x}\Rightarrow \texttt{cons(x cons(y Nil))}},   \\
-        t_3 &= \alphaunifvar.\Ap{x_1, x_2, x_3}
+        r &= \alphaunifvar.\Ap{\excopatmatch{\Ap{x}\Rightarrow x}}, \\
+        s &= \excopatmatch{\Ap{x}\Rightarrow \texttt{cons(x cons(y Nil))}},   \\
+        t &= \alphaunifvar.\Ap{x_1, x_2, x_3}
     \end{split}    
 \end{align*}
-$t_1$ and $t_2$ are in normal form and $t_3$ is a pattern in normal form.
+$r$ and $s$ are in normal form and $t$ is a pattern in normal form.
 
 \begin{theorem}
     If a unification problem has a solution, that solution is the same for the normal form of that same problem. 
     No normal form of a problem that doesn't have a solution has a solution either.
 \end{theorem}
 
-Furthermore, we will only be looking at terms that have a normal form. This is enough in most applications. %TODO: ausschmücken?
+From this point on, we will only be looking at terms that have a normal form. This is enough in most applications. %TODO: ausschmücken?
 
 This is helpful for us, since we only have to consider normal forms in our algorithm, as in: 
 Met with a term, we first reduce it to its normal form, and then solve for our solution.
 
-As an example, the problem $\code{True}.\textbf{case} \{ \code{True} => a?, False => 2 \} \equiv 3 $ has the solution $[3/\alphaunifvar]$, 
+As an example, the problem $\texttt{True}.\textbf{case} \{ \texttt{True} => a?, \texttt{False} => 2 \} \equiv 3 $ has the solution $[3/\alphaunifvar]$, 
 but this is more obvious after using a beta-reduction on the left-hand side bringing it into normal form:
 \begin{align*}
     &\code{True}.\textbf{case} \{ \True => a?, \False => 2 \} \betaconv \alphaunifvar  \\
@@ -627,7 +613,7 @@ but this is more obvious after using a beta-reduction on the left-hand side brin
 Let's take a look at another example:
 \begin{align*}
     &\alphaunifvar \equiv \True \\
-    &\alphaunifvar.\expatmatch{\True \Rightarrow 2, \False \Rightarrow 3} \equiv \betaunifvar
+    &\alphaunifvar.\expatmatch{\texttt{True} \Rightarrow 2, \texttt{False} \Rightarrow 3} \equiv \betaunifvar
 \end{align*}
 To find out that $[2/\betaunifvar]$ is the solution to the second equation, we first need to find out that
 $[\code{True}/\alphaunifvar]$ is the solution to the first equation and substitute it in the second.
@@ -662,7 +648,6 @@ The equation $x \vdash x.\pi_1 \equiv x.\pi_2$ must hold for \textit{any} variab
 
 Since for $x = \texttt{Pair(}2, 3\texttt{)}$, the equation does not hold, we can simplify to $\bot$.
 
-
 \begin{example}[Decoposing constraints-splitting into smaller parts]
     \begin{align*}
     &\vdash \texttt{Cons(}\alphaunifvar, \texttt{Nil)}\equiv\texttt{Cons(}\alphaunifvar, \texttt{Nil)}
@@ -681,44 +666,50 @@ Since for $x = \texttt{Pair(}2, 3\texttt{)}$, the equation does not hold, we can
 \footnotetext{\texttt{T} and \texttt{F} are stand-ins for \True and \False.}
 
 Note that none of these examples contain redexes, meaning the only way for the terms on each side of the equations to be equivalent,
-is for them to be equivalent \textit{syntactically}.
+is for them to be equivalent \textit{syntactically}. %TODO: zu ungenau?
 
 We want to formulate rules which help us simplify equations like these.
-
-We are still only dealing with terms in normal form. %TODO: weglassen/ausschmücken?
-\begin{align*}
+\begin{definition}[Decomposing Constraints]
+    \begin{align*}
     &\Psi \vdash x\equiv x&\mapsto&\top
-    \tag*{1}\\
+    \tag{1}\\
     &\Psi \vdash \alphaunifvar \equiv \alphaunifvar&\mapsto& \top
-    \tag*{2}\\
-    &\Psi \vdash n_1.d({\overline{e}})\equiv n_2.d({\overline{t}})
-    &\mapsto& \Psi\vdash n_1 \equiv n_2 \wedge \overline{\Psi\vdash e\equiv t}
-    \tag*{3}\\
-    &\Psi \vdash n_1.\expatmatch{\overline{K(\overline{x})\Rightarrow v}}\equiv n_2.\expatmatch{\overline{K(\overline{x})\Rightarrow w}}
-    &\mapsto& \Psi, \overline{x} \vdash n_1 \equiv n_2\wedge \overline{\Psi, \overline{x}\vdash v\equiv w}
-    \tag*{4}\\
-    &\Psi\vdash K(\overline{e})\equiv K(\overline{t})&\mapsto&\overline{\Psi\vdash e\equiv t}
-    \tag*{5}\\
-    &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv 
+    \tag{2}\\
+    \circ\,&\Psi \vdash e_1.d({\overline{e}})\equiv e_2.d({\overline{t}})
+    \\ &\mapsto \Psi\vdash e_1 \equiv e_2 \wedge \overline{\Psi\vdash e\equiv t}
+    \tag{3}\\
+    *\,&\Psi \vdash e_1.\expatmatch{\overline{K(\overline{x})\Rightarrow e}}\equiv e_2.\expatmatch{\overline{K(\overline{x})\Rightarrow t}}
+    \\ &\mapsto \Psi, \overline{x} \vdash e_1 \equiv e_2\wedge \overline{\Psi, \overline{x}\vdash e\equiv t}
+    \tag{4}\\
+    \circ\,&\Psi\vdash K(\overline{e})\equiv K(\overline{t})&\mapsto&\overline{\Psi\vdash e\equiv t}
+    \tag{5}\\
+    *\, &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv 
     \excopatmatch{\overline{d(\overline{x})\Rightarrow t}}
     &\mapsto& \overline{\Psi, \overline{x}\vdash e \equiv t}
-    \tag*{6}\\
+    \tag{6}\\
     &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv t 
     &\mapsto& \overline{\Psi,\overline{x} \vdash e \equiv t.d(\overline{x})}
-    \tag*{7}\\
+    \tag{7}\\
     &\Psi\vdash t\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow e}} 
     &\mapsto& \overline{\Psi, \overline{x}\vdash t.d(\overline{x}) \equiv e}
-    \tag*{8}\\
-\end{align*}
-The last three rules are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
-When writing $... d(\overline{x})...\equiv ... d(\overline{x})....$ or $...K(\overline{x})...\equiv... K(\overline{x})...$,
-we require syntactic equality among destructors, constructors and variables (respectively). If this is not given, we can simplify to $\bot$.
+    \tag{8}\\
+    &\text{non-matching *- or $\circ$-equation}&\mapsto&\bot
+    \tag{9}
+    \end{align*}
+\end{definition}
+Rules 6-8 are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
 
+For equations marked with *, we require the constructors (or destructors) to be equal to one another in each equation. 
+We also require them to have the same list of variables as arguments, respectively (i.e. full syntactic equality).
+
+For equations marked with $\circ$, we only require the constructors (or destructors) to be equal to one another in each equation. 
+(i.e. no syntactic equality among arguments required).
+
+(The reason for this discrepancy lies in the fact that are only expecting terms in normal form!)
+
+If any of this does not hold in a given equation, rule 9 applies and we simplify to $\bot$.
 
 Note that 7 (as well as 8 with being just the mirror of 7) are possible through eta-conversion:
-
-
-
 
 \begin{align*}
     \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t \tag*{$\equiv_{\eta}$}\\
