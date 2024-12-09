@@ -34,9 +34,9 @@
 % Kann von Student auch nach persönlichem Geschmack verändert werden.
 \pagestyle{headings}
 
-\sloppy
-
 \usepackage{hyperref}
+
+\sloppy
 
 \begin{document}
 
@@ -48,6 +48,7 @@
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
 \newtheorem{theorem}{Theorem}[section]
+\newtheorem{example}{Example}[section]
 
 %Macros for possible terms in ND:
 \newcommand{\constructor}{K(\overline{e})}
@@ -380,6 +381,8 @@ Intuitively, beta-conversion means function application or the reduction under p
     \end{align*}
 \end{definition}
 
+\section{Simple Types}
+
 \section{First-Order Unification}
 
 We want to slowly make our way to higher-order unification, and thus touch on simpler problems first. 
@@ -638,49 +641,73 @@ It is helpful to simplify our equations a bit before starting the unification pr
 We do this by taking out redundant equations, spotting clearly contradictory equations or splitting our equations into smaller parts which we can further simplify and unify.
 
 Let's look at some examples. We would like the following to be true:
-\begin{align*}
-    &x \vdash x.\pi_1 \equiv x.\pi_1 &\mapsto& \top\\
-    &x,y \vdash x.\pi_1 \equiv y.\pi_1 &\mapsto& \bot \\
-    &x \vdash x.\pi_1 \equiv x.\pi_2 &\mapsto& \bot \\
-    &\vdash \texttt{Cons(x, Nil)} \equiv \texttt{Cons(y, Nil)}
-    &\mapsto& \bot\\
+\begin{example}[Decomposing constraints-redundancy and contradiction]
+    \begin{align*}
+    &x \vdash x.\pi_1 \equiv x.\pi_1 &\mapsto& \top
+    \tag{1}\\
+    &x,y \vdash x.\pi_1 \equiv y.\pi_1 &\mapsto& \bot 
+    \tag{2}\\
+    &x \vdash x.\pi_1 \equiv x.\pi_2 &\mapsto& \bot 
+    \tag{3}\\
+    &\vdash \texttt{Cons(x, Nil)} \equiv \texttt{Cons(y, Nil)}&\mapsto& \bot
+    \tag{4}\\
+    \end{align*}
+\end{example}
+These example might be confusing at first. Looking at the third example, one might argue that there exists a pair, say $x = \texttt{Pair(}2, 2\texttt{)}$, such that
+$x.\pi_1 = x.\pi_2$. This is where it is important to remember that we are not looking for solutions to variables like $x$.
+Whereas to our unification variables $\alphaunifvar$ we want to assign any term such that our equations hold, variables $x$ add \textit{constraints} to our equations. 
+The equation $x \vdash x.\pi_1 \equiv x.\pi_2$ must hold for \textit{any} variable $x$, since we cannot choose $x$! 
+%TODO: rework sentence structure
+%TODO: can i explain this better?
+
+Since for $x = \texttt{Pair(}2, 3\texttt{)}$, the equation does not hold, we can simplify to $\bot$.
+
+
+\begin{example}[Decoposing constraints-splitting into smaller parts]
+    \begin{align*}
     &\vdash \texttt{Cons(}\alphaunifvar, \texttt{Nil)}\equiv\texttt{Cons(}\alphaunifvar, \texttt{Nil)}
-    &\mapsto&\alphaunifvar\equiv \betaunifvar\\
-    &x \vdash x.\Ap{e_1}\equiv x.\Ap{e_2} &\mapsto& x\vdash e_1\equiv e_2 \\
+    &\mapsto&\alphaunifvar\equiv \betaunifvar
+    \tag{5}\\
+    &x \vdash x.\Ap{e_1}\equiv x.\Ap{e_2} &\mapsto& x\vdash e_1\equiv e_2 
+    \tag{6}\\
     &\vdash \excopatmatch{\Ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\Ap{x}\Rightarrow\betaunifvar} 
-    &\mapsto&\vdash \alphaunifvar \equiv \betaunifvar\\
-    &\vdash x.\expatmatch{True \Rightarrow e} \equiv y.\expatmatch{True \Rightarrow t}
-    &\mapsto& \vdash x\equiv y, e \equiv t
-\end{align*}
+    &\mapsto&x\vdash \alphaunifvar \equiv \betaunifvar
+    \tag{7}\\
+    &x\vdash x.\expatmatch{\texttt{T} \Rightarrow e_2, \texttt{F} \Rightarrow e_2} \equiv x.\expatmatch{\texttt{T} \Rightarrow t_1, \texttt{F} \Rightarrow t_2}\footnotemark{}
+    \\ &\mapsto x\vdash  e_1 \equiv t_1, x\vdash e_2\equiv t_2
+    \tag{8}
+    \end{align*}
+\end{example}    
+\footnotetext{\texttt{T} and \texttt{F} are stand-ins for \True and \False.}
+
 Note that none of these examples contain redexes, meaning the only way for the terms on each side of the equations to be equivalent,
 is for them to be equivalent \textit{syntactically}.
+
 We want to formulate rules which help us simplify equations like these.
 
-Our rules for simplifying constraints will mostly cover terms in normal form. It is thus helpful to remind oneself of 
-the definition of normal form again while reading these rules.
-Note in particular that $n_1, n_2$ are neutral terms, \textit{not} arbitrary ones!
+We are still only dealing with terms in normal form. %TODO: weglassen/ausschmücken?
 \begin{align*}
     &\Psi \vdash x\equiv x&\mapsto&\top
     \tag*{1}\\
     &\Psi \vdash \alphaunifvar \equiv \alphaunifvar&\mapsto& \top
     \tag*{2}\\
     &\Psi \vdash n_1.d({\overline{e}})\equiv n_2.d({\overline{t}})
-    &\mapsto& n_1 \equiv n_2 \wedge \overline{e\equiv t}
+    &\mapsto& \Psi\vdash n_1 \equiv n_2 \wedge \overline{\Psi\vdash e\equiv t}
     \tag*{3}\\
     &\Psi \vdash n_1.\expatmatch{\overline{K(\overline{x})\Rightarrow v}}\equiv n_2.\expatmatch{\overline{K(\overline{x})\Rightarrow w}}
-    &\mapsto& \Psi, \overline{x} \vdash n_1 \equiv n_2\wedge \overline{v\equiv w}
+    &\mapsto& \Psi, \overline{x} \vdash n_1 \equiv n_2\wedge \overline{\Psi, \overline{x}\vdash v\equiv w}
     \tag*{4}\\
-    &\Psi\vdash K(\overline{e})\equiv K(\overline{t})&\mapsto&\Psi\vdash\overline{e\equiv t}
+    &\Psi\vdash K(\overline{e})\equiv K(\overline{t})&\mapsto&\overline{\Psi\vdash e\equiv t}
     \tag*{5}\\
     &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv 
     \excopatmatch{\overline{d(\overline{x})\Rightarrow t}}
-    &\mapsto& \Psi, \overline{x}\vdash \overline{e \equiv t}
+    &\mapsto& \overline{\Psi, \overline{x}\vdash e \equiv t}
     \tag*{6}\\
     &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv t 
-    &\mapsto& \Psi,\overline{x} \vdash\overline{e \equiv t.d(\overline{x})}
+    &\mapsto& \overline{\Psi,\overline{x} \vdash e \equiv t.d(\overline{x})}
     \tag*{7}\\
     &\Psi\vdash t\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow e}} 
-    &\mapsto& \Psi, \overline{x}\vdash \overline{t.d(\overline{x}) \equiv e}
+    &\mapsto& \overline{\Psi, \overline{x}\vdash t.d(\overline{x}) \equiv e}
     \tag*{8}\\
 \end{align*}
 The last three rules are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
