@@ -78,8 +78,11 @@
 
 \newcommand{\partition}{\;|\;}
 \newcommand{\code}[1]{\texttt{#1}}
-\newcommand{\True}{\texttt{True }}
-\newcommand{\False}{\texttt{False }}
+\newcommand{\True}{\mathtt{True}}
+\newcommand{\False}{\mathtt{False}}
+
+\newcommand{\Int}{\mathsf{Int}}
+\newcommand{\Bool}{\mathsf{Bool}}
 
 \newcommand{\constraints}{\mathcal{C}}
 
@@ -203,17 +206,17 @@ the same rules apply, but instead of constructors, the term is matched against d
 
 Let's look at some examples to ... %TODO: Formulierung 
 All rudimentary datatypes can be constructed through constructors: 
-The Booleans \True and \False are constructors on an empty sequence. We can of course represent integers as peano numbers using constructors.
+The Booleans $\True$ and $\False$ are constructors on an empty sequence. We can of course represent integers as peano numbers using constructors.
 
 Abstract data types like lists, arrays, records etc. can similarly be defined through constructors:
-\texttt{cons(True, cons(False, Nil))} and \texttt{Date(27, 08, 2005)} 
+$\mathtt{Cons(True, Cons(False, Nil))}$ and $\mathtt{Date(27, 08, 2005)}$. 
 
 We can use Pattern matching to represent conditionals:
 Like if statements: if $e_1$ $e_2$ else $e_3$ which is analogous to:
-$e_1.\textbf{case}\{\texttt{True}\Rightarrow e_2, \texttt{False}\Rightarrow e_3\}$
-Or the expression which tests whether a given list starts with \True:
-$e.\expatmatch{\texttt{cons(True x)}\Rightarrow \code{True}, \code{Nil }\Rightarrow\code{False}, \code{cons(x y)}\Rightarrow \code{False}}$
-%TODO: die fucking leerzeichen fixen
+$e_1.\expatmatch{\True\Rightarrow e_2, \False\Rightarrow e_3}$
+Or the expression which tests whether a given list starts with $\True$:
+$e.\expatmatch{\mathtt{Cons(True,x)\Rightarrow True, Nil\Rightarrow False, Cons(x, y)}\Rightarrow \code{False}}$
+
 \subsection{Free Variables, Substitutions, Contexts}
 
 \begin{definition}[Free Variables]
@@ -328,7 +331,6 @@ but $\sigma_1$ is more general than $\sigma_2$, since there exists a substitutio
 
 \subsection{Conversion}
 
-
 \begin{definition}[Beta-Conversion]
     A single step of beta-conversion $e_1 \betaconv e_2$ is defined as follows:
     \begin{align*}
@@ -342,7 +344,7 @@ but $\sigma_1$ is more general than $\sigma_2$, since there exists a substitutio
 \end{definition}
 Some examples:
 \begin{align*}
-    &\code{True}.\expatmatch{\False\Rightarrow \True, \True \Rightarrow \False}\betaconv\False\\
+    &\True.\expatmatch{\False\Rightarrow \True, \True \Rightarrow \False}\betaconv\False\\
     &\excopatmatch{\Ap{x}\Rightarrow \True}.\Ap{x}\betaconv \True[x/x] = \True \\
     &\excopatmatch{\Ap{y}\Rightarrow y}.\Ap{x} \betaconv y[x/y]= x
 \end{align*}
@@ -358,17 +360,28 @@ Intuitively, beta-conversion means function application or the reduction under p
 
 \section{Simple Types}
 
-\subsection{Typing Rules}
 We want to be able to use the unification algorithm to discern types for given terms. 
+To start, let's look at some examples terms and their types:
+\begin{align*}
+    &\mathtt{5}: \Int\\
+    &\mathtt{False}: \Bool\\
+    &\mathtt{Tup(1,True)}: \mathsf{Pair(Int, Bool)}\\
+    &(1, \True): \mathsf{LPair(Int, Bool)}\\
+    &\mathtt{Cons(1, Cons(2, Nil))}: \mathsf{List(Int)}\\
+    &e.\expatmatch{\mathtt{True\Rightarrow False, False \Rightarrow True}}: \mathsf{Bool \rightarrow Bool}\\
+    &\mathtt{Trues} = \excopatmatch{hd \Rightarrow \True, tl \Rightarrow \mathtt{Trues}}: \mathsf{Stream(Bool)}\\
+\end{align*}
+
+
+\subsection{Typing Rules}
 To be able to give our examples a formal basis, we will introduce typing rules. %TODO: ich mag die satzstruktur nicht
 These will not cover all the types one could construct using our calculus, 
 but instead all the basic composite types.
 This will be enough to construct examples covering each case we have to consider,
 and hopefully give an idea how to construct any type.
 
-When writing $\Gamma\vdash t:\tau$, we mean that from the variables in $\Gamma$, 
+When writing $\Gamma\vdash t:\tau$, we mean that from the variables and their types in $\Gamma$, 
 we can deduce that $t$ has the type $\tau$.
-
 
 \begin{prooftree}
     \AxiomC{$x:\tau \in \Gamma$}\RightLabel{\textsc{Var}}
@@ -449,13 +462,11 @@ but in many applications all we need, as in most type checking.
 \end{definition}
 
 Some examples:
-$\alphaunifvar \equiv True$ has the solution $[True/\alphaunifvar]$.
-$True \equiv False$ doesn't have a solution.
+$\alphaunifvar \equiv \True$ has the solution $[\True/\alphaunifvar]$.
+$\mathtt{True \equiv False}$ doesn't have a solution.
 
-$Int\rightarrow \alphaunifvar \equiv Int \rightarrow Bool$ has the solution $[Bool/\alphaunifvar]$. 
-Note that we are dealing with type constructors, i.e. the type $Int\rightarrow Bool$ would be constructed as $Type(Int, Bool)$ where $Type(\cdot)$ is a constructor.
-
-On the other hand, $\alphaunifvar\equiv List(\alphaunifvar)$ should not have a solution. This is the negative example for the occur check rule below.
+$\mathsf{Int \rightarrow \alphaunifvar \equiv Int \rightarrow Bool}$ has the solution $[\Bool/\alphaunifvar]$. 
+On the other hand, $\mathsf{\alphaunifvar\equiv List(\alphaunifvar)}$ should not have a solution. This is the negative example for the occur check rule below.
 %TODO: anders?
 
 
@@ -636,8 +647,8 @@ Some examples:
 \begin{align*}
     \begin{split}
         r &= \alphaunifvar.\Ap{\excopatmatch{\Ap{x}\Rightarrow x}}, \\
-        s &= \excopatmatch{\Ap{x}\Rightarrow \texttt{cons(x cons(y Nil))}},   \\
-        t &= \alphaunifvar.\Ap{x_1, x_2, x_3}
+        s &= \excopatmatch{\Ap{x}\Rightarrow \mathtt{Cons(\mathnormal{x}, Cons(\mathnormal{y}, Nil))}},   \\
+        t &= \alphaunifvar.\Ap{x_1, x, y, z}
     \end{split}    
 \end{align*}
 $r$ and $s$ are in normal form and $t$ is a pattern in normal form.
@@ -652,11 +663,11 @@ From this point on, we will only be looking at terms that have a normal form. Th
 This is helpful for us, since we only have to consider normal forms in our algorithm, as in: 
 Met with a term, we first reduce it to its normal form, and then solve for our solution.
 
-As an example, the problem $\texttt{True}.\textbf{case} \{ \texttt{True} => a?, \texttt{False} => 2 \} \equiv 3 $ has the solution $[3/\alphaunifvar]$, 
+As an example, the problem $\True.\expatmatch{\True \Rightarrow \alphaunifvar, \False \Rightarrow \mathtt{2}} \equiv \mathtt{3} $ has the solution $[\mathtt{3/\alphaunifvar}]$, 
 but this is more obvious after using a beta-reduction on the left-hand side bringing it into normal form:
 \begin{align*}
-    &\code{True}.\textbf{case} \{ \True => a?, \False => 2 \} \betaconv \alphaunifvar  \\
-    &\implies \alphaunifvar \equiv 3   
+    &\True.\expatmatch{\True \Rightarrow \alphaunifvar, \False \Rightarrow \mathtt{2}} \betaconv \alphaunifvar  \\
+    &\implies \alphaunifvar \equiv \mathtt{3}   
 \end{align*}
 
 Let's take a look at another example:
@@ -664,8 +675,8 @@ Let's take a look at another example:
     &\alphaunifvar \equiv \True \\
     &\alphaunifvar.\expatmatch{\texttt{True} \Rightarrow 2, \texttt{False} \Rightarrow 3} \equiv \betaunifvar
 \end{align*}
-To find out that $[2/\betaunifvar]$ is the solution to the second equation, we first need to find out that
-$[\code{True}/\alphaunifvar]$ is the solution to the first equation and substitute it in the second.
+To find out that $[\mathtt{2}/\betaunifvar]$ is the solution to the second equation, we first need to find out that
+$[\True/\alphaunifvar]$ is the solution to the first equation and substitute it in the second.
 This is what is called \textit{dynamic} pattern unification, where we hold off on solving some equations we don't have all the information for yet until we know more. 
 
 \section{The Algorithm For Higher-Order Unification}
@@ -678,24 +689,24 @@ We do this by taking out redundant equations, spotting clearly contradictory equ
 Let's look at some examples. We would like the following to be true:
 \begin{example}[Decomposing constraints-redundancy and contradiction]
     \begin{align*}
-    &x \vdash x.\pi_1 \equiv x.\pi_1 &\mapsto& \top
+    &x \vdash x.\mathtt{fst} \equiv x.\mathtt{fst} &\mapsto& \top
     \tag{1}\\
-    &x,y \vdash x.\pi_1 \equiv y.\pi_1 &\mapsto& \bot 
+    &x,y \vdash x.\mathtt{fst} \equiv y.\mathtt{fst} &\mapsto& \bot 
     \tag{2}\\
-    &x \vdash x.\pi_1 \equiv x.\pi_2 &\mapsto& \bot 
+    &x \vdash x.\mathtt{fst} \equiv x.\mathtt{snd} &\mapsto& \bot 
     \tag{3}\\
     &\vdash \texttt{Cons(x, Nil)} \equiv \texttt{Cons(y, Nil)}&\mapsto& \bot
     \tag{4}\\
     \end{align*}
 \end{example}
-These example might be confusing at first. Looking at the third example, one might argue that there exists a pair, say $x = \texttt{Pair(}2, 2\texttt{)}$, such that
-$x.\pi_1 = x.\pi_2$. This is where it is important to remember that we are not looking for solutions to variables like $x$.
+These example might be confusing at first. Looking at the third example, one might argue that there exists a pair, say $x = \mathtt{Tup(2,2)}$, such that
+$x.\mathtt{fst} = x.\mathtt{snd}$. This is where it is important to remember that we are not looking for solutions to variables like $x$.
 Whereas to our unification variables $\alphaunifvar$ we want to assign any term such that our equations hold, variables $x$ add \textit{constraints} to our equations. 
-The equation $x \vdash x.\pi_1 \equiv x.\pi_2$ must hold for \textit{any} variable $x$, since we cannot choose $x$! 
+The equation $x \vdash x.\mathtt{fst} \equiv x.\mathtt{snd}$ must hold for \textit{any} variable $x$, since we cannot choose $x$! 
 %TODO: rework sentence structure
 %TODO: can i explain this better?
 
-Since for $x = \texttt{Pair(}2, 3\texttt{)}$, the equation does not hold, we can simplify to $\bot$.
+Since for $x = \mathtt{(2,3)}$, the equation does not hold, we can simplify to $\bot$.
 
 \begin{example}[Decoposing constraints-splitting into smaller parts]
     \begin{align*}
@@ -712,7 +723,7 @@ Since for $x = \texttt{Pair(}2, 3\texttt{)}$, the equation does not hold, we can
     \tag{8}
     \end{align*}
 \end{example}    
-\footnotetext{\texttt{T} and \texttt{F} are stand-ins for \True and \False.}
+\footnotetext{\texttt{T} and \texttt{F} are stand-ins for $\True$ and $\False$.}
 
 Note that none of these examples contain redexes, meaning the only way for the terms on each side of the equations to be equivalent,
 is for them to be equivalent \textit{syntactically}. %TODO: zu ungenau?
