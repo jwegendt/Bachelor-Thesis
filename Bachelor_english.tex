@@ -21,7 +21,7 @@
 \usepackage{array} %for the \newcolumntype macro
 \usepackage{amsthm} %for theorems/definitions
 \usepackage{thmtools} %for listofheorems TODO: remove/integrate?
-
+\usepackage{bussproofs}
 
 \textwidth 14cm
 \textheight 22cm
@@ -190,24 +190,23 @@ For a copattern match $\textbf{cocase} \{\overline{d(\overline{x}) \Rightarrow e
 the same rules apply, but instead of constructors, the term is matched against destructors.
 
 \begin{definition}[Terms of the Calculus ND]
-\begin{align*}
+    \begin{align*}
     e,r,s,t ::&=  x,y  \tag*{Variable} \\
         &\partition\constructor \tag*{Constructor} \\
         &\partition\destructor  \tag*{Destructor}\\
         &\partition\patmatch  \tag*{Pattern match}\\
         &\partition\copatmatch  \tag*{Copattern match}
-\end{align*}
+    \end{align*}
+    In pattern and copattern matches, every con- or destructor may occur no more than once.
+    %TODO: erklären warum? => verstehen warum (das reicht)?
 \end{definition}
-
-In pattern and copattern matches, every con- or destructor may occur no more than once.
-%TODO: erklären warum? => verstehen warum (das reicht)?
 
 Let's look at some examples to ... %TODO: Formulierung 
 All rudimentary datatypes can be constructed through constructors: 
 The Booleans \True and \False are constructors on an empty sequence. We can of course represent integers as peano numbers using constructors.
 
 Abstract data types like lists, arrays, records etc. can similarly be defined through constructors:
-\texttt{cons(True, cons(False, Nil))} and \texttt{Date(...)} 
+\texttt{cons(True, cons(False, Nil))} and \texttt{Date(27, 08, 2005)} 
 
 We can use Pattern matching to represent conditionals:
 Like if statements: if $e_1$ $e_2$ else $e_3$ which is analogous to:
@@ -215,16 +214,6 @@ $e_1.\textbf{case}\{\texttt{True}\Rightarrow e_2, \texttt{False}\Rightarrow e_3\
 Or the expression which tests whether a given list starts with \True:
 $e.\expatmatch{\texttt{cons(True x)}\Rightarrow \code{True}, \code{Nil }\Rightarrow\code{False}, \code{cons(x y)}\Rightarrow \code{False}}$
 %TODO: die fucking leerzeichen fixen
-
-\subsection{Data Types}
-There are of course endless constructors one can define using our syntax, but one can also use copattern matching and destructors to define the same constructs. 
-Take the pair: $pair(x,y)$, which we can also define through its destructors \textit{fst} and \textit{snd}:
-$\excopatmatch{fst \Rightarrow ..., snd \Rightarrow ...}$, as in $pair(\code{True}, \code{False}).\excopatmatch{fst \Rightarrow \code{True}, snd \Rightarrow\code{False}}$
-Streams $\excopatmatch{head \Rightarrow ..., tail \Rightarrow ...}$ are a bit less intuitive, 
-but take the example of the stream consisting of \code{Trues}:
-$\code{Trues} = \excopatmatch{head \Rightarrow \code{True}, tail \Rightarrow \code{Trues}}$  
-%TODO: formell wie? oder gar nicht formell?? lost..
-
 \subsection{Free Variables, Substitutions, Contexts}
 
 \begin{definition}[Free Variables]
@@ -368,6 +357,66 @@ Intuitively, beta-conversion means function application or the reduction under p
 \end{definition}
 
 \section{Simple Types}
+
+\subsection{Typing Rules}
+We want to be able to use the unification algorithm to discern types for given terms. 
+To be able to give our examples a formal basis, we will introduce typing rules. %TODO: ich mag die satzstruktur nicht
+These will not cover all the types one could construct using our calculus, 
+but instead all the basic composite types.
+This will be enough to construct examples covering each case we have to consider,
+and hopefully give an idea how to construct any type.
+
+When writing $\Gamma\vdash t:\tau$, we mean that from the variables in $\Gamma$, 
+we can deduce that $t$ has the type $\tau$.
+
+
+\begin{prooftree}
+    \AxiomC{$x:\tau \in \Gamma$}\RightLabel{\textsc{Var}}
+    \UnaryInfC{$\Gamma\vdash x:\tau$}
+\end{prooftree}
+\begin{prooftree}
+    \AxiomC{}\RightLabel{\textsc{Nil}}
+    \UnaryInfC{$\Gamma\vdash Nil:List(\tau)$}
+\end{prooftree}
+\begin{prooftree}
+    \AxiomC{$\Gamma\vdash t_1:\tau$}\RightLabel{\textsc{Cons}}
+    \AxiomC{$\Gamma\vdash t_2:List(\tau)$}
+    \BinaryInfC{$\Gamma\vdash Cons(t_1,t_2):List(\tau)$}
+\end{prooftree}
+\begin{prooftree}
+    \AxiomC{$\Gamma\vdash t:List(\tau')$}\RightLabel{\textsc{Case-List}}
+    \AxiomC{$\Gamma\vdash t_1:\tau$}
+    \AxiomC{$\Gamma, y:\tau',z:List(\tau')\vdash t_2:\tau$}
+    \TrinaryInfC{$\Gamma\vdash t.\expatmatch{Nil\Rightarrow t_1, Cons(y,z)\Rightarrow t_2}:\tau$}
+\end{prooftree}
+\begin{prooftree}
+    \AxiomC{$\Gamma:t:Stream(\tau)$}\RightLabel{\textsc{Hd}}
+    \UnaryInfC{$\Gamma\vdash t.hd:\tau$}    
+\end{prooftree}
+\begin{prooftree}
+    \AxiomC{$\Gamma\vdash t:Stream(\tau)$}\RightLabel{\textsc{Tl}}
+    \UnaryInfC{$\Gamma\vdash t.tl:Stream(\tau)$}
+\end{prooftree}
+\begin{prooftree}
+    \AxiomC{$\Gamma\vdash t_1:\tau$}\RightLabel{\textsc{Stream}}
+    \AxiomC{$\Gamma\vdash t_2:Stream(\tau)$}
+    \BinaryInfC{$\Gamma\vdash \excopatmatch{hd\Rightarrow t_1, tl\Rightarrow t_2}:Stream(\tau)$}
+\end{prooftree}
+\begin{prooftree}
+    \AxiomC{$\Gamma\vdash t_1:\tau_1$}\RightLabel{\textsc{Lpair}}
+    \AxiomC{$\Gamma\vdash t_2:\tau_2$}
+    \BinaryInfC{$\Gamma\vdash t.\expatmatch{fst\Rightarrow t_1, snd \Rightarrow t_2}:LPair(\tau_1, \tau_2)$}
+\end{prooftree}
+\begin{prooftree}
+    \AxiomC{$\Gamma\vdash t_1:\tau_1\rightarrow\tau_2$}\RightLabel{\textsc{App}}
+    \AxiomC{$\Gamma\vdash t_2:\tau_1$}
+    \BinaryInfC{$\Gamma\vdash t_1.\Ap{t_2}:\tau_2$}
+\end{prooftree}
+\begin{prooftree}
+    \AxiomC{$\Gamma,x: t_1\vdash t:\tau_2$}\RightLabel{\textsc{Cocase}}
+    \UnaryInfC{$\Gamma\vdash\excopatmatch{\Ap{x}\Rightarrow t}:\tau_1\rightarrow t_2$}
+\end{prooftree}
+
 
 \section{First-Order Unification}
 
