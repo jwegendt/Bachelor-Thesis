@@ -80,6 +80,7 @@
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\True}{\mathtt{True}}
 \newcommand{\False}{\mathtt{False}}
+\newcommand{\Nil}{\mathtt{Nil}}
 
 \newcommand{\Int}{\mathsf{Int}}
 \newcommand{\Bool}{\mathsf{Bool}}
@@ -389,36 +390,36 @@ we can deduce that $t$ has the type $\tau$.
 \end{prooftree}
 \begin{prooftree}
     \AxiomC{}\RightLabel{\textsc{Nil}}
-    \UnaryInfC{$\Gamma\vdash Nil:List(\tau)$}
+    \UnaryInfC{$\Gamma\vdash \Nil:\mathsf{List(\tau)}$}
 \end{prooftree}
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t_1:\tau$}\RightLabel{\textsc{Cons}}
-    \AxiomC{$\Gamma\vdash t_2:List(\tau)$}
-    \BinaryInfC{$\Gamma\vdash Cons(t_1,t_2):List(\tau)$}
+    \AxiomC{$\Gamma\vdash t_2:\mathsf{List(\tau)}$}
+    \BinaryInfC{$\Gamma\vdash \mathtt{Cons(\mathnormal{t_1,t_2})}:\mathsf{List(\tau)}$}
 \end{prooftree}
 \begin{prooftree}
-    \AxiomC{$\Gamma\vdash t:List(\tau')$}\RightLabel{\textsc{Case-List}}
+    \AxiomC{$\Gamma\vdash t:\mathsf{List(\tau')}$}\RightLabel{\textsc{Case-List}}
     \AxiomC{$\Gamma\vdash t_1:\tau$}
-    \AxiomC{$\Gamma, y:\tau',z:List(\tau')\vdash t_2:\tau$}
-    \TrinaryInfC{$\Gamma\vdash t.\expatmatch{Nil\Rightarrow t_1, Cons(y,z)\Rightarrow t_2}:\tau$}
+    \AxiomC{$\Gamma, y:\tau',z:\mathsf{List(\tau')}\vdash t_2:\tau$}
+    \TrinaryInfC{$\Gamma\vdash t.\expatmatch{\Nil\Rightarrow t_1, \mathtt{Cons(\mathnormal{y,z})}\Rightarrow t_2}:\tau$}
 \end{prooftree}
 \begin{prooftree}
-    \AxiomC{$\Gamma:t:Stream(\tau)$}\RightLabel{\textsc{Hd}}
-    \UnaryInfC{$\Gamma\vdash t.hd:\tau$}    
+    \AxiomC{$\Gamma:t:\mathsf{Stream(\tau)}$}\RightLabel{\textsc{Hd}}
+    \UnaryInfC{$\Gamma\vdash t.\mathtt{hd}:\tau$}    
 \end{prooftree}
 \begin{prooftree}
-    \AxiomC{$\Gamma\vdash t:Stream(\tau)$}\RightLabel{\textsc{Tl}}
-    \UnaryInfC{$\Gamma\vdash t.tl:Stream(\tau)$}
+    \AxiomC{$\Gamma\vdash t:\mathsf{Stream(\tau)}$}\RightLabel{\textsc{Tl}}
+    \UnaryInfC{$\Gamma\vdash t.\mathtt{tl}:\mathsf{Stream(\tau)}$}
 \end{prooftree}
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t_1:\tau$}\RightLabel{\textsc{Stream}}
-    \AxiomC{$\Gamma\vdash t_2:Stream(\tau)$}
-    \BinaryInfC{$\Gamma\vdash \excopatmatch{hd\Rightarrow t_1, tl\Rightarrow t_2}:Stream(\tau)$}
+    \AxiomC{$\Gamma\vdash t_2:\mathsf{Stream(\tau)}$}
+    \BinaryInfC{$\Gamma\vdash \excopatmatch{\mathtt{hd}\Rightarrow t_1, \mathtt{tl}\Rightarrow t_2}: \mathsf{Stream(\tau)}$}
 \end{prooftree}
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t_1:\tau_1$}\RightLabel{\textsc{Lpair}}
     \AxiomC{$\Gamma\vdash t_2:\tau_2$}
-    \BinaryInfC{$\Gamma\vdash t.\expatmatch{fst\Rightarrow t_1, snd \Rightarrow t_2}:LPair(\tau_1, \tau_2)$}
+    \BinaryInfC{$\Gamma\vdash t.\expatmatch{\mathtt{fst}\Rightarrow t_1, \mathtt{snd} \Rightarrow t_2}:\mathsf{LPair(\tau_1, \tau_2)}$}
 \end{prooftree}
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t_1:\tau_1\rightarrow\tau_2$}\RightLabel{\textsc{App}}
@@ -427,7 +428,7 @@ we can deduce that $t$ has the type $\tau$.
 \end{prooftree}
 \begin{prooftree}
     \AxiomC{$\Gamma,x: t_1\vdash t:\tau_2$}\RightLabel{\textsc{Cocase}}
-    \UnaryInfC{$\Gamma\vdash\excopatmatch{\Ap{x}\Rightarrow t}:\tau_1\rightarrow t_2$}
+    \UnaryInfC{$\Gamma\vdash\excopatmatch{\Ap{x}\Rightarrow t}:\tau_1\rightarrow \tau_2$}
 \end{prooftree}
 
 
