@@ -364,13 +364,13 @@ Intuitively, beta-conversion means function application or the reduction under p
 We want to be able to use the unification algorithm to discern types for given terms. 
 To start, let's look at some examples terms and their types:
 \begin{align*}
-    &\mathtt{5}: \Int\\
-    &\mathtt{False}: \Bool\\
-    &\mathtt{Tup(1,True)}: \mathsf{Pair(Int, Bool)}\\
-    &(1, \True): \mathsf{LPair(Int, Bool)}\\
-    &\mathtt{Cons(1, Cons(2, Nil))}: \mathsf{List(Int)}\\
-    &e.\expatmatch{\mathtt{True\Rightarrow False, False \Rightarrow True}}: \mathsf{Bool \rightarrow Bool}\\
-    &\mathtt{Trues} = \excopatmatch{hd \Rightarrow \True, tl \Rightarrow \mathtt{Trues}}: \mathsf{Stream(Bool)}\\
+    \mathtt{5}&: \Int\\
+    \mathtt{False}&: \Bool\\
+    \mathtt{Tup(1,True)}&: \mathsf{Pair(Int, Bool)}\\
+    (1, \True)&: \mathsf{LPair(Int, Bool)}\\
+    \mathtt{Cons(1, Cons(2, Nil))}&: \mathsf{List(Int)}\\
+    e.\expatmatch{\mathtt{True\Rightarrow False, False \Rightarrow True}}&: \mathsf{Bool \rightarrow Bool}\\
+    \mathtt{Trues} = \excopatmatch{hd \Rightarrow \True, tl \Rightarrow \mathtt{Trues}}&: \mathsf{Stream(Bool)}\\
 \end{align*}
 
 
