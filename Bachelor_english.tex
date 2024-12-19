@@ -310,16 +310,16 @@ On the other hand, the substitution $[\excopatmatch{\Ap{y}\Rightarrow x} / x]$ i
 
 For example, look at the following unification problem where we are trying to substitute types for two unification variables:
 \begin{align*}
-    \texttt{List}(\alphaunifvar) &\equiv \texttt{List}(\betaunifvar)\\
-    \alphaunifvar &\equiv \texttt{Int}
+    \mathsf{List}(\alphaunifvar) &\equiv \mathsf{List}(\betaunifvar)\\
+    \alphaunifvar &\equiv \mathsf{Int}
 \end{align*}
 
-One solution might be: $\theta = [Int, Int / \alphaunifvar, \betaunifvar]$, 
-so substituting Int for both unification variables.
-The more general solution is $\sigma = [Int,\alphaunifvar / \alphaunifvar, \betaunifvar]$ (substituting $\alphaunifvar$ for $\betaunifvar$, and substituting Int for $\alphaunifvar$), however.
-This is because there exists a mapping $\tau = [Int / \alphaunifvar]$, such that:
+One solution might be: $\theta = [\mathsf{Int, Int / \alphaunifvar, \betaunifvar}]$, 
+so substituting $\mathsf{Int}$ for both unification variables.
+The more general solution is $\sigma = [\mathsf{Int,\alphaunifvar / \alphaunifvar, \betaunifvar}]$ (substituting $\alphaunifvar$ for $\betaunifvar$, and substituting Int for $\alphaunifvar$), however.
+This is because there exists a mapping $\tau = [\mathsf{Int / \alphaunifvar}]$, such that:
 \begin{align*}
-    \tau \circ \sigma &= [Int[Int/\alphaunifvar], \alphaunifvar[Int/\alphaunifvar] / \alphaunifvar, \betaunifvar]= [Int, Int / \alphaunifvar, \betaunifvar]= \theta
+    \tau \circ \sigma &= [\mathsf{Int[Int/\alphaunifvar], \alphaunifvar[Int/\alphaunifvar] / \alphaunifvar, \betaunifvar]= [Int, Int / \alphaunifvar, \betaunifvar]= \theta}
 \end{align*}
 %TODO: das ist ein vorgriff! diese sektion doch weiter runter schieben? oder die definition von lösung weiter oben oder so? oder eben ein anderes beispiel was nicht mit unifikation zu tun hat?
 \iffalse
@@ -367,9 +367,9 @@ To start, let's look at some examples terms and their types:
     \mathtt{5}&: \Int\\
     \mathtt{False}&: \Bool\\
     \mathtt{Tup(1,True)}&: \mathsf{Pair(Int, Bool)}\\
-    (1, \True)&: \mathsf{LPair(Int, Bool)}\\
+    \excopatmatch{\mathtt{fst \Rightarrow 1, snd\Rightarrow True}}&: \mathsf{LPair(Int, Bool)}\\
     \mathtt{Cons(1, Cons(2, Nil))}&: \mathsf{List(Int)}\\
-    e.\expatmatch{\mathtt{True\Rightarrow False, False \Rightarrow True}}&: \mathsf{Bool \rightarrow Bool}\\
+    \excopatmatch{\Ap{x}\Rightarrow x.\expatmatch{\mathtt{True\Rightarrow False, False \Rightarrow True}}}&: \mathsf{Bool \rightarrow Bool}\\
     \mathtt{Trues} = \excopatmatch{hd \Rightarrow \True, tl \Rightarrow \mathtt{Trues}}&: \mathsf{Stream(Bool)}\\
 \end{align*}
 
@@ -389,6 +389,14 @@ we can deduce that $t$ has the type $\tau$.
     \UnaryInfC{$\Gamma\vdash x:\tau$}
 \end{prooftree}
 \begin{prooftree}
+    \AxiomC{}\RightLabel{\textsc{True}}
+    \UnaryInfC{$\Gamma\vdash\mathtt{True}:\mathsf{Bool}$}  
+\end{prooftree}
+\begin{prooftree}
+    \AxiomC{}\RightLabel{\textsc{False}}
+    \UnaryInfC{$\Gamma\vdash\mathtt{False}:\mathsf{Bool}$}  
+\end{prooftree}
+\begin{prooftree}
     \AxiomC{}\RightLabel{\textsc{Nil}}
     \UnaryInfC{$\Gamma\vdash \Nil:\mathsf{List(\tau)}$}
 \end{prooftree}
@@ -404,7 +412,17 @@ we can deduce that $t$ has the type $\tau$.
     \TrinaryInfC{$\Gamma\vdash t.\expatmatch{\Nil\Rightarrow t_1, \mathtt{Cons(\mathnormal{y,z})}\Rightarrow t_2}:\tau$}
 \end{prooftree}
 \begin{prooftree}
-    \AxiomC{$\Gamma:t:\mathsf{Stream(\tau)}$}\RightLabel{\textsc{Hd}}
+    \AxiomC{$\Gamma\vdash t_1:\tau_1 \Gamma \vdash t_2:\tau_2 $}\RightLabel{\textsc{Tup}}
+    \UnaryInfC{$\Gamma \vdash \mathtt{Tup(}t_1,t_2\mathsf{)}: \mathsf{Pair(}\tau_1, \tau_2\mathsf{)}$}    
+\end{prooftree}
+\begin{prooftree}
+    \AxiomC{$\Gamma\vdash t: \mathsf{Pair(}t_1,t_2\mathsf{)}$}\RightLabel{\textsc{Case-Pair}}
+    \AxiomC{$\Gamma, x\vdash:\tau_1, y: \tau_2, t:\tau $}
+    \BinaryInfC{$\Gamma \vdash t.\expatmatch{\mathtt{Tup(}t_1,t_2\mathsf{)}\Rightarrow t}:\tau $}    
+\end{prooftree}
+
+\begin{prooftree}
+    \AxiomC{$\Gamma\vdash t:\mathsf{Stream(\tau)}$}\RightLabel{\textsc{Hd}}
     \UnaryInfC{$\Gamma\vdash t.\mathtt{hd}:\tau$}    
 \end{prooftree}
 \begin{prooftree}
@@ -417,9 +435,17 @@ we can deduce that $t$ has the type $\tau$.
     \BinaryInfC{$\Gamma\vdash \excopatmatch{\mathtt{hd}\Rightarrow t_1, \mathtt{tl}\Rightarrow t_2}: \mathsf{Stream(\tau)}$}
 \end{prooftree}
 \begin{prooftree}
+    \AxiomC{$\Gamma\vdash t:\mathsf{Lpair(\tau_1,\tau_2)}$}\RightLabel{\textsc{Fst}}
+    \UnaryInfC{$\Gamma\vdash t.\mathtt{fst}:\tau_1$}
+\end{prooftree}
+\begin{prooftree}
+    \AxiomC{$\Gamma\vdash t:\mathsf{Lpair(tau_1,tau_2)}$}\RightLabel{\textsc{Snd}}
+    \UnaryInfC{$\Gamma\vdash t.\mathtt{snd}:\tau_2$}
+\end{prooftree}
+\begin{prooftree}
     \AxiomC{$\Gamma\vdash t_1:\tau_1$}\RightLabel{\textsc{Lpair}}
     \AxiomC{$\Gamma\vdash t_2:\tau_2$}
-    \BinaryInfC{$\Gamma\vdash t.\expatmatch{\mathtt{fst}\Rightarrow t_1, \mathtt{snd} \Rightarrow t_2}:\mathsf{LPair(\tau_1, \tau_2)}$}
+    \BinaryInfC{$\Gamma\vdash t.\excopatmatch{\mathtt{fst}\Rightarrow t_1, \mathtt{snd} \Rightarrow t_2}:\mathsf{LPair(\tau_1, \tau_2)}$}
 \end{prooftree}
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t_1:\tau_1\rightarrow\tau_2$}\RightLabel{\textsc{App}}
@@ -427,7 +453,7 @@ we can deduce that $t$ has the type $\tau$.
     \BinaryInfC{$\Gamma\vdash t_1.\Ap{t_2}:\tau_2$}
 \end{prooftree}
 \begin{prooftree}
-    \AxiomC{$\Gamma,x: t_1\vdash t:\tau_2$}\RightLabel{\textsc{Cocase}}
+    \AxiomC{$\Gamma,x: \tau_1\vdash t:\tau_2$}\RightLabel{\textsc{Cocase}}
     \UnaryInfC{$\Gamma\vdash\excopatmatch{\Ap{x}\Rightarrow t}:\tau_1\rightarrow \tau_2$}
 \end{prooftree}
 
@@ -720,7 +746,7 @@ Since for $x = \mathtt{(2,3)}$, the equation does not hold, we can simplify to $
     &\mapsto&x\vdash \alphaunifvar \equiv \betaunifvar
     \tag{7}\\
     &x\vdash x.\expatmatch{\texttt{T} \Rightarrow e_2, \texttt{F} \Rightarrow e_2} \equiv x.\expatmatch{\texttt{T} \Rightarrow t_1, \texttt{F} \Rightarrow t_2}\footnotemark{}
-    \\ &\mapsto x\vdash  e_1 \equiv t_1, x\vdash e_2\equiv t_2
+    \\ &\mapsto x\vdash  e_1 \equiv t_1\wedge x\vdash e_2\equiv t_2
     \tag{8}
     \end{align*}
 \end{example}    
@@ -740,7 +766,7 @@ We want to formulate rules which help us simplify equations like these.
     \\ &\mapsto \Psi\vdash e_1 \equiv e_2 \wedge \overline{\Psi\vdash e\equiv t}
     \tag{3}\\
     *\,&\Psi \vdash e_1.\expatmatch{\overline{K(\overline{x})\Rightarrow e}}\equiv e_2.\expatmatch{\overline{K(\overline{x})\Rightarrow t}}
-    \\ &\mapsto \Psi, \overline{x} \vdash e_1 \equiv e_2\wedge \overline{\Psi, \overline{x}\vdash e\equiv t}
+    \\ &\mapsto \Psi \vdash e_1 \equiv e_2\wedge \overline{\Psi, \overline{x}\vdash e\equiv t}
     \tag{4}\\
     \circ\,&\Psi\vdash K(\overline{e})\equiv K(\overline{t})&\mapsto&\overline{\Psi\vdash e\equiv t}
     \tag{5}\\
