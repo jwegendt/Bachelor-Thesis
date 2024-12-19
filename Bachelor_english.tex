@@ -168,7 +168,24 @@ Write here your acknowledgements.
 
 \section{Introduction}
 
-%TODO
+Most people probably first encounter unification problems in school, when solving simple math problems.
+It is also necessary in a few important applications in computer science: 
+Type checking and type inference, in proof assistants, as well as more particular fields like logic programming and computational linguistics.
+While unification means solving equations with unknown variables, there are two major types of unification: First-order unification and higher-order unification.
+
+For the type systems in most typed programming languages, first-order unification is enough. It is only when more complex types are introduced, 
+like in the interactive theorem prover Coq or in the programming language Agda, higher-order unification is required.
+
+...
+
+While data is a well-known concept and computer scientist have spent a considerate amount thinking about it, 
+its brother codata is less talked about. Codata is dual to data, meaning any concept expressed using data may also be expressed through codata. 
+While data is concerned with how values are constructed or stored, codata is concerned with how values are destructed or used. 
+
+$\mathtt{5} \equiv \alphaunifvar$ and $\mathtt{True \equiv False}$ are examples for first-order unification. 
+
+In higher-order unification, functions may appear: \dots
+
 
 \section{The Untyped Calculus ND}
 
@@ -498,7 +515,7 @@ On the other hand, $\mathsf{\alphaunifvar\equiv List(\alphaunifvar)}$ should not
 
 
 \begin{theorem}[Decidability of First-Order Unification]
-    For first-order unification, there exists an algorithm on equneutralations $E$, which always terminates, and returns the solution if there exists one. 
+    For first-order unification, there exists an algorithm on equations $\overline{e\equiv e}$, which always terminates, and returns the solution if there exists one. 
     In particular, this solution is always a mgu (i.e. if there is a solution, then there always exists a most general one).
 \end{theorem}
 
