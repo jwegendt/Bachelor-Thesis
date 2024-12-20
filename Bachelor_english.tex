@@ -404,27 +404,50 @@ and hopefully give an idea how to construct any type.
 When writing $\Gamma\vdash t:\tau$, we mean that from the variables and their types in $\Gamma$, 
 we can deduce that $t$ has the type $\tau$.
 
+
+%% variables + booleans
+\begin{minipage}{0.2\textwidth}
+    \begin{prooftree}
+        \AxiomC{$x:\tau \in \Gamma$}\RightLabel{\textsc{Var}}
+        \UnaryInfC{$\Gamma\vdash x:\tau$}
+    \end{prooftree}        
+\end{minipage}
+\begin{minipage}{0.35\textwidth}
+    \begin{prooftree}
+        \AxiomC{}\RightLabel{\textsc{True}}
+        \UnaryInfC{$\Gamma\vdash\mathtt{True}:\mathsf{Bool}$}  
+    \end{prooftree}
+\end{minipage}
+\begin{minipage}{0.35\textwidth}
+    \begin{prooftree}
+        \AxiomC{}\RightLabel{\textsc{False}}
+        \UnaryInfC{$\Gamma\vdash\mathtt{False}:\mathsf{Bool}$}  
+    \end{prooftree}
+\end{minipage}
+
+%% tuple
 \begin{prooftree}
-    \AxiomC{$x:\tau \in \Gamma$}\RightLabel{\textsc{Var}}
-    \UnaryInfC{$\Gamma\vdash x:\tau$}
+    \AxiomC{$\Gamma\vdash t_1:\tau_1 \Gamma \vdash t_2:\tau_2 $}\RightLabel{\textsc{Tup}}
+    \UnaryInfC{$\Gamma \vdash \mathtt{Tup(}t_1,t_2\mathsf{)}: \mathsf{Pair(}\tau_1, \tau_2\mathsf{)}$}    
 \end{prooftree}
-\begin{prooftree}
-    \AxiomC{}\RightLabel{\textsc{True}}
-    \UnaryInfC{$\Gamma\vdash\mathtt{True}:\mathsf{Bool}$}  
-\end{prooftree}
-\begin{prooftree}
-    \AxiomC{}\RightLabel{\textsc{False}}
-    \UnaryInfC{$\Gamma\vdash\mathtt{False}:\mathsf{Bool}$}  
-\end{prooftree}
-\begin{prooftree}
-    \AxiomC{}\RightLabel{\textsc{Nil}}
-    \UnaryInfC{$\Gamma\vdash \Nil:\mathsf{List(\tau)}$}
-\end{prooftree}
+
+
+%% nil + cons
+\begin{minipage}{0.45\textwidth}
+    \begin{prooftree}
+        \AxiomC{}\RightLabel{\textsc{Nil}}
+        \UnaryInfC{$\Gamma\vdash \Nil:\mathsf{List(\tau)}$}
+    \end{prooftree}
+\end{minipage}
+\begin{minipage}{0.45\textwidth}
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t_1:\tau$}\RightLabel{\textsc{Cons}}
     \AxiomC{$\Gamma\vdash t_2:\mathsf{List(\tau)}$}
     \BinaryInfC{$\Gamma\vdash \mathtt{Cons(\mathnormal{t_1,t_2})}:\mathsf{List(\tau)}$}
 \end{prooftree}
+\end{minipage}
+
+%% cases
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t:\mathsf{List(\tau')}$}\RightLabel{\textsc{Case-List}}
     \AxiomC{$\Gamma\vdash t_1:\tau$}
@@ -432,50 +455,63 @@ we can deduce that $t$ has the type $\tau$.
     \TrinaryInfC{$\Gamma\vdash t.\expatmatch{\Nil\Rightarrow t_1, \mathtt{Cons(\mathnormal{y,z})}\Rightarrow t_2}:\tau$}
 \end{prooftree}
 \begin{prooftree}
-    \AxiomC{$\Gamma\vdash t_1:\tau_1 \Gamma \vdash t_2:\tau_2 $}\RightLabel{\textsc{Tup}}
-    \UnaryInfC{$\Gamma \vdash \mathtt{Tup(}t_1,t_2\mathsf{)}: \mathsf{Pair(}\tau_1, \tau_2\mathsf{)}$}    
-\end{prooftree}
-\begin{prooftree}
     \AxiomC{$\Gamma\vdash t: \mathsf{Pair(}t_1,t_2\mathsf{)}$}\RightLabel{\textsc{Case-Pair}}
     \AxiomC{$\Gamma, x\vdash:\tau_1, y: \tau_2, t:\tau $}
     \BinaryInfC{$\Gamma \vdash t.\expatmatch{\mathtt{Tup(}t_1,t_2\mathsf{)}\Rightarrow t}:\tau $}    
 \end{prooftree}
 
+%% hd + tl 
+\begin{minipage}{0.45\textwidth} 
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t:\mathsf{Stream(\tau)}$}\RightLabel{\textsc{Hd}}
     \UnaryInfC{$\Gamma\vdash t.\mathtt{hd}:\tau$}    
 \end{prooftree}
+\end{minipage}
+\begin{minipage}{0.45\textwidth}
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t:\mathsf{Stream(\tau)}$}\RightLabel{\textsc{Tl}}
     \UnaryInfC{$\Gamma\vdash t.\mathtt{tl}:\mathsf{Stream(\tau)}$}
 \end{prooftree}
+\end{minipage}
+
+%% stream
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t_1:\tau$}\RightLabel{\textsc{Stream}}
     \AxiomC{$\Gamma\vdash t_2:\mathsf{Stream(\tau)}$}
     \BinaryInfC{$\Gamma\vdash \excopatmatch{\mathtt{hd}\Rightarrow t_1, \mathtt{tl}\Rightarrow t_2}: \mathsf{Stream(\tau)}$}
 \end{prooftree}
-\begin{prooftree}
-    \AxiomC{$\Gamma\vdash t:\mathsf{Lpair(\tau_1,\tau_2)}$}\RightLabel{\textsc{Fst}}
-    \UnaryInfC{$\Gamma\vdash t.\mathtt{fst}:\tau_1$}
-\end{prooftree}
-\begin{prooftree}
-    \AxiomC{$\Gamma\vdash t:\mathsf{Lpair(tau_1,tau_2)}$}\RightLabel{\textsc{Snd}}
-    \UnaryInfC{$\Gamma\vdash t.\mathtt{snd}:\tau_2$}
-\end{prooftree}
+
+%% fst + snd
+\begin{minipage}{0.45\textwidth}
+    \begin{prooftree}
+        \AxiomC{$\Gamma\vdash t:\mathsf{Lpair(\tau_1,\tau_2)}$}\RightLabel{\textsc{Fst}}
+        \UnaryInfC{$\Gamma\vdash t.\mathtt{fst}:\tau_1$}
+    \end{prooftree}    
+\end{minipage}
+\begin{minipage}{0.45\textwidth}
+    \begin{prooftree}
+        \AxiomC{$\Gamma\vdash t:\mathsf{Lpair(tau_1,tau_2)}$}\RightLabel{\textsc{Snd}}
+        \UnaryInfC{$\Gamma\vdash t.\mathtt{snd}:\tau_2$}
+    \end{prooftree}    
+\end{minipage}
+
+%%lazypair
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t_1:\tau_1$}\RightLabel{\textsc{Lpair}}
     \AxiomC{$\Gamma\vdash t_2:\tau_2$}
     \BinaryInfC{$\Gamma\vdash \excopatmatch{\mathtt{fst}\Rightarrow t_1, \mathtt{snd} \Rightarrow t_2}:\mathsf{LPair(\tau_1, \tau_2)}$}
 \end{prooftree}
+
+%% function application and function abstraction (?)
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t_1:\tau_1\rightarrow\tau_2$}\RightLabel{\textsc{App}}
     \AxiomC{$\Gamma\vdash t_2:\tau_1$}
     \BinaryInfC{$\Gamma\vdash t_1.\Ap{t_2}:\tau_2$}
 \end{prooftree}
 \begin{prooftree}
-    \AxiomC{$\Gamma,x: \tau_1\vdash t:\tau_2$}\RightLabel{\textsc{Cocase}}
+    \AxiomC{$\Gamma,x: \tau_1\vdash t:\tau_2$}\RightLabel{\textsc{Fun}}
     \UnaryInfC{$\Gamma\vdash\excopatmatch{\Ap{x}\Rightarrow t}:\tau_1\rightarrow \tau_2$}
-\end{prooftree}
+\end{prooftree}    
 
 
 \section{First-Order Unification}
