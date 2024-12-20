@@ -18,6 +18,7 @@
 %\setmainfont{Asana-Math}
 
 \usepackage{amsmath}
+\usepackage{mathtools}
 \usepackage{array} %for the \newcolumntype macro
 \usepackage{amsthm} %for theorems/definitions
 \usepackage{thmtools} %for listofheorems TODO: remove/integrate?
@@ -181,6 +182,8 @@ like in the interactive theorem prover Coq or in the programming language Agda, 
 While data is a well-known concept and computer scientist have spent a considerate amount thinking about it, 
 its brother codata is less talked about. Codata is dual to data, meaning any concept expressed using data may also be expressed through codata. 
 While data is concerned with how values are constructed or stored, codata is concerned with how values are destructed or used. 
+
+
 
 $\mathtt{5} \equiv \alphaunifvar$ and $\mathtt{True \equiv False}$ are examples for first-order unification. 
 
@@ -462,7 +465,7 @@ we can deduce that $t$ has the type $\tau$.
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t_1:\tau_1$}\RightLabel{\textsc{Lpair}}
     \AxiomC{$\Gamma\vdash t_2:\tau_2$}
-    \BinaryInfC{$\Gamma\vdash t.\excopatmatch{\mathtt{fst}\Rightarrow t_1, \mathtt{snd} \Rightarrow t_2}:\mathsf{LPair(\tau_1, \tau_2)}$}
+    \BinaryInfC{$\Gamma\vdash \excopatmatch{\mathtt{fst}\Rightarrow t_1, \mathtt{snd} \Rightarrow t_2}:\mathsf{LPair(\tau_1, \tau_2)}$}
 \end{prooftree}
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t_1:\tau_1\rightarrow\tau_2$}\RightLabel{\textsc{App}}
@@ -601,10 +604,15 @@ We want to be able to talk about these processes formally.
 
 We formulate our constraints from a given unification problem as follows:
 We take each given equation and formulate a constraint $K$ with empty context $\Psi$. We join them using ands: %TODO: formulierung?
-$\overline{e\equiv t}$ becomes: $\constraints = C_1 \wedge ... \wedge C_n  \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
+$\overline{e\equiv t}$ becomes: $\constraints = C_1 \wedge ... \wedge C_n = \, \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
 
 For clarification, $C \wedge \mathcal{C}$ is the regular logical and thus, 
 and $\top \wedge \constraints = \constraints$ as well as $\bot \wedge \constraints = \bot$
+%TODO: ist das offensichtlich?
+
+We can also apply substitutions on a set of constraints, which just means applying the substitution to the equation part of all the constraints in the set:
+$\constraints \sigma = (C \wedge \constraints')\sigma = C \sigma \wedge \constraints' \sigma  
+= \Psi \vdash e\sigma\equiv t\sigma\wedge \constraints'$. Applying a substitution to $\top$ or $\bot$ changes nothing.
 %TODO: ist das offensichtlich?
 
 \begin{theorem}[Decidability of Higher-Order Unification]
@@ -775,33 +783,37 @@ is for them to be equivalent \textit{syntactically}. %TODO: zu ungenau?
 We want to formulate rules which help us simplify equations like these.
 \begin{definition}[Decomposing Constraints]
     \begin{align*}
-    &\Psi \vdash x\equiv x&\mapsto&\top
+    &\Psi \vdash x\equiv x&\mapsto_r&\top
     \tag{1}\\
-    &\Psi \vdash \alphaunifvar \equiv \alphaunifvar&\mapsto& \top
+    &\Psi \vdash \alphaunifvar \equiv \alphaunifvar&\mapsto_r& \top
     \tag{2}\\
     \circ\,&\Psi \vdash e_1.d({\overline{e}})\equiv e_2.d({\overline{t}})
-    \\ &\mapsto \Psi\vdash e_1 \equiv e_2 \wedge \overline{\Psi\vdash e\equiv t}
+    \\ &\mapsto_d \Psi\vdash e_1 \equiv e_2 \wedge \overline{\Psi\vdash e\equiv t}
     \tag{3}\\
     *\,&\Psi \vdash e_1.\expatmatch{\overline{K(\overline{x})\Rightarrow e}}\equiv e_2.\expatmatch{\overline{K(\overline{x})\Rightarrow t}}
-    \\ &\mapsto \Psi \vdash e_1 \equiv e_2\wedge \overline{\Psi, \overline{x}\vdash e\equiv t}
+    \\ &\mapsto_d \Psi \vdash e_1 \equiv e_2\wedge \overline{\Psi, \overline{x}\vdash e\equiv t}
     \tag{4}\\
-    \circ\,&\Psi\vdash K(\overline{e})\equiv K(\overline{t})&\mapsto&\overline{\Psi\vdash e\equiv t}
+    \circ\,&\Psi\vdash K(\overline{e})\equiv K(\overline{t})&
+    \mapsto_d&\overline{\Psi\vdash e\equiv t}
     \tag{5}\\
+    & \Psi \vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e.d(\overline{x})}}\equiv t
+    &\mapsto_e&\Psi\vdash e\equiv t
+    \tag{6}\\
     *\, &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv 
     \excopatmatch{\overline{d(\overline{x})\Rightarrow t}}
-    &\mapsto& \overline{\Psi, \overline{x}\vdash e \equiv t}
-    \tag{6}\\
-    &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv t 
-    &\mapsto& \overline{\Psi,\overline{x} \vdash e \equiv t.d(\overline{x})}
+    &\mapsto_d& \overline{\Psi, \overline{x}\vdash e \equiv t}
     \tag{7}\\
-    &\Psi\vdash t\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow e}} 
-    &\mapsto& \overline{\Psi, \overline{x}\vdash t.d(\overline{x}) \equiv e}
+    &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv t 
+    &\mapsto_d& \overline{\Psi,\overline{x} \vdash e \equiv t.d(\overline{x})}
     \tag{8}\\
-    &\text{non-matching *- or $\circ$-equation}&\mapsto&\bot
-    \tag{9}
+    &\Psi\vdash t\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow e}} 
+    &\mapsto_d& \overline{\Psi, \overline{x}\vdash t.d(\overline{x}) \equiv e}
+    \tag{9}\\    
+    &\text{non-matching *- or $\circ$-equation}&\mapsto_c&\bot
+    \tag{10}
     \end{align*}
 \end{definition}
-Rules 6-8 are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
+Rules 7-9 are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
 
 For equations marked with *, we require the constructors (or destructors) to be equal to one another in each equation. 
 We also require them to have the same list of variables as arguments, respectively (i.e. full syntactic equality).
@@ -809,10 +821,11 @@ We also require them to have the same list of variables as arguments, respective
 For equations marked with $\circ$, we only require the constructors (or destructors) to be equal to one another in each equation. 
 (i.e. no syntactic equality among arguments required).
 
-(The reason for this discrepancy lies in the fact that are only expecting terms in normal form!)
-
+(The reason for this discrepancy lies in the fact that we are only expecting terms in normal form!)
 If any of this does not hold in a given equation, rule 9 applies and we simplify to $\bot$.
 
+In the special case of rule 5 where the constructors have no arguments, e.g. $\mathtt{True \equiv True}$, we can simplify to $\top$.
+%TODO: passt das so? oder impliziert dass dass es einfach random konstruktoren sein müssen? soll das eine eigene regel sein? ist das unnötig??
 Note that 7 (as well as 8 with being just the mirror of 7) are possible through eta-conversion:
 
 \begin{align*}
@@ -822,8 +835,45 @@ Note that 7 (as well as 8 with being just the mirror of 7) are possible through 
 \end{align*}
 (Annotations on the right are supposed to show what rule is being used to get to the statement below.)
 
-\newpage 
-(Nur weil ich eine Citation irgendwo brauche)
+\subsection{Unification}
+
+What do we do when we have a solution?
+\dots
+
+Take a look at the following unification problem:
+\begin{align*}
+    \mathsf{List(\alphaunifvar)}&\equiv \mathsf{List(Int)}\\
+    \betaunifvar&\equiv \alphaunifvar.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}
+\end{align*}
+I will demonstrate how we want to solve this, introducing what to do when we found a solution.
+\begin{align*}
+    \constraints &= &\vdash& \mathsf{List(\alphaunifvar)}\equiv \mathsf{List(Int)} &\wedge&
+    \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
+    &\xmapsto{(5)}_d &\vdash& \mathsf{\alphaunifvar\equiv Int} &\wedge& 
+    \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
+    &\mapsto_s &\vdash&\mathsf{\alphaunifvar\equiv Int} &\wedge&
+    \vdash \betaunifvar\equiv \mathsf{Int}.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
+    &\stackrel{\betaconv}{=} &\vdash&\mathsf{\alphaunifvar\equiv Int} &\wedge&
+    \vdash \betaunifvar\equiv \mathtt{True}
+\end{align*}
+%TODO: have i changed the numberin of the decomposing constraints?
+In this example, several things are expressed: When we found a solution for a unification variable, 
+we want to keep it in our constraints, since we sometimes have to substitute already found unification variables in other equations (constraints).
+Doing so might introduce redexes. 
+\begin{definition}[Unification]
+    \begin{align*}
+        & e \equiv\alphaunifvar
+        &\mapsto_s& \alphaunifvar \equiv e \tag{1}\\
+        &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e 
+        &\mapsto_s& \constraints[e/\alphaunifvar] \wedge \Psi \vdash \alphaunifvar \equiv e \qquad (\alphaunifvar \notin e)\tag{2}
+    \end{align*}
+\end{definition}
+Since substituting a solution for a unification variable in other constraints might yield a beta-redex or another simplifiable constraint, 
+we need to continually apply decompositions and unifications to our equations.
+%TODO: non-determinism?
+
+
+\newpage
 In \cite{DBLP:books/el/RV01/Dowek01}, Huet's algorithm is described. %TODO: spelling?
 
 
