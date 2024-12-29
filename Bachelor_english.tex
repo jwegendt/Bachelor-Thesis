@@ -88,6 +88,9 @@
 
 \newcommand{\constraints}{\mathcal{C}}
 
+\newcommand{\mathsfbrackets}[2]{\mathsf{#1(}#2\mathsf{)}}
+\newcommand{\mathttbrackets}[2]{\mathtt{#1(}#2\mathtt{)}}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Layout Title page
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -169,6 +172,19 @@ Write here your acknowledgements.
 
 \section{Introduction}
 
+I want You to understand roughly what all the terms in the title of,
+as well as the goal of this thesis in the next few paragraphs. 
+
+While data is a well-known concept and computer scientist have spent a considerate amount thinking about it, 
+its brother codata is less talked about. Codata is dual to data, meaning any concept expressed using data may also be expressed through codata. 
+While data is concerned with how values are constructed or stored, codata is concerned with how values are destructed or used. 
+
+For example, look at these different ways to define the same tuple: 
+$\mathttbrackets{Tup}{1,5}$ vs. $\excopatmatch{fst\Rightarrow \mathtt{1}, snd \Rightarrow \mathtt{5}}$
+While the first focuses on what we put into the tuple and its construction, the second focuses on what happens when we take its components out of it, destroy it.
+
+This is something still different from Copatterns. Copatterns 
+
 Most people probably first encounter unification problems in school, when solving simple math problems.
 It is also necessary in a few important applications in computer science: 
 Type checking and type inference, in proof assistants, as well as more particular fields like logic programming and computational linguistics.
@@ -177,17 +193,20 @@ While unification means solving equations with unknown variables, there are two 
 For the type systems in most typed programming languages, first-order unification is enough. It is only when more complex types are introduced, 
 like in the interactive theorem prover Coq or in the programming language Agda, higher-order unification is required.
 
-...
+$\mathtt{5} \equiv \alphaunifvar$ and $\mathtt{True \equiv False}$ are examples for first-order unification, 
+where the first has the solution $\alphaunifvar = \mathtt{5}$ and the second is unsolvable.
+$\mathsf{List(\alphaunifvar)\equiv List(\betaunifvar)}$ is a unification problem on types and has many solutions.
 
-While data is a well-known concept and computer scientist have spent a considerate amount thinking about it, 
-its brother codata is less talked about. Codata is dual to data, meaning any concept expressed using data may also be expressed through codata. 
-While data is concerned with how values are constructed or stored, codata is concerned with how values are destructed or used. 
+In higher-order unification, functions may appear in our equations. This can look like this:
+$\alphaunifvar.\Ap{\mathtt{5}} \equiv \mathtt{5}$, which has the solution $\alphaunifvar = id$ 
+%TODO: ap erklären oder ist das offensichtlich durch die identitätsfunktion?
+
+In this thesis, I will explore a calculus that has copatterns and a focus on codata.
+
+As the goal is to present a higher-order pattern unification algorithm for this calculus,
+I go over some other smaller subsets of unification, and then explain all parts of the algorithm in more detail.
 
 
-
-$\mathtt{5} \equiv \alphaunifvar$ and $\mathtt{True \equiv False}$ are examples for first-order unification. 
-
-In higher-order unification, functions may appear: \dots
 
 
 \section{The Untyped Calculus ND}
@@ -798,7 +817,7 @@ Since for $x = \mathtt{(2,3)}$, the equation does not hold, we can simplify to $
 
 \begin{example}[Decoposing constraints-splitting into smaller parts]
     \begin{align*}
-    &\vdash \texttt{Cons(}\alphaunifvar, \texttt{Nil)}\equiv\texttt{Cons(}\alphaunifvar, \texttt{Nil)}
+    &\vdash \texttt{Cons(}\alphaunifvar, \texttt{Nil)}\equiv\texttt{Cons(}\betaunifvar, \texttt{Nil)}
     &\mapsto&\alphaunifvar\equiv \betaunifvar
     \tag{5}\\
     &x \vdash x.\Ap{e_1}\equiv x.\Ap{e_2} &\mapsto& x\vdash e_1\equiv e_2 
@@ -887,26 +906,40 @@ I will demonstrate how we want to solve this, introducing what to do when we fou
     \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
     &\xmapsto{(5)}_d &\vdash& \mathsf{\alphaunifvar\equiv Int} &\wedge& 
     \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
-    &\mapsto_s &\vdash&\mathsf{\alphaunifvar\equiv Int} &\wedge&
+    &\mapsto_u &\vdash&\mathsf{\alphaunifvar\equiv Int} &\wedge&
     \vdash \betaunifvar\equiv \mathsf{Int}.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
     &\stackrel{\betaconv}{=} &\vdash&\mathsf{\alphaunifvar\equiv Int} &\wedge&
     \vdash \betaunifvar\equiv \mathtt{True}
 \end{align*}
-%TODO: have i changed the numberin of the decomposing constraints?
+%TODO: have i changed the number in of the decomposing constraints?
 In this example, several things are expressed: When we found a solution for a unification variable, 
 we want to keep it in our constraints, since we sometimes have to substitute already found unification variables in other equations (constraints).
 Doing so might introduce redexes. 
 \begin{definition}[Unification]
     \begin{align*}
         & e \equiv\alphaunifvar
-        &\mapsto_s& \alphaunifvar \equiv e \tag{1}\\
+        &\mapsto_u& \alphaunifvar \equiv e 
+        \tag{1}\\
         &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e 
-        &\mapsto_s& \constraints[e/\alphaunifvar] \wedge \Psi \vdash \alphaunifvar \equiv e \qquad (\alphaunifvar \notin e)\tag{2}
+        &\mapsto_u& \constraints[e/\alphaunifvar] \wedge \Psi \vdash \alphaunifvar \equiv e \qquad (\alphaunifvar \notin e)
+        \tag{2}\\
+        &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e
+        &\mapsto_u& \bot \qquad(\alphaunifvar\in e)
+        \tag{3}
     \end{align*}
 \end{definition}
-Since substituting a solution for a unification variable in other constraints might yield a beta-redex or another simplifiable constraint, 
-we need to continually apply decompositions and unifications to our equations.
-%TODO: non-determinism?
+Step 2 and 3 are the occurs'check
+
+\subsection{The algorithm}
+We have described steps of the algorithm so far. How and when do we apply these steps?
+
+Given a set of equations, we normalize the terms in them and are left with only normal forms. 
+For each equation, we formulate a constraint and get the set of constraints through logical ands.
+Next, we decompose the constraints, removing redundancies and potentially terminating early since we find contradictions.
+We do this non-deterministically, since the order doesn't matter. %TODO: does it really not?
+
+When we can't further simplify, we non-deterministically apply unification and decomposition steps.
+When we have found a solution for each unification variable, we can terminate and give the solution. 
 
 
 \newpage
