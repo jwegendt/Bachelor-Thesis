@@ -797,16 +797,34 @@ Let's look at some examples. We would like the following to be true:
 \begin{example}[Decomposing constraints-redundancy and contradiction]
     \begin{align*}
     &x \vdash x.\mathtt{fst} \equiv x.\mathtt{fst} &\mapsto& \top
-    \tag{1}\\
+    \\
     &x,y \vdash x.\mathtt{fst} \equiv y.\mathtt{fst} &\mapsto& \bot 
-    \tag{2}\\
+    \\
     &x \vdash x.\mathtt{fst} \equiv x.\mathtt{snd} &\mapsto& \bot 
-    \tag{3}\\
+    \\
     &\vdash \texttt{Cons(x, Nil)} \equiv \texttt{Cons(y, Nil)}&\mapsto& \bot
-    \tag{4}\\
+    \\
+    &\vdash \texttt{Cons(}\alphaunifvar, \texttt{Nil)}\equiv\texttt{Cons(}\betaunifvar, \texttt{Nil)}
+    &\mapsto&\alphaunifvar\equiv \betaunifvar
+    \\
+    &\vdash \mathsf{List(Int)}\equiv \mathsf{List(\alphaunifvar)}
+    &\mapsto& \vdash \mathsf{Int}\equiv \alphaunifvar
+    \\
+    &x \vdash x.\Ap{e_1}\equiv x.\Ap{e_2} &\mapsto& x\vdash e_1\equiv e_2 
+    \\
+    &\excopatmatch{\mathtt{fst \Rightarrow} 5, \mathtt{snd\Rightarrow False}}\equiv \alphaunifvar
+    &\mapsto& \vdash 5\equiv \alphaunifvar.\mathtt{fst}\wedge \vdash \mathtt{False\equiv\alphaunifvar.snd}
+    \\
+    &\vdash \excopatmatch{\Ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\Ap{x}\Rightarrow\betaunifvar} 
+    &\mapsto&x\vdash \alphaunifvar \equiv \betaunifvar
+    \\
+    &x\vdash x.\expatmatch{\texttt{T} \Rightarrow e_2, \texttt{F} \Rightarrow e_2} \equiv x.\expatmatch{\texttt{T} \Rightarrow t_1, \texttt{F} \Rightarrow t_2}\footnotemark{}
+    \\ &\mapsto x\vdash  e_1 \equiv t_1\wedge x\vdash e_2\equiv t_2
     \end{align*}
 \end{example}
-These example might be confusing at first. Looking at the third example, one might argue that there exists a pair, say $x = \mathtt{Tup(2,2)}$, such that
+%TODO: rather have more examples with variables?
+
+Some of these example might be confusing at first. Looking at the third example, one might argue that there exists a pair, say $x = \mathtt{Tup(2,2)}$, such that
 $x.\mathtt{fst} = x.\mathtt{snd}$. This is where it is important to remember that we are not looking for solutions to variables like $x$.
 Whereas to our unification variables $\alphaunifvar$ we want to assign any term such that our equations hold, variables $x$ add \textit{constraints} to our equations. 
 The equation $x \vdash x.\mathtt{fst} \equiv x.\mathtt{snd}$ must hold for \textit{any} variable $x$, since we cannot choose $x$! 
@@ -814,22 +832,7 @@ The equation $x \vdash x.\mathtt{fst} \equiv x.\mathtt{snd}$ must hold for \text
 %TODO: can i explain this better?
 
 Since for $x = \mathtt{(2,3)}$, the equation does not hold, we can simplify to $\bot$.
-
-\begin{example}[Decoposing constraints-splitting into smaller parts]
-    \begin{align*}
-    &\vdash \texttt{Cons(}\alphaunifvar, \texttt{Nil)}\equiv\texttt{Cons(}\betaunifvar, \texttt{Nil)}
-    &\mapsto&\alphaunifvar\equiv \betaunifvar
-    \tag{5}\\
-    &x \vdash x.\Ap{e_1}\equiv x.\Ap{e_2} &\mapsto& x\vdash e_1\equiv e_2 
-    \tag{6}\\
-    &\vdash \excopatmatch{\Ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\Ap{x}\Rightarrow\betaunifvar} 
-    &\mapsto&x\vdash \alphaunifvar \equiv \betaunifvar
-    \tag{7}\\
-    &x\vdash x.\expatmatch{\texttt{T} \Rightarrow e_2, \texttt{F} \Rightarrow e_2} \equiv x.\expatmatch{\texttt{T} \Rightarrow t_1, \texttt{F} \Rightarrow t_2}\footnotemark{}
-    \\ &\mapsto x\vdash  e_1 \equiv t_1\wedge x\vdash e_2\equiv t_2
-    \tag{8}
-    \end{align*}
-\end{example}    
+ 
 \footnotetext{\texttt{T} and \texttt{F} are stand-ins for $\True$ and $\False$.}
 
 Note that none of these examples contain redexes, meaning the only way for the terms on each side of the equations to be equivalent,
@@ -881,7 +884,7 @@ If any of this does not hold in a given equation, rule 9 applies and we simplify
 
 In the special case of rule 5 where the constructors have no arguments, e.g. $\mathtt{True \equiv True}$, we can simplify to $\top$.
 %TODO: passt das so? oder impliziert dass dass es einfach random konstruktoren sein müssen? soll das eine eigene regel sein? ist das unnötig??
-Note that 7 (as well as 8 with being just the mirror of 7) are possible through eta-conversion:
+Note that 8 (as well as 9 with being just the mirror of 8) are possible through eta-conversion:
 
 \begin{align*}
     \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t \tag*{$\equiv_{\eta}$}\\
