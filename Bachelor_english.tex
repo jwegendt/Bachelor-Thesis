@@ -175,21 +175,31 @@ Write here your acknowledgements.
 I want You to understand roughly what all the terms in the title of,
 as well as the goal of this thesis in the next few paragraphs. 
 
-While data is a well-known concept and computer scientist have spent a considerate amount thinking about it, 
+\subsection{Data and Codata}
+While data (algebraic data types) is a well-known concept, 
 its brother codata is less talked about. Codata is dual to data, meaning any concept expressed using data may also be expressed through codata. 
 While data is concerned with how values are constructed or stored, codata is concerned with how values are destructed or used. 
 
-For example, look at these different ways to define the same tuple: 
-$\mathttbrackets{Tup}{1,5}$ vs. $\excopatmatch{fst\Rightarrow \mathtt{1}, snd \Rightarrow \mathtt{5}}$
-While the first focuses on what we put into the tuple and its construction, the second focuses on what happens when we take its components out of it, destroy it.
+For instance, look at these different ways to define the same tuple: 
 
-This is something still different from Copatterns. Copatterns 
+\begin{example}
+    \begin{align*}
+        &\mathttbrackets{Tup}{\mathtt{1,5}}\\
+        &\excopatmatch{fst\Rightarrow \mathtt{1}, snd \Rightarrow \mathtt{5}}
+    \end{align*}     
+    While the first focuses on what we put into the tuple, the second focuses on how we can take its components out of it.   
+\end{example}
 
+
+We use copatterns ($\excopatmatch{...}$) to instantiate codata.
+%TODO: dann kann ich das hier auch weglassen oder?
+
+\subsection{Higher-Order Unification}
 Most people probably first encounter unification problems in school, when solving simple math problems.
 It is also necessary in a few important applications in computer science: 
 Type checking and type inference, in proof assistants, as well as more particular fields like logic programming and computational linguistics.
-While unification means solving equations with unknown variables, there are two major types of unification: First-order unification and higher-order unification.
 
+While unification means solving equations with unknown variables, there are two major types of unification: First-order unification and higher-order unification.
 For the type systems in most typed programming languages, first-order unification is enough. It is only when more complex types are introduced, 
 like in the interactive theorem prover Coq or in the programming language Agda, higher-order unification is required.
 
@@ -197,7 +207,7 @@ $\mathtt{5} \equiv \alphaunifvar$ and $\mathtt{True \equiv False}$ are examples 
 where the first has the solution $\alphaunifvar = \mathtt{5}$ and the second is unsolvable.
 $\mathsf{List(\alphaunifvar)\equiv List(\betaunifvar)}$ is a unification problem on types and has many solutions.
 
-In higher-order unification, functions may appear in our equations. This can look like this:
+In higher-order unification, functions may appear in our equations. This can look like:
 $\alphaunifvar.\Ap{\mathtt{5}} \equiv \mathtt{5}$, which has the solution $\alphaunifvar = id$ 
 %TODO: ap erklären oder ist das offensichtlich durch die identitätsfunktion?
 
@@ -205,9 +215,6 @@ In this thesis, I will explore a calculus that has copatterns and a focus on cod
 
 As the goal is to present a higher-order pattern unification algorithm for this calculus,
 I go over some other smaller subsets of unification, and then explain all parts of the algorithm in more detail.
-
-
-
 
 \section{The Untyped Calculus ND}
 
@@ -244,18 +251,55 @@ the same rules apply, but instead of constructors, the term is matched against d
     %TODO: erklären warum? => verstehen warum (das reicht)?
 \end{definition}
 
-Let's look at some examples to ... %TODO: Formulierung 
-All rudimentary datatypes can be constructed through constructors: 
-The Booleans $\True$ and $\False$ are constructors on an empty sequence. We can of course represent integers as peano numbers using constructors.
 
-Abstract data types like lists, arrays, records etc. can similarly be defined through constructors:
-$\mathtt{Cons(True, Cons(False, Nil))}$ and $\mathtt{Date(27, 08, 2005)}$. 
+\subsection{How is this used?}
+All rudimentary datatypes can be constructed through constructors. Constructors are also used for recursively data types like numbers (peano numbers) or lists.
+%TODO: explain that im using a shorthand for peano numbers => fußnote?
+\begin{example}[Instantiating Data Types with constructors]
+    \begin{align*}
+        &\mathtt{True, False}\\
+        &\mathtt{Tup(1,2)}\\
+        &\mathtt{Date(27, 08, 2005)}\\
+        &\mathtt{Cons(True, Cons(False, Nil))}              
+    \end{align*}
+\end{example}
+
+We also use constructos for types, Simple Types like $\mathsf{Int, Bool, ...}$ are constructors on an empty sequence, 
+while $\mathsf{List(Int)}$ is a constructor that takes one argument, in this case $\mathsf{Int}$. 
+
+\begin{example}[Constructing Type with constructors]
+    \begin{align*}
+        &\mathsf{Int}\\
+        &\mathsf{Bool}\\
+        &\mathsf{List(Int)}
+    \end{align*}
+\end{example}
+
+%TODO: reformulate
 
 We can use Pattern matching to represent conditionals:
 Like if statements: if $e_1$ $e_2$ else $e_3$ which is analogous to:
 $e_1.\expatmatch{\True\Rightarrow e_2, \False\Rightarrow e_3}$
 Or the expression which tests whether a given list starts with $\True$:
-$e.\expatmatch{\mathtt{Cons(True,x)\Rightarrow True, Nil\Rightarrow False, Cons(x, y)}\Rightarrow \code{False}}$
+$e.\expatmatch{\mathttbrackets{Cons}{\True, x}\Rightarrow \True, 
+\mathtt{Nil\Rightarrow False}, \mathttbrackets{Cons}{x, y}\Rightarrow\False}$
+\subsection{How Codata and Copattern Matching are actually connected}
+
+\begin{example}
+    \begin{center}
+        \begin{tabular}{l | l | l}
+             & Data & Codata\\
+            \hline
+            Instantiation & $\mathtt{Tup(1,2)}$&  $\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}$\\
+            Destruction & $.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}$ & $.\mathtt{fst}$\\
+            Example & $\mathtt{Tup(1,2)}.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x} \betaconv \mathtt{1}$&$\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst}\betaconv \mathtt{1}$
+        \end{tabular}        
+    \end{center}
+\end{example}
+
+You can see how Data contrast and complement each other beautifully, here:
+The instantiation of data looks pretty simple, while its destruction needs a bunch of additional information.
+On the other hand, the instantiation of codata  is longer, while its destruction is very simple. 
 
 \subsection{Free Variables, Substitutions, Contexts}
 
@@ -389,6 +433,7 @@ Some examples:
     &\excopatmatch{\Ap{y}\Rightarrow y}.\Ap{x} \betaconv y[x/y]= x
 \end{align*}
 Intuitively, beta-conversion means function application or the reduction under pattern or copattern matching. %TODO: macht das so sinn? sollte ich das mehr erklären? sind die beispiele hier überhaupt gut?
+%TODO: more explanation?
 
 \begin{definition}[Eta-Conversion for Codata]
     A single step of eta-conversion $e_1 \etaconv e_2$ is defined as follows:
@@ -751,6 +796,7 @@ they contain an term we can't further evaluate (either a variable or a unificati
 Values, where we don't have this assurance cannot contain the building blocks for a beta-redex.
 
 Some examples: 
+\begin{example}
 \begin{align*}
     \begin{split}
         r &= \alphaunifvar.\Ap{\excopatmatch{\Ap{x}\Rightarrow x}}, \\
@@ -759,6 +805,7 @@ Some examples:
     \end{split}    
 \end{align*}
 $r$ and $s$ are in normal form and $t$ is a pattern in normal form.
+\end{example}
 
 \begin{theorem}
     If a unification problem has a solution, that solution is the same for the normal form of that same problem. 
@@ -794,14 +841,31 @@ It is helpful to simplify our equations a bit before starting the unification pr
 We do this by taking out redundant equations, spotting clearly contradictory equations or splitting our equations into smaller parts which we can further simplify and unify.
 
 Let's look at some examples. We would like the following to be true:
-\begin{example}[Decomposing constraints-redundancy and contradiction]
+\begin{example}[Pairs and ]
     \begin{align*}
     &x \vdash x.\mathtt{fst} \equiv x.\mathtt{fst} &\mapsto& \top
     \\
-    &x,y \vdash x.\mathtt{fst} \equiv y.\mathtt{fst} &\mapsto& \bot 
-    \\
     &x \vdash x.\mathtt{fst} \equiv x.\mathtt{snd} &\mapsto& \bot 
     \\
+    &x,y \vdash x.\mathtt{fst} \equiv y.\mathtt{fst} &\mapsto& \bot 
+    \end{align*}
+\end{example}
+These example might be confusing at first. Looking at the second example, one might argue that there exists a pair, say $x = \mathtt{Tup(2,2)}$, such that
+$x.\mathtt{fst} = x.\mathtt{snd}$. This is where it is important to remember that we are not looking for solutions to variables like $x$.
+Whereas to our unification variables $\alphaunifvar$ we want to assign any term such that our equations hold, variables $x$ add \textit{constraints} to our equations. 
+The equation $x \vdash x.\mathtt{fst} \equiv x.\mathtt{snd}$ must hold for \textit{any} variable $x$, since we cannot choose $x$! 
+Since for $x = \mathtt{(2,3)}$, the equation does not hold, we can simplify to $\bot$.
+%TODO: rework sentence structure
+%TODO: can i explain this better?
+
+Similarly, for the third example, one might argue that there exists a solution, we just need to apply the substitution $[y/x]$ to the equation. 
+Still, we may not choose our variables. Another way to look at it is this: Some other equations might "choose our variables" for us!
+If we were to apply the given substitution, we would have to apply it to all equations. What if we have another equation 
+that imposes other constraints on our variables, like for example: 
+$x \equiv $ %TODO
+
+\begin{example}[Constructors and Destructors]
+    \begin{align*}
     &\vdash \texttt{Cons(x, Nil)} \equiv \texttt{Cons(y, Nil)}&\mapsto& \bot
     \\
     &\vdash \texttt{Cons(}\alphaunifvar, \texttt{Nil)}\equiv\texttt{Cons(}\betaunifvar, \texttt{Nil)}
@@ -811,28 +875,27 @@ Let's look at some examples. We would like the following to be true:
     &\mapsto& \vdash \mathsf{Int}\equiv \alphaunifvar
     \\
     &x \vdash x.\Ap{e_1}\equiv x.\Ap{e_2} &\mapsto& x\vdash e_1\equiv e_2 
-    \\
-    &\excopatmatch{\mathtt{fst \Rightarrow} 5, \mathtt{snd\Rightarrow False}}\equiv \alphaunifvar
-    &\mapsto& \vdash 5\equiv \alphaunifvar.\mathtt{fst}\wedge \vdash \mathtt{False\equiv\alphaunifvar.snd}
-    \\
+    \end{align*}
+\end{example}
+
+%TODO: can i find more interesting examples for this section?
+
+\begin{example}[Pattern and Copattern Matching]
+    \begin{align*}
     &\vdash \excopatmatch{\Ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\Ap{x}\Rightarrow\betaunifvar} 
     &\mapsto&x\vdash \alphaunifvar \equiv \betaunifvar
     \\
     &x\vdash x.\expatmatch{\texttt{T} \Rightarrow e_2, \texttt{F} \Rightarrow e_2} \equiv x.\expatmatch{\texttt{T} \Rightarrow t_1, \texttt{F} \Rightarrow t_2}\footnotemark{}
     \\ &\mapsto x\vdash  e_1 \equiv t_1\wedge x\vdash e_2\equiv t_2
+    \\
+    &\excopatmatch{\mathtt{fst \Rightarrow} 5, \mathtt{snd\Rightarrow False}}\equiv \alphaunifvar
+    \\ &\mapsto \vdash 5\equiv \alphaunifvar.\mathtt{fst}\wedge \vdash \mathtt{False\equiv\alphaunifvar.snd}
     \end{align*}
 \end{example}
+
 %TODO: rather have more examples with variables?
+%TODO: own section for non-matching equations? (maybe after the definition?)
 
-Some of these example might be confusing at first. Looking at the third example, one might argue that there exists a pair, say $x = \mathtt{Tup(2,2)}$, such that
-$x.\mathtt{fst} = x.\mathtt{snd}$. This is where it is important to remember that we are not looking for solutions to variables like $x$.
-Whereas to our unification variables $\alphaunifvar$ we want to assign any term such that our equations hold, variables $x$ add \textit{constraints} to our equations. 
-The equation $x \vdash x.\mathtt{fst} \equiv x.\mathtt{snd}$ must hold for \textit{any} variable $x$, since we cannot choose $x$! 
-%TODO: rework sentence structure
-%TODO: can i explain this better?
-
-Since for $x = \mathtt{(2,3)}$, the equation does not hold, we can simplify to $\bot$.
- 
 \footnotetext{\texttt{T} and \texttt{F} are stand-ins for $\True$ and $\False$.}
 
 Note that none of these examples contain redexes, meaning the only way for the terms on each side of the equations to be equivalent,
@@ -899,21 +962,23 @@ What do we do when we have a solution?
 \dots
 
 Take a look at the following unification problem:
-\begin{align*}
-    \mathsf{List(\alphaunifvar)}&\equiv \mathsf{List(Int)}\\
-    \betaunifvar&\equiv \alphaunifvar.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}
-\end{align*}
-I will demonstrate how we want to solve this, introducing what to do when we found a solution.
-\begin{align*}
-    \constraints &= &\vdash& \mathsf{List(\alphaunifvar)}\equiv \mathsf{List(Int)} &\wedge&
-    \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
-    &\xmapsto{(5)}_d &\vdash& \mathsf{\alphaunifvar\equiv Int} &\wedge& 
-    \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
-    &\mapsto_u &\vdash&\mathsf{\alphaunifvar\equiv Int} &\wedge&
-    \vdash \betaunifvar\equiv \mathsf{Int}.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
-    &\stackrel{\betaconv}{=} &\vdash&\mathsf{\alphaunifvar\equiv Int} &\wedge&
-    \vdash \betaunifvar\equiv \mathtt{True}
-\end{align*}
+\begin{example}
+    \begin{align*}
+        \mathsf{List(\alphaunifvar)}&\equiv \mathsf{List(Int)}\\
+        \betaunifvar&\equiv \alphaunifvar.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}
+    \end{align*}        
+    I will demonstrate how we want to solve this, introducing what to do when we found a solution.
+    \begin{align*}
+        \constraints &= &\vdash& \mathsf{List(\alphaunifvar)}\equiv \mathsf{List(Int)} &\wedge&
+        \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
+        &\xmapsto{(5)}_d &\vdash& \mathsf{\alphaunifvar\equiv Int} &\wedge& 
+        \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
+        &\mapsto_u &\vdash&\mathsf{\alphaunifvar\equiv Int} &\wedge&
+        \vdash \betaunifvar\equiv \mathsf{Int}.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
+        &\stackrel{\betaconv}{=} &\vdash&\mathsf{\alphaunifvar\equiv Int} &\wedge&
+        \vdash \betaunifvar\equiv \mathtt{True}
+    \end{align*}    
+\end{example}
 %TODO: have i changed the number in of the decomposing constraints?
 In this example, several things are expressed: When we found a solution for a unification variable, 
 we want to keep it in our constraints, since we sometimes have to substitute already found unification variables in other equations (constraints).
