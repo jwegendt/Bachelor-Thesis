@@ -203,22 +203,40 @@ While unification means solving equations with unknown variables, there are two 
 For the type systems in most typed programming languages, first-order unification is enough. It is only when more complex types are introduced, 
 like in the interactive theorem prover Coq or in the programming language Agda, higher-order unification is required.
 
-$\mathtt{5} \equiv \alphaunifvar$ and $\mathtt{True \equiv False}$ are examples for first-order unification, 
-where the first has the solution $\alphaunifvar = \mathtt{5}$ and the second is unsolvable.
-$\mathsf{List(\alphaunifvar)\equiv List(\betaunifvar)}$ is a unification problem on types and has many solutions.
+\begin{example}[First-order unification problems]
+    \begin{align*}
+        &\mathtt{5} \equiv \alphaunifvar\\
+        &\mathtt{True \equiv False}\\
+        &\mathsf{List(\alphaunifvar)\equiv List(\betaunifvar)}\\
+        &\mathtt{Tup(1,\alphaunifvar)}\equiv \betaunifvar
+    \end{align*}
+\end{example}
+%TODO: Klar machen dass es sich hier um mehrere probleme handelt! aber wie?
 
-In higher-order unification, functions may appear in our equations. This can look like:
-$\alphaunifvar.\Ap{\mathtt{5}} \equiv \mathtt{5}$, which has the solution $\alphaunifvar = id$ 
-%TODO: ap erklären oder ist das offensichtlich durch die identitätsfunktion?
+Each of the equations can be seen as their own unification problem.
+The first has an obvious solution $[\mathtt{5/\alphaunifvar}]$, so substituting $\mathtt{5}$ for $\alphaunifvar$.
+The second is a unification problem without unification variables, and has no solution.
+The second and third are both unification problems on types with 2 unification variables, and have many solutions
+- I will discuss which is the one we want, later on.
+%TODO: das impliziert ein bisschen dass man nur mehrere lösungen haben kann wenn es mehrere unifikationsvariablen gibt
+% (obwohl es ja immer mehrere lösungen gibt, hier geht es halt darum dass die kleinste nicht unbedingt offensichtlich ist)
+
+\begin{example}[Higher-order unification problems]
+    \begin{align*}
+        &\alphaunifvar.\Ap{\mathtt{5}} \equiv \mathtt{5}\\
+        &...
+    \end{align*}
+    The first example has the solution $[id / \alphaunifvar]$.
+\end{example}
 
 In this thesis, I will explore a calculus that has copatterns and a focus on codata.
-
 As the goal is to present a higher-order pattern unification algorithm for this calculus,
 I go over some other smaller subsets of unification, and then explain all parts of the algorithm in more detail.
+% TODO: hier besser alle teile erklären
 
 \section{The Untyped Calculus ND}
 
-I will be introducing the Untyped Calculus ND, based on ... %TODO citation
+I will be introducing the Untyped Calculus ND, based on ... %TODO: citation
 
 \subsection{Syntax of the Untyped Calculus ND}
 
@@ -251,45 +269,49 @@ the same rules apply, but instead of constructors, the term is matched against d
     %TODO: erklären warum? => verstehen warum (das reicht)?
 \end{definition}
 
-
 \subsection{How is this used?}
-All rudimentary datatypes can be constructed through constructors. Constructors are also used for recursively data types like numbers (peano numbers) or lists.
-%TODO: explain that im using a shorthand for peano numbers => fußnote?
-\begin{example}[Instantiating Data Types with constructors]
-    \begin{align*}
-        &\mathtt{True, False}\\
-        &\mathtt{Tup(1,2)}\\
-        &\mathtt{Date(27, 08, 2005)}\\
-        &\mathtt{Cons(True, Cons(False, Nil))}              
-    \end{align*}
-\end{example}
 
-We also use constructors for types. Simple Types like $\mathsf{Int, Bool, ...}$ are constructors on an empty sequence, 
-while $\mathsf{List(Int)}$ is a constructor that takes one argument, in this case $\mathsf{Int}$.
+%TODO: noch ein beispiel am ende um den unterschied zwischen data und codata zu erklären? oder einfach in die bisherigen beispiele eingliedern?
 
+To get familiar with the syntax and to understand the underlying semantics, I will go through some examples and explain what they implement.
+%TODO: hier noch was schreiben? was????
+
+We use constructors for types:
 \begin{example}[Constructing Types with constructors]
+    Simple Types like $\mathsf{Int, Bool, ...}$ are constructors on an empty sequence, 
+    while there are of course Types that require arguments. %TODO: reformulate
     \begin{align*}
         &\mathsf{Int}\\
         &\mathsf{Bool}\\
         &\mathsf{List(Int)}\\
         &\mathsf{Pair(Int, Bool)}
     \end{align*}
+    This is explored in detail and formally later on in ... %TODO: ref
 \end{example}
 
-%TODO: reformulate
-
-\begin{example}[Using Copattern Matching to define Codata]
+But we also use constructors for instantiating data types:
+\begin{example}[Instantiating Data with constructors]
     \begin{align*}
-        \excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}    
+        &\mathtt{True, False}\\
+        &\mathtt{Tup(1,2)}\\
+        &\mathtt{Date(27, 08, 2005)}\\
+        &\mathtt{Cons(True, Cons(False, Nil))}              
     \end{align*}
+    We can use constructors to define recursive data types, as You can see from the last example.
+    Numbers are also implemented recursively, as Peano numbers. I use actual numbers as a shorthand throughout this thesis, though.
 \end{example}
 
-\begin{example}[Using Destructors to take apart Codata]
+\begin{example}[Using pattern matching to take apart Data]
     \begin{align*}
-        \excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst} \betaconv \mathtt{1}
+        &\mathtt{Tup(1,2)}.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}\\
+        &\mathtt{Cons(True, Cons(False, Nil))}.\expatmatch{\mathttbrackets{Cons}{x, y}\Rightarrow y}   
     \end{align*}
+    This is the pattern matching You know and love. 
+    We will see later how this is evaluated to $\mathtt{1}$ and $\mathtt{Cons(False, Nil)}$, respectively.
+    %TODO: ist das zu cringe? %TODO: ref
 \end{example}
 
+Since we use pattern matching to deconstruct data like Booleans, we can naturally also use it to implement conditionals:
 \begin{example}[Using pattern matching to represent conditionals]
     \begin{align*}
         &t.\expatmatch{\True\Rightarrow e_1, \False\Rightarrow e_2} \tag*{$\widehat{=}$ if $t$ $e_1$ else $e_2$}\\
@@ -299,8 +321,47 @@ while $\mathsf{List(Int)}$ is a constructor that takes one argument, in this cas
 The second expression tests whether a given list starts with $\True$.
 \end{example}
 
+\begin{example}[Using Copattern Matching to instantiate Codata]
+    \begin{align*}
+        &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}\\
+        & TrafficLight = \excopatmatch{\mathtt{Green \Rightarrow Yellow, Yellow\Rightarrow, Red\Rightarrow Green}}
+    \end{align*}
+    We have seen examples like this in the introduction; the first one is a tuple with the values $\mathtt{1}$ and $\mathtt{2}$.
 
+    In the second, we assume that there are destructors (on an empty sequence) for an algebraic data type that implements the colors of a traffic light.
+    Notice again, that we could have defined our traffic light as what colors it displays (using a sum type), but chose to focus on how these colors change, 
+    what our traffic light \textit{does}.
+\end{example}
+
+\begin{example}[Using Destructors to take apart Codata]
+    \begin{align*}
+        &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst}\\
+        &TrafficLight.\mathtt{Green}\\
+        &id.\Ap{\mathtt{5}}
+    \end{align*}
+    These do exactly what You think they do: We select the first value of the tuple,
+    and turn our traffic light Yellow, respectively 
+    We will see how these examples resolve to $\mathtt{1}$, $\mathtt{Yellow}$ and $\mathtt{5}$ later on. %TODO: ref
+    $\Ap{}$ is the destructor that implements function application: It applies the function on which it is "called" to the argument in the brackets.
+    %TODO: formulierung
+\end{example} 
+
+You might have noticed already that there is no option for function definition in the syntax of our calculus.
+This is because we can use copattern matching to implement function definition:
+%TODO: etwas darüber schreiben, dass lambdas codata sind?
+\begin{example}[Using Copattern Matching for function definitions]
+    \begin{align*}
+        &id = \excopatmatch{\Ap{x}\Rightarrow x}\\
+        &\excopatmatch{\Ap{x}\Rightarrow (\Ap{y}\Rightarrow x)} \tag*{$\widehat{=}\lambda x.\lambda y.x$} \\
+        &\excopatmatch{\Ap{x}\Rightarrow (\Ap{y}\Rightarrow y)} \tag*{$\widehat{=}\lambda x.\lambda y.y$}
+    \end{align*}
+    The second and third examples implement a function that takes two arguments, ignores one and gives back the other.
+\end{example}
+
+\iffalse
 \subsection{How Codata and Copattern Matching are actually connected}
+
+TODO: Remove/Integrate this
 
 \begin{example}
     \begin{center}
@@ -317,6 +378,7 @@ The second expression tests whether a given list starts with $\True$.
 You can see how Data contrast and complement each other beautifully, here:
 The instantiation of data looks pretty simple, while its destruction needs a bunch of additional information.
 On the other hand, the instantiation of codata  is longer, while its destruction is very simple. 
+\fi
 
 \subsection{Free Variables, Substitutions, Contexts}
 
@@ -721,7 +783,7 @@ We want to be able to talk about these processes formally.
 
 We formulate our constraints from a given unification problem as follows:
 We take each given equation and formulate a constraint $K$ with empty context $\Psi$. We join them using ands: %TODO: formulierung?
-$\overline{e\equiv t}$ becomes: $\constraints = C_1 \wedge ... \wedge C_n = \, \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
+$\overline{e\equiv t}$ becomelowering für codata types hinzufügens: $\constraints = C_1 \wedge ... \wedge C_n = \, \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
 
 For clarification, $C \wedge \mathcal{C}$ is the regular logical and thus, 
 and $\top \wedge \constraints = \constraints$ as well as $\bot \wedge \constraints = \bot$
@@ -1024,7 +1086,8 @@ Next, we decompose the constraints, removing redundancies and potentially termin
 We do this non-deterministically, since the order doesn't matter. %TODO: does it really not?
 
 When we can't further simplify, we non-deterministically apply unification and decomposition steps.
-When we have found a solution for each unification variable, we can terminate and give the solution. 
+When we have found an assigned term for each unification variable, we can terminate and give the solution
+by formulating a substitution for each assigned term.
 
 
 \newpage
