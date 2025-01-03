@@ -264,25 +264,42 @@ All rudimentary datatypes can be constructed through constructors. Constructors 
     \end{align*}
 \end{example}
 
-We also use constructos for types, Simple Types like $\mathsf{Int, Bool, ...}$ are constructors on an empty sequence, 
-while $\mathsf{List(Int)}$ is a constructor that takes one argument, in this case $\mathsf{Int}$. 
+We also use constructors for types. Simple Types like $\mathsf{Int, Bool, ...}$ are constructors on an empty sequence, 
+while $\mathsf{List(Int)}$ is a constructor that takes one argument, in this case $\mathsf{Int}$.
 
-\begin{example}[Constructing Type with constructors]
+\begin{example}[Constructing Types with constructors]
     \begin{align*}
         &\mathsf{Int}\\
         &\mathsf{Bool}\\
-        &\mathsf{List(Int)}
+        &\mathsf{List(Int)}\\
+        &\mathsf{Pair(Int, Bool)}
     \end{align*}
 \end{example}
 
 %TODO: reformulate
 
-We can use Pattern matching to represent conditionals:
-Like if statements: if $e_1$ $e_2$ else $e_3$ which is analogous to:
-$e_1.\expatmatch{\True\Rightarrow e_2, \False\Rightarrow e_3}$
-Or the expression which tests whether a given list starts with $\True$:
-$e.\expatmatch{\mathttbrackets{Cons}{\True, x}\Rightarrow \True, 
-\mathtt{Nil\Rightarrow False}, \mathttbrackets{Cons}{x, y}\Rightarrow\False}$
+\begin{example}[Using Copattern Matching to define Codata]
+    \begin{align*}
+        \excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}    
+    \end{align*}
+\end{example}
+
+\begin{example}[Using Destructors to take apart Codata]
+    \begin{align*}
+        \excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst} \betaconv \mathtt{1}
+    \end{align*}
+\end{example}
+
+\begin{example}[Using pattern matching to represent conditionals]
+    \begin{align*}
+        &t.\expatmatch{\True\Rightarrow e_1, \False\Rightarrow e_2} \tag*{$\widehat{=}$ if $t$ $e_1$ else $e_2$}\\
+        &e.\expatmatch{\mathttbrackets{Cons}{\True, x}\Rightarrow \True, 
+        \mathtt{Nil\Rightarrow False}, \mathttbrackets{Cons}{x, y}\Rightarrow\False}
+    \end{align*}
+The second expression tests whether a given list starts with $\True$.
+\end{example}
+
+
 \subsection{How Codata and Copattern Matching are actually connected}
 
 \begin{example}
@@ -432,7 +449,7 @@ Some examples:
     &\excopatmatch{\Ap{x}\Rightarrow \True}.\Ap{x}\betaconv \True[x/x] = \True \\
     &\excopatmatch{\Ap{y}\Rightarrow y}.\Ap{x} \betaconv y[x/y]= x
 \end{align*}
-Intuitively, beta-conversion means function application or the reduction under pattern or copattern matching. %TODO: macht das so sinn? sollte ich das mehr erklären? sind die beispiele hier überhaupt gut?
+Intuitively, beta-conversion means not only function application but also the reduction under pattern or copattern matching. %TODO: macht das so sinn? sollte ich das mehr erklären? sind die beispiele hier überhaupt gut?
 %TODO: more explanation?
 
 \begin{definition}[Eta-Conversion for Codata]
@@ -454,7 +471,7 @@ To start, let's look at some examples terms and their types:
     \excopatmatch{\mathtt{fst \Rightarrow 1, snd\Rightarrow True}}&: \mathsf{LPair(Int, Bool)}\\
     \mathtt{Cons(1, Cons(2, Nil))}&: \mathsf{List(Int)}\\
     \excopatmatch{\Ap{x}\Rightarrow x.\expatmatch{\mathtt{True\Rightarrow False, False \Rightarrow True}}}&: \mathsf{Bool \rightarrow Bool}\\
-    \mathtt{Trues} = \excopatmatch{hd \Rightarrow \True, tl \Rightarrow \mathtt{Trues}}&: \mathsf{Stream(Bool)}\\
+    \mathtt{Trues} = \excopatmatch{\mathtt{hd \Rightarrow True, tl \Rightarrow Trues}}&: \mathsf{Stream(Bool)}\\
 \end{align*}
 
 
@@ -494,6 +511,11 @@ we can deduce that $t$ has the type $\tau$.
     \AxiomC{$\Gamma\vdash t_1:\tau_1 \Gamma \vdash t_2:\tau_2 $}\RightLabel{\textsc{Tup}}
     \UnaryInfC{$\Gamma \vdash \mathtt{Tup(}t_1,t_2\mathsf{)}: \mathsf{Pair(}\tau_1, \tau_2\mathsf{)}$}    
 \end{prooftree}
+\begin{prooftree}
+    \AxiomC{$\Gamma\vdash t: \mathsf{Pair(}t_1,t_2\mathsf{)}$}\RightLabel{\textsc{Case-Pair}}
+    \AxiomC{$\Gamma, x\vdash:\tau_1, y: \tau_2, t:\tau $}
+    \BinaryInfC{$\Gamma \vdash t.\expatmatch{\mathtt{Tup(}t_1,t_2\mathsf{)}\Rightarrow t}:\tau $}    
+\end{prooftree}
 
 
 %% nil + cons
@@ -511,17 +533,19 @@ we can deduce that $t$ has the type $\tau$.
 \end{prooftree}
 \end{minipage}
 
-%% cases
+%% case-list
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t:\mathsf{List(\tau')}$}\RightLabel{\textsc{Case-List}}
     \AxiomC{$\Gamma\vdash t_1:\tau$}
     \AxiomC{$\Gamma, y:\tau',z:\mathsf{List(\tau')}\vdash t_2:\tau$}
     \TrinaryInfC{$\Gamma\vdash t.\expatmatch{\Nil\Rightarrow t_1, \mathtt{Cons(\mathnormal{y,z})}\Rightarrow t_2}:\tau$}
 \end{prooftree}
+
+%% stream
 \begin{prooftree}
-    \AxiomC{$\Gamma\vdash t: \mathsf{Pair(}t_1,t_2\mathsf{)}$}\RightLabel{\textsc{Case-Pair}}
-    \AxiomC{$\Gamma, x\vdash:\tau_1, y: \tau_2, t:\tau $}
-    \BinaryInfC{$\Gamma \vdash t.\expatmatch{\mathtt{Tup(}t_1,t_2\mathsf{)}\Rightarrow t}:\tau $}    
+    \AxiomC{$\Gamma\vdash t_1:\tau$}\RightLabel{\textsc{Stream}}
+    \AxiomC{$\Gamma\vdash t_2:\mathsf{Stream(\tau)}$}
+    \BinaryInfC{$\Gamma\vdash \excopatmatch{\mathtt{hd}\Rightarrow t_1, \mathtt{tl}\Rightarrow t_2}: \mathsf{Stream(\tau)}$}
 \end{prooftree}
 
 %% hd + tl 
@@ -538,11 +562,11 @@ we can deduce that $t$ has the type $\tau$.
 \end{prooftree}
 \end{minipage}
 
-%% stream
+%%lazypair
 \begin{prooftree}
-    \AxiomC{$\Gamma\vdash t_1:\tau$}\RightLabel{\textsc{Stream}}
-    \AxiomC{$\Gamma\vdash t_2:\mathsf{Stream(\tau)}$}
-    \BinaryInfC{$\Gamma\vdash \excopatmatch{\mathtt{hd}\Rightarrow t_1, \mathtt{tl}\Rightarrow t_2}: \mathsf{Stream(\tau)}$}
+    \AxiomC{$\Gamma\vdash t_1:\tau_1$}\RightLabel{\textsc{Lpair}}
+    \AxiomC{$\Gamma\vdash t_2:\tau_2$}
+    \BinaryInfC{$\Gamma\vdash \excopatmatch{\mathtt{fst}\Rightarrow t_1, \mathtt{snd} \Rightarrow t_2}:\mathsf{LPair(\tau_1, \tau_2)}$}
 \end{prooftree}
 
 %% fst + snd
@@ -554,17 +578,10 @@ we can deduce that $t$ has the type $\tau$.
 \end{minipage}
 \begin{minipage}{0.45\textwidth}
     \begin{prooftree}
-        \AxiomC{$\Gamma\vdash t:\mathsf{Lpair(tau_1,tau_2)}$}\RightLabel{\textsc{Snd}}
+        \AxiomC{$\Gamma\vdash t:\mathsf{Lpair(\tau_1,\tau_2)}$}\RightLabel{\textsc{Snd}}
         \UnaryInfC{$\Gamma\vdash t.\mathtt{snd}:\tau_2$}
     \end{prooftree}    
 \end{minipage}
-
-%%lazypair
-\begin{prooftree}
-    \AxiomC{$\Gamma\vdash t_1:\tau_1$}\RightLabel{\textsc{Lpair}}
-    \AxiomC{$\Gamma\vdash t_2:\tau_2$}
-    \BinaryInfC{$\Gamma\vdash \excopatmatch{\mathtt{fst}\Rightarrow t_1, \mathtt{snd} \Rightarrow t_2}:\mathsf{LPair(\tau_1, \tau_2)}$}
-\end{prooftree}
 
 %% function application and function abstraction (?)
 \begin{prooftree}
