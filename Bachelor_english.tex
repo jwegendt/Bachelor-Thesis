@@ -172,7 +172,7 @@ Write here your acknowledgements.
 
 \section{Introduction}
 
-I want You to understand roughly what all the terms in the title of,
+I want you to understand roughly what all the terms in the title of,
 as well as the goal of this thesis in the next few paragraphs. 
 
 \subsection{Data and Codata}
@@ -297,7 +297,7 @@ But we also use constructors for instantiating data types:
         &\mathtt{Date(27, 08, 2005)}\\
         &\mathtt{Cons(True, Cons(False, Nil))}              
     \end{align*}
-    We can use constructors to define recursive data types, as You can see from the last example.
+    We can use constructors to define recursive data types, as you can see from the last example.
     Numbers are also implemented recursively, as Peano numbers. I use actual numbers as a shorthand throughout this thesis, though.
 \end{example}
 
@@ -306,7 +306,7 @@ But we also use constructors for instantiating data types:
         &\mathtt{Tup(1,2)}.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}\\
         &\mathtt{Cons(True, Cons(False, Nil))}.\expatmatch{\mathttbrackets{Cons}{x, y}\Rightarrow y}   
     \end{align*}
-    This is the pattern matching You know and love. 
+    This is the pattern matching you know and love. 
     We will see later how this is evaluated to $\mathtt{1}$ and $\mathtt{Cons(False, Nil)}$, respectively.
     %TODO: ist das zu cringe? %TODO: ref
 \end{example}
@@ -339,7 +339,7 @@ The second expression tests whether a given list starts with $\True$.
         &TrafficLight.\mathtt{Green}\\
         &id.\Ap{\mathtt{5}}
     \end{align*}
-    These do exactly what You think they do: We select the first value of the tuple,
+    These do exactly what you think they do: We select the first value of the tuple,
     and turn our traffic light Yellow, respectively 
     We will see how these examples resolve to $\mathtt{1}$, $\mathtt{Yellow}$ and $\mathtt{5}$ later on. %TODO: ref
     $\Ap{}$ is the destructor that implements function application: It applies the function on which it is "called" to the argument in the brackets.
@@ -575,8 +575,8 @@ we can deduce that $t$ has the type $\tau$.
 \end{prooftree}
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t: \mathsf{Pair(}t_1,t_2\mathsf{)}$}\RightLabel{\textsc{Case-Pair}}
-    \AxiomC{$\Gamma, x\vdash:\tau_1, y: \tau_2, t:\tau $}
-    \BinaryInfC{$\Gamma \vdash t.\expatmatch{\mathtt{Tup(}t_1,t_2\mathsf{)}\Rightarrow t}:\tau $}    
+    \AxiomC{$\Gamma, x\vdash:\tau_1, y: \tau_2, t':\tau' $}
+    \BinaryInfC{$\Gamma \vdash t.\expatmatch{\mathtt{Tup(}t_1,t_2\mathsf{)}\Rightarrow t'}:\tau' $}    
 \end{prooftree}
 
 
@@ -783,7 +783,7 @@ We want to be able to talk about these processes formally.
 
 We formulate our constraints from a given unification problem as follows:
 We take each given equation and formulate a constraint $K$ with empty context $\Psi$. We join them using ands: %TODO: formulierung?
-$\overline{e\equiv t}$ becomelowering für codata types hinzufügens: $\constraints = C_1 \wedge ... \wedge C_n = \, \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
+$\overline{e\equiv t}$ become $\constraints = C_1 \wedge ... \wedge C_n = \, \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
 
 For clarification, $C \wedge \mathcal{C}$ is the regular logical and thus, 
 and $\top \wedge \constraints = \constraints$ as well as $\bot \wedge \constraints = \bot$
@@ -822,7 +822,7 @@ This means that (in practice,) the pattern fragment described by Miller is a sub
 %and anytime we apply an unknown function, we should read the problem as a definition for the function.
 %TODO: mehr erklärung?
 
-If You are familiar with other definitions of patterns, You might have noticed that 
+If you are familiar with other definitions of patterns, you might have noticed that 
 we have omitted the part about the variables being bound. We require this later on when looking at patterns as subterms.
 Some examples:
 $\alphaunifvar.\Ap{x}.\Ap{y}\equiv x$ is a pattern and has the solution $[\excopatmatch{\Ap{x}\Rightarrow\excopatmatch{\Ap{y}\Rightarrow x}}/\alphaunifvar]$.
@@ -1075,7 +1075,7 @@ Doing so might introduce redexes.
         \tag{3}
     \end{align*}
 \end{definition}
-Step 2 and 3 are the occurs'check
+Step 2 and 3 are the occurs' check.
 
 \subsection{The algorithm}
 We have described steps of the algorithm so far. How and when do we apply these steps?
