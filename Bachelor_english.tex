@@ -182,17 +182,25 @@ While data is concerned with how values are constructed or stored, codata is con
 
 For instance, look at these different ways to define the same tuple: 
 
-\begin{example}
+\begin{example}[Two ways to define the same tuple]
     \begin{align*}
-        &\mathttbrackets{Tup}{\mathtt{1,5}}\\
-        &\excopatmatch{fst\Rightarrow \mathtt{1}, snd \Rightarrow \mathtt{5}}
+        &\mathttbrackets{Tup}{\mathtt{1,5}} \tag*{Data instantiation}\\
+        &\excopatmatch{\mathtt{fst \Rightarrow 1}, \mathtt{snd \Rightarrow 5}} \tag*{Codata instantiation}
     \end{align*}     
     While the first focuses on what we put into the tuple, the second focuses on how we can take its components out of it.   
 \end{example}
 
-
 We use copatterns ($\excopatmatch{...}$) to instantiate codata.
 %TODO: dann kann ich das hier auch weglassen oder?
+One form of codata often talked about is streams.
+\begin{example}[Streams]
+    \begin{align*}
+        Trues = \excopatmatch{\mathtt{fst \Rightarrow True, snd \Rightarrow} Trues}
+    \end{align*}
+    As you can see, wth codata we can also instantiate infinite codata. 
+    This is the stream that contains an infinite amount of Trues.
+    Also notice again that there is an emphasis on how we can take things out of our stream, rather than how it is constructed.
+\end{example}
 
 \subsection{Higher-Order Unification}
 Most people probably first encounter unification problems in school, when solving simple math problems.
@@ -216,20 +224,30 @@ like in the interactive theorem prover Coq or in the programming language Agda, 
 Each of the equations can be seen as their own unification problem.
 The first has an obvious solution $[\mathtt{5/\alphaunifvar}]$, so substituting $\mathtt{5}$ for $\alphaunifvar$.
 The second is a unification problem without unification variables, and has no solution.
-The second and third are both unification problems on types with 2 unification variables, and have many solutions
-- I will discuss which is the one we want, later on.
+The second and third are both unification problems on types with 2 unification variables, and have many solutions.
 %TODO: das impliziert ein bisschen dass man nur mehrere lösungen haben kann wenn es mehrere unifikationsvariablen gibt
 % (obwohl es ja immer mehrere lösungen gibt, hier geht es halt darum dass die kleinste nicht unbedingt offensichtlich ist)
 
 \begin{example}[Higher-order unification problems]
+    In this first example, we are looking for a function that when applied to $\mathtt{5}$, evaluates to $\mathtt{5}$:
     \begin{align*}
         &\alphaunifvar.\Ap{\mathtt{5}} \equiv \mathtt{5}\\
-        &...
     \end{align*}
-    The first example has the solution $[id / \alphaunifvar]$.
+    We can think of two obvious solutions for this: $[id / \alphaunifvar]$ and the constant function which always returns 5: $[\excopatmatch{\Ap{x}\Rightarrow \mathtt{5}} / \alphaunifvar]$
+    As already implied before, sometimes our unification problems have more than one solution, 
+    but we are interested in a particular solution. This is the solution that is more general, the one from which the others can be generated.
+    In this case however, there is no one such solution. This can only happen in higher-order unification, but this will be explored more formally below.
+    
+    Another example:
+    \begin{align*}
+    \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False \Rightarrow 2}}\equiv \mathtt{1}
+    \end{align*}
+    Here we have an example of pattern matching implementing an if-clause.
+    If we were to substitute $[\mathtt{True / \alphaunifvar}]$, the right side would contract to $\mathtt{1}$,
+    since the first case matches - solving the equation.
 \end{example}
 
-In this thesis, I will explore a calculus that has copatterns and a focus on codata.
+In this thesis, I will explore a calculus that has copattern matching and a focus on codata.
 As the goal is to present a higher-order pattern unification algorithm for this calculus,
 I go over some other smaller subsets of unification, and then explain all parts of the algorithm in more detail.
 % TODO: hier besser alle teile erklären
@@ -261,9 +279,9 @@ the same rules apply, but instead of constructors, the term is matched against d
     \begin{align*}
     e,r,s,t ::&=  x,y  \tag*{Variable} \\
         &\partition\constructor \tag*{Constructor} \\
-        &\partition\destructor  \tag*{Destructor}\\
         &\partition\patmatch  \tag*{Pattern match}\\
-        &\partition\copatmatch  \tag*{Copattern match}
+        &\partition\copatmatch  \tag*{Copattern match}\\
+        &\partition\destructor  \tag*{Destructor}
     \end{align*}
     In pattern and copattern matches, every con- or destructor may occur no more than once.
     %TODO: erklären warum? => verstehen warum (das reicht)?
@@ -292,7 +310,7 @@ We use constructors for types:
 But we also use constructors for instantiating data types:
 \begin{example}[Instantiating Data with constructors]
     \begin{align*}
-        &\mathtt{True, False}\\
+        &\texttt{True, False}\\
         &\mathtt{Tup(1,2)}\\
         &\mathtt{Date(27, 08, 2005)}\\
         &\mathtt{Cons(True, Cons(False, Nil))}              
@@ -324,13 +342,16 @@ The second expression tests whether a given list starts with $\True$.
 \begin{example}[Using Copattern Matching to instantiate Codata]
     \begin{align*}
         &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}\\
-        & TrafficLight = \excopatmatch{\mathtt{Green \Rightarrow Yellow, Yellow\Rightarrow, Red\Rightarrow Green}}
+        &TrafficLight = \excopatmatch{\mathtt{Green \Rightarrow Yellow, Yellow\Rightarrow, Red\Rightarrow Green}}\\
+        &Trues = \excopatmatch{\mathtt{fst \Rightarrow True, snd\Rightarrow}Trues} 
     \end{align*}
     We have seen examples like this in the introduction; the first one is a tuple with the values $\mathtt{1}$ and $\mathtt{2}$.
 
     In the second, we assume that there are destructors (on an empty sequence) for an algebraic data type that implements the colors of a traffic light.
     Notice again, that we could have defined our traffic light as what colors it displays (using a sum type), but chose to focus on how these colors change, 
     what our traffic light \textit{does}.
+
+    The third is the infinite stream of $Trues$.
 \end{example}
 
 \begin{example}[Using Destructors to take apart Codata]
@@ -358,27 +379,27 @@ This is because we can use copattern matching to implement function definition:
     The second and third examples implement a function that takes two arguments, ignores one and gives back the other.
 \end{example}
 
-\iffalse
-\subsection{How Codata and Copattern Matching are actually connected}
-
-TODO: Remove/Integrate this
+\subsection{Dualities in data and codata}
+You might have wondered why in the syntax definition, copatterns are defined first, even though they need destructors to function, which are defined afterwards.
+The reason becomes clear when rereading the titles of the definitions:
+Constructors are used to instantiate data, pattern matching is used to take apart data.
+Copattern matching is used to instantiate codata, destructors are used to take apart codata.
+The order of the syntax definitions emphasizes these conceptual dualitites.
+One more clean example to drive the point home:  
 
 \begin{example}
-    \begin{center}
-        \begin{tabular}{l | l | l}
-             & Data & Codata\\
+    \begin{align*}
+        \begin{tabular}{|l | l | l|}
             \hline
-            Instantiation & $\mathtt{Tup(1,2)}$&  $\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}$\\
-            Destruction & $.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}$ & $.\mathtt{fst}$\\
-            Example & $\mathtt{Tup(1,2)}.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x} \betaconv \mathtt{1}$&$\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst}\betaconv \mathtt{1}$
-        \end{tabular}        
-    \end{center}
-\end{example}
-
-You can see how Data contrast and complement each other beautifully, here:
-The instantiation of data looks pretty simple, while its destruction needs a bunch of additional information.
-On the other hand, the instantiation of codata  is longer, while its destruction is very simple. 
-\fi
+            & data & codata\\
+            \hline
+            instantiate & $\mathtt{Tup(1,2)}$&  $\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}$\\
+            take apart & $.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}$ & $.\mathtt{fst}$\\
+            example & $\mathtt{Tup(1,2)}.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}$&$\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst}$\\
+           \hline
+       \end{tabular}
+    \end{align*}        
+\end{example} %TODO: overfull hbox :/
 
 \subsection{Free Variables, Substitutions, Contexts}
 
@@ -389,9 +410,9 @@ On the other hand, the instantiation of codata  is longer, while its destruction
         \begin{split}
             \FV{x} &:= \{x\}\\
             \FV{\exconstructor{\listofexpr}} &:= \FV{e_1} \cup \dots\cup \FV{e_n}\\
-            \FV{\exdestructor{e_1,...e_n}} &:= \FV{e}\cup FV(e_1) \cup \dots \cup \FV{e_n}\\
             \FV{\patmatch} &:= \FV{e}\cup (\FV{e_1}\backslash\overline{x})\cup \dots\cup (\FV{e_n}\backslash\overline{x})\\
-            \FV{\copatmatch} &:= (\FV{e_1}\backslash\overline{x})\cup \dots\cup (\FV{e_n}\backslash\overline{x})
+            \FV{\copatmatch} &:= (\FV{e_1}\backslash\overline{x})\cup \dots\cup (\FV{e_n}\backslash\overline{x})\\
+            \FV{\exdestructor{e_1,...e_n}} &:= \FV{e}\cup FV(e_1) \cup \dots \cup \FV{e_n}    
         \end{split}
     \end{align*}
 %TODO: explanation
@@ -424,9 +445,9 @@ What is actually interesting is what happens when we appy a substitution to an e
         x[\listofexpr / \listofvar] :=& e_i \quad(\text{if } x=x_i) \\
         y\sigma :=& y\quad (\text{if }y\notin \texttt{dom}(\sigma))\\
         (\exconstructor{\listofexpr})\sigma :=& \exconstructor{e_1 \sigma,\dots , e_n \sigma}\\
-        (\exdestructor{\listofexpr}) \sigma:=& (e \sigma).d(e_1 \sigma,\dots , e_n \sigma)\\
         (\patmatch)\sigma:=& (e\sigma).\textbf{case}\{\overline{K(\overline{y}\Rightarrow (e\sigma')\sigma)}\}\\
-        (\copatmatch)\sigma:=& \excopatmatch{\overline{(d(\overline{y})\Rightarrow(e\sigma')\sigma)}}
+        (\copatmatch)\sigma:=& \excopatmatch{\overline{(d(\overline{y})\Rightarrow(e\sigma')\sigma)}}\\
+        (\exdestructor{\listofexpr}) \sigma:=& (e \sigma).d(e_1 \sigma,\dots , e_n \sigma)
     \end{align*} 
     Where $\sigma'$ is a substitution that ensures that we don't bind new variables: 
     $\sigma'$ has the form $[y_1,\dots, y_n/\listofvar]$ and all $y_i$ are fresh for both the domain and the range of $\sigma$.
@@ -725,9 +746,9 @@ adapted to our syntax.
         e,r,s,t  ::&= \alphaunifvar\sigma, \betaunifvar\sigma \tag*{Unification Variables with substitution}\\ %TODO: name? 
             &\partition x  \tag*{Variable} \\
             &\partition\constructor \tag*{Constructor} \\
-            &\partition\destructor  \tag*{Destructor}\\
             &\partition\patmatch  \tag*{Pattern match}\\
-            &\partition\copatmatch  \tag*{Copattern match}
+            &\partition\copatmatch  \tag*{Copattern match}\\
+            &\partition\destructor  \tag*{Destructor}
     \end{align*}
 \end{definition}
 
@@ -906,7 +927,7 @@ but this is more obvious after using a beta-reduction on the left-hand side brin
 Let's take a look at another example:
 \begin{align*}
     &\alphaunifvar \equiv \True \\
-    &\alphaunifvar.\expatmatch{\texttt{True} \Rightarrow 2, \texttt{False} \Rightarrow 3} \equiv \betaunifvar
+    &\alphaunifvar.\expatmatch{\mathtt{True\Rightarrow 2, False\Rightarrow 3}} \equiv \betaunifvar
 \end{align*}
 To find out that $[\mathtt{2}/\betaunifvar]$ is the solution to the second equation, we first need to find out that
 $[\True/\alphaunifvar]$ is the solution to the first equation and substitute it in the second.
