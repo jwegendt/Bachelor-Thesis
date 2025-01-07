@@ -175,7 +175,7 @@ Write here your acknowledgements.
 I want you to understand roughly what all the terms in the title of,
 as well as the goal of this thesis in the next few paragraphs. 
 
-\subsection{Data and Codata}
+\subsection{Data and codata}
 While data (algebraic data types) is a well-known concept, 
 its brother codata is less talked about. Codata is dual to data, meaning any concept expressed using data may also be expressed through codata. 
 While data is concerned with how values are constructed or stored, codata is concerned with how values are destructed or used. 
@@ -258,8 +258,6 @@ I will be introducing the Untyped Calculus ND, based on ... %TODO: citation
 
 \subsection{Syntax of the Untyped Calculus ND}
 
-%TODO: introduction
-
 %% explanation of lists
 
 Some knowledge of notation is necessary to familiarize oneself with the syntax of the Untyped Calculus.
@@ -283,13 +281,12 @@ the same rules apply, but instead of constructors, the term is matched against d
         &\partition\copatmatch  \tag*{Copattern match}\\
         &\partition\destructor  \tag*{Destructor}
     \end{align*}
-    In pattern and copattern matches, every con- or destructor may occur no more than once.
-    %TODO: erklären warum? => verstehen warum (das reicht)?
+    In pattern and copattern matching, every con- or destructor may occur no more than once.
+    This is so we don't match multiple clauses (since variables are interchangeable: $\mathttbrackets{Tup}{x_1, x_2}$ has the same meaning as $\mathttbrackets{Tup}{x, y}$).
 \end{definition}
-
+\iffalse$x, y \in$ \textsc{Var}, $\constructor \in$\textsc{CtorDtorName} $\lor$ \textsc{TypeName}, $\destructor \in$\textsc{CtorDtorName}.
+\fi %TODO: warum sieht das so scheiße aus??
 \subsection{How is this used?}
-
-%TODO: noch ein beispiel am ende um den unterschied zwischen data und codata zu erklären? oder einfach in die bisherigen beispiele eingliedern?
 
 To get familiar with the syntax and to understand the underlying semantics, I will go through some examples and explain what they implement.
 %TODO: hier noch was schreiben? was????
@@ -308,7 +305,7 @@ We use constructors for types:
 \end{example}
 
 But we also use constructors for instantiating data types:
-\begin{example}[Instantiating Data with constructors]
+\begin{example}[Instantiating data with constructors]
     \begin{align*}
         &\texttt{True, False}\\
         &\mathtt{Tup(1,2)}\\
@@ -319,7 +316,7 @@ But we also use constructors for instantiating data types:
     Numbers are also implemented recursively, as Peano numbers. I use actual numbers as a shorthand throughout this thesis, though.
 \end{example}
 
-\begin{example}[Using pattern matching to take apart Data]
+\begin{example}[Using pattern matching to take apart data]
     \begin{align*}
         &\mathtt{Tup(1,2)}.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}\\
         &\mathtt{Cons(True, Cons(False, Nil))}.\expatmatch{\mathttbrackets{Cons}{x, y}\Rightarrow y}   
@@ -339,7 +336,7 @@ Since we use pattern matching to deconstruct data like Booleans, we can naturall
 The second expression tests whether a given list starts with $\True$.
 \end{example}
 
-\begin{example}[Using Copattern Matching to instantiate Codata]
+\begin{example}[Using copattern matching to instantiate codata]
     \begin{align*}
         &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}\\
         &TrafficLight = \excopatmatch{\mathtt{Green \Rightarrow Yellow, Yellow\Rightarrow, Red\Rightarrow Green}}\\
@@ -354,7 +351,7 @@ The second expression tests whether a given list starts with $\True$.
     The third is the infinite stream of $Trues$.
 \end{example}
 
-\begin{example}[Using Destructors to take apart Codata]
+\begin{example}[Using destructors to take apart codata]
     \begin{align*}
         &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst}\\
         &TrafficLight.\mathtt{Green}\\
@@ -370,7 +367,7 @@ The second expression tests whether a given list starts with $\True$.
 You might have noticed already that there is no option for function definition in the syntax of our calculus.
 This is because we can use copattern matching to implement function definition:
 %TODO: etwas darüber schreiben, dass lambdas codata sind?
-\begin{example}[Using Copattern Matching for function definitions]
+\begin{example}[Using copattern matching for function definitions]
     \begin{align*}
         &id = \excopatmatch{\Ap{x}\Rightarrow x}\\
         &\excopatmatch{\Ap{x}\Rightarrow (\Ap{y}\Rightarrow x)} \tag*{$\widehat{=}\lambda x.\lambda y.x$} \\
@@ -387,7 +384,7 @@ Copattern matching is used to instantiate codata, destructors are used to take a
 The order of the syntax definitions emphasizes these conceptual dualitites.
 One more clean example to drive the point home:  
 
-\begin{example}
+\begin{example}[Dualities in a tuple defined in two ways]
     \begin{align*}
         \begin{tabular}{|l | l | l|}
             \hline
@@ -519,9 +516,9 @@ but $\sigma_1$ is more general than $\sigma_2$, since there exists a substitutio
     A single step of beta-conversion $e_1 \betaconv e_2$ is defined as follows:
     \begin{align*}
         \constructor.\textbf{case}\{\dots,\exconstructor{\overline{x}}\Rightarrow e,\dots\} 
-        \betaconv & e[\overline{e}/\overline{x}] \tag{$\beta$-Data}\\
+        \betaconv & e[\overline{e}/\overline{x}] \tag{$\beta$-data}\\
         \excopatmatch{\dots,d(\overline{x}) \Rightarrow e, \dots}.d(\overline{e})
-        \betaconv & e[\overline{e}/\overline{x}]  \tag{$\beta$-Codata}
+        \betaconv & e[\overline{e}/\overline{x}]  \tag{$\beta$-codata}
     \end{align*}
     We require that the constructor $K(\overline{e})$ and the constructor $\exconstructor{\overline{x}}$ have the same number of arguments.
     This, in short ensures that we don't generate stuck terms, i.e. terms that can't be evaluated. %TODO: warum hier und nicht in der syntaxdefinition?
@@ -535,11 +532,11 @@ Some examples:
 Intuitively, beta-conversion means not only function application but also the reduction under pattern or copattern matching. %TODO: macht das so sinn? sollte ich das mehr erklären? sind die beispiele hier überhaupt gut?
 %TODO: more explanation?
 
-\begin{definition}[Eta-Conversion for Codata]
+\begin{definition}[Eta-Conversion for codata]
     A single step of eta-conversion $e_1 \etaconv e_2$ is defined as follows:
     \begin{align*}
         \excopatmatch{\overline{d(\overline{x})\Rightarrow e.d(\overline{x})}}
-        \etaconv & e \quad (\text{if } \overline{x}\notin \FV{e}) \tag{$\eta$-Codata}
+        \etaconv & e \quad (\text{if } \overline{x}\notin \FV{e}) \tag{$\eta$-codata}
     \end{align*}
 \end{definition}
 
@@ -556,7 +553,6 @@ To start, let's look at some examples terms and their types:
     \excopatmatch{\Ap{x}\Rightarrow x.\expatmatch{\mathtt{True\Rightarrow False, False \Rightarrow True}}}&: \mathsf{Bool \rightarrow Bool}\\
     \mathtt{Trues} = \excopatmatch{\mathtt{hd \Rightarrow True, tl \Rightarrow Trues}}&: \mathsf{Stream(Bool)}\\
 \end{align*}
-
 
 \subsection{Typing Rules}
 To be able to give our examples a formal basis, we will introduce typing rules. %TODO: ich mag die satzstruktur nicht
@@ -788,13 +784,13 @@ To be able to discuss unification equations in more depth, we need one more conc
 
 \begin{definition}[Constraint]
     \begin{align*}
-        C ::= \top \partition \bot \partition \Psi \vdash e\equiv t\\
+        C ::= \top \partition \bot \partition \Psi \vdash e\equiv t \tag*{where $\Psi = x_1, ..., x_n$}\\
         \mathcal{C} ::= C \wedge \mathcal{C}
     \end{align*}
-    $\Psi$, called context is just a list of distinct variables $x_1,...x_n$ and may be empty.
+    The variables in the Context $\Psi$ need to be distinct. $\Psi$ may also be empty.
 \end{definition}
 $\Psi \vdash e\equiv t$ means that given the variables $\Psi$, we deduce that $e\equiv t$.
-$\Psi$ may contain variables that occur in or are even bound in $e,t$. 
+$\Psi$ may contain variables that occur in or are even bound in $e$ or $t$. 
 $\Psi$ contains those variables we have seen before and want to remember. This motivates the naming of $\Psi$ as context, as well.
 %TODO: ist das offensichtlich?
 
@@ -941,7 +937,7 @@ It is helpful to simplify our equations a bit before starting the unification pr
 We do this by taking out redundant equations, spotting clearly contradictory equations or splitting our equations into smaller parts which we can further simplify and unify.
 
 Let's look at some examples. We would like the following to be true:
-\begin{example}[Pairs and ]
+\begin{example}[There are two kinds of variables!]
     \begin{align*}
     &x \vdash x.\mathtt{fst} \equiv x.\mathtt{fst} &\mapsto& \top
     \\
@@ -950,19 +946,14 @@ Let's look at some examples. We would like the following to be true:
     &x,y \vdash x.\mathtt{fst} \equiv y.\mathtt{fst} &\mapsto& \bot 
     \end{align*}
 \end{example}
-These example might be confusing at first. Looking at the second example, one might argue that there exists a pair, say $x = \mathtt{Tup(2,2)}$, such that
+These examples might be confusing at first. Looking at the second example, one might argue that there exists a pair, say $x = \excopatmatch{\mathtt{fst\Rightarrow 2, snd\Rightarrow 2}}$, such that
 $x.\mathtt{fst} = x.\mathtt{snd}$. This is where it is important to remember that we are not looking for solutions to variables like $x$.
 Whereas to our unification variables $\alphaunifvar$ we want to assign any term such that our equations hold, variables $x$ add \textit{constraints} to our equations. 
 The equation $x \vdash x.\mathtt{fst} \equiv x.\mathtt{snd}$ must hold for \textit{any} variable $x$, since we cannot choose $x$! 
-Since for $x = \mathtt{(2,3)}$, the equation does not hold, we can simplify to $\bot$.
+Since for $x = \excopatmatch{\mathtt{fst\Rightarrow 2, snd\Rightarrow 3}}$, the equation does not hold, we can simplify to $\bot$.
 %TODO: rework sentence structure
 %TODO: can i explain this better?
-
-Similarly, for the third example, one might argue that there exists a solution, we just need to apply the substitution $[y/x]$ to the equation. 
-Still, we may not choose our variables. Another way to look at it is this: Some other equations might "choose our variables" for us!
-If we were to apply the given substitution, we would have to apply it to all equations. What if we have another equation 
-that imposes other constraints on our variables, like for example: 
-$x \equiv $ %TODO
+%TODO: write something about the third example?
 
 \begin{example}[Constructors and Destructors]
     \begin{align*}
@@ -1058,31 +1049,31 @@ Note that 8 (as well as 9 with being just the mirror of 8) are possible through 
 
 \subsection{Unification}
 
-What do we do when we have a solution?
-\dots
+What do we do when we can't simplify anymore? How do we actually find the solutions?
 
-Take a look at the following unification problem:
+Let's start with an example. Take a look at the following unification problem:
 \begin{example}
     \begin{align*}
-        \mathsf{List(\alphaunifvar)}&\equiv \mathsf{List(Int)}\\
-        \betaunifvar&\equiv \alphaunifvar.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}
+        \mathtt{Tup(\alphaunifvar, False)}&\equiv \mathtt{Tup(True, False)}\\
+        \betaunifvar&\equiv \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}
     \end{align*}        
     I will demonstrate how we want to solve this, introducing what to do when we found a solution.
     \begin{align*}
-        \constraints &= &\vdash& \mathsf{List(\alphaunifvar)}\equiv \mathsf{List(Int)} &\wedge&
-        \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
-        &\xmapsto{(5)}_d &\vdash& \mathsf{\alphaunifvar\equiv Int} &\wedge& 
-        \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
-        &\mapsto_u &\vdash&\mathsf{\alphaunifvar\equiv Int} &\wedge&
-        \vdash \betaunifvar\equiv \mathsf{Int}.\expatmatch{\mathsf{Int}\Rightarrow\mathtt{True}}\\
-        &\stackrel{\betaconv}{=} &\vdash&\mathsf{\alphaunifvar\equiv Int} &\wedge&
-        \vdash \betaunifvar\equiv \mathtt{True}
-    \end{align*}    
+        \constraints &= &\vdash& \mathtt{Tup(\alphaunifvar, False)}\equiv \mathtt{Tup(True, False)}&\wedge&
+        \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}\\
+        &\xmapsto{(5)}_d &\vdash& \mathtt{\alphaunifvar\equiv True}, \vdash \mathtt{False\equiv False} &\wedge& 
+        \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}\\
+        &\mapsto_u &\vdash&\mathtt{\alphaunifvar\equiv True} &\wedge&
+        \vdash \betaunifvar\equiv \mathtt{True}.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}\\
+        &\stackrel{\betaconv}{=} &\vdash&\mathtt{\alphaunifvar\equiv True} &\wedge&
+        \vdash \betaunifvar\equiv \mathtt{1}
+    \end{align*}      
 \end{example}
 %TODO: have i changed the number in of the decomposing constraints?
-In this example, several things are expressed: When we found a solution for a unification variable, 
-we want to keep it in our constraints, since we sometimes have to substitute already found unification variables in other equations (constraints).
-Doing so might introduce redexes. 
+This is what the example tells us: When we have found an assignment to a unification variable, we want to keep it in our constraints!
+This is because we sometimes have to substitute that assignment in other constraints that contain the same unification variable.
+Doing so might introduce redexes!
+%TODO: is it possible to introduce new constraints that we can simplify? probably right? 
 \begin{definition}[Unification]
     \begin{align*}
         & e \equiv\alphaunifvar
@@ -1109,6 +1100,10 @@ We do this non-deterministically, since the order doesn't matter. %TODO: does it
 When we can't further simplify, we non-deterministically apply unification and decomposition steps.
 When we have found an assigned term for each unification variable, we can terminate and give the solution
 by formulating a substitution for each assigned term.
+
+This algorithm works on any pattern unification problem, and in particular, any unification problem that can be reduced to a pattern unification problem. %TODO: how?
+
+\section{Literature review}
 
 
 \newpage
