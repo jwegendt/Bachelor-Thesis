@@ -55,8 +55,8 @@
 %Macros for possible terms in ND:
 \newcommand{\constructor}{K(\overline{e})}
 \newcommand{\destructor}{e.d(\overline{e}) }
-\newcommand{\patmatch}{e.\textbf{case}\{\overline{K(\overline{x})\Rightarrow e}\}} 
-\newcommand{\copatmatch}{\textbf{cocase}\{\overline{d(\overline{x})\Rightarrow e}\}}
+\newcommand{\patmatch}{e.\textbf{case}\{\overline{K(\overline{x})\Rightarrow t}\}} 
+\newcommand{\copatmatch}{\textbf{cocase}\{\overline{d(\overline{x})\Rightarrow t}\}}
 
 %Macros for terms but for examples and such
 \newcommand{\exconstructor}[1]{K(#1)}
@@ -191,7 +191,7 @@ For instance, look at these different ways to define the same tuple:
     While the first instantiation focuses on what we put into the tuple, the second focuses on how we can take its components out of it.   
 \end{example}
 
-One form of codata often talked about is streams.
+One form of codata often talked about is streams:
 \begin{example}[Streams]
     \begin{align*}
         Trues = \excopatmatch{\mathtt{fst \Rightarrow True, snd \Rightarrow} Trues}
@@ -212,25 +212,23 @@ like in the interactive theorem prover Coq or in the programming language Agda, 
 
 \begin{example}[First-order unification problems]
     \begin{align*}
-        &\mathtt{5} \equiv \alphaunifvar\\
-        &\mathtt{True \equiv False}\\
-        &\mathsf{List(\alphaunifvar)\equiv List(\betaunifvar)}\\
-        &\mathtt{Tup(1,\alphaunifvar)}\equiv \betaunifvar
+        &\mathtt{5} \equiv \alphaunifvar\tag{1}\\
+        &\mathtt{True \equiv False}\tag{2}\\
+        &\mathsf{List(\alphaunifvar)\equiv List(\betaunifvar)}\tag{3}\\
+        &\mathtt{Tup(1,\alphaunifvar)}\equiv \betaunifvar \tag{4}
     \end{align*}
+    Each of the given equations can be seen as their own unification problem.
+    The first has an obvious solution $[\mathtt{5/\alphaunifvar}]$, so substituting $\mathtt{5}$ for $\alphaunifvar$ (even though there are multiple solutions even here).
+    The second is a unification problem without unification variables, and has no solution.
+    The second and third are both unification problems on types with 2 unification variables, and have many solutions.
+    %TODO: das impliziert ein bisschen dass man nur mehrere lösungen haben kann wenn es mehrere unifikationsvariablen gibt
+    % (obwohl es ja immer mehrere lösungen gibt, hier geht es halt darum dass die kleinste nicht unbedingt offensichtlich ist)
 \end{example}
-%TODO: Klar machen dass es sich hier um mehrere probleme handelt! aber wie?
 
-Each of the given equations can be seen as their own unification problem.
-The first has an obvious solution $[\mathtt{5/\alphaunifvar}]$, so substituting $\mathtt{5}$ for $\alphaunifvar$ (even though there are multiple solutions even here).
-The second is a unification problem without unification variables, and has no solution.
-The second and third are both unification problems on types with 2 unification variables, and have many solutions.
-%TODO: das impliziert ein bisschen dass man nur mehrere lösungen haben kann wenn es mehrere unifikationsvariablen gibt
-% (obwohl es ja immer mehrere lösungen gibt, hier geht es halt darum dass die kleinste nicht unbedingt offensichtlich ist)
-
-\begin{example}[Higher-order unification problems]
+\begin{example}[Higher-order unification problems]\label{sec:mgu}
     In this first example, we are looking for a function that when applied to $\mathtt{5}$, evaluates to $\mathtt{5}$:
     \begin{align*}
-        &\alphaunifvar.\ap{\mathtt{5}} \equiv \mathtt{5}\\
+        &\alphaunifvar.\ap{\mathtt{5}} \equiv \mathtt{5}\tag{1} 
     \end{align*}
     We can think of two obvious solutions for this: $[id / \alphaunifvar]$ and the constant function which always returns \texttt{5}: $[\excopatmatch{\ap{x}\Rightarrow \mathtt{5}} / \alphaunifvar]$
     As already implied before, sometimes our unification problems have more than one solution, 
@@ -239,7 +237,7 @@ The second and third are both unification problems on types with 2 unification v
     
     Another example:
     \begin{align*}
-    \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False \Rightarrow 2}}\equiv \mathtt{1}
+    \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False \Rightarrow 2}}\equiv \mathtt{1} \tag{2}
     \end{align*}
     Here we have an example of pattern matching implementing an if-clause.
     If we were to substitute $[\mathtt{True / \alphaunifvar}]$, the right side would contract to $\mathtt{1}$,
@@ -255,22 +253,13 @@ I go over some other smaller subsets of unification, and then explain all parts 
 
 I will be introducing the Untyped Calculus ND, based on ... %TODO: citation
 
-\subsection{Syntax of the Untyped Calculus ND}
+\subsection{Syntax of the Untyped Calculus ND}\label{sec:syntax}
 
-%% explanation of lists
-
-Some knowledge of notation is necessary to familiarize oneself with the syntax of the Untyped Calculus.
-$X$ represents a (possibly empty) sequence $X_1, ... X_i, ... X_n$.  
-%TODO: das mit dem simultaneos indexing besser verstehen
-%TODO: das mit dem X_1, ... 
-%TODO: will ich variablen und co auch hier einführen?
-
-A pattern match $e.\textbf{case}\{\overline{K(\overline{x})\Rightarrow e}\}$ 
-matches a term $e$ against a sequence of clauses, each clause consisting of a constructor and an expression.
-The expression associated with first constructor %TODO: oder kann es nur eine geben?  
-that matches the term is the result of the pattern match. %TODO: kann man hier überhaupt von result sprechen?
+I write $\overline{e}$ to mean a (possibly empty) sequence: $\overline{e}= e_1, ..., e_n$.  
+Constructors and destructors both get a list of expressions and construct or destruct terms.
+A pattern match $\patmatch$ matches an expression $e$ against a sequence of clauses, each clause consisting of a constructor and an term $t$.
 For a copattern match $\textbf{cocase} \{\overline{d(\overline{x}) \Rightarrow e}\}$
-the same rules apply, but instead of constructors, the term is matched against destructors.
+the same rules apply, but instead of constructors, the expression is matched against destructors.
 
 \begin{definition}[Terms of the Calculus ND]
     \begin{align*}
@@ -281,7 +270,7 @@ the same rules apply, but instead of constructors, the term is matched against d
         &\partition\destructor  \tag*{Destructor}
     \end{align*}
     In pattern and copattern matching, every con- or destructor may occur no more than once.
-    This is so we don't match multiple clauses (since variables are interchangeable: $\mathttbrackets{Tup}{x_1, x_2}$ has the same meaning as $\mathttbrackets{Tup}{x, y}$).
+    This is so we don't match multiple clauses (since $\mathttbrackets{Tup}{x_1, x_2}$ and $\mathttbrackets{Tup}{x, y}$ have the same meaning). %TODO: ist das offensichtlich?
 \end{definition}
 \iffalse$x, y \in$ \textsc{Var}, $\constructor \in$\textsc{CtorDtorName} $\lor$ \textsc{TypeName}, $\destructor \in$\textsc{CtorDtorName}.
 \fi %TODO: warum sieht das so scheiße aus??
@@ -295,21 +284,21 @@ We use constructors for types:
     Simple Types like $\mathsf{Int, Bool, ...}$ are constructors on an empty sequence, 
     while there are of course Types that require arguments. %TODO: reformulate
     \begin{align*}
-        &\mathsf{Int}\\
-        &\mathsf{Bool}\\
-        &\mathsf{List(Int)}\\
-        &\mathsf{Pair(Int, Bool)}
+        &\mathsf{Int}\tag{1}\\
+        &\mathsf{Bool}\tag{2}\\
+        &\mathsf{List(Int)}\tag{3}\\
+        &\mathsf{Pair(Int, Bool)}\tag{4}
     \end{align*}
-    This is explored in detail and formally later on in ... %TODO: ref
+    Types are explored in detail and formally later on in ~\ref{sec:types}.
 \end{example}
 
 But we also use constructors for instantiating data types:
 \begin{example}[Instantiating data with constructors]
     \begin{align*}
-        &\texttt{True, False}\\
-        &\mathtt{Tup(1,2)}\\
-        &\mathtt{Date(27, 08, 2005)}\\
-        &\mathtt{Cons(True, Cons(False, Nil))}              
+        &\texttt{True, False}\tag{1}\\
+        &\mathtt{Tup(1,2)}\tag{2}\\
+        &\mathtt{Date(27, 08, 2005)}\tag{3}\\
+        &\mathtt{Cons(True, Cons(False, Nil))}\tag{4}              
     \end{align*}
     We can use constructors to define recursive data types, as you can see from the last example.
     Numbers are also implemented recursively, as Peano numbers. I use actual numbers as a shorthand throughout this thesis, though.
@@ -317,44 +306,44 @@ But we also use constructors for instantiating data types:
 
 \begin{example}[Using pattern matching to take apart data]
     \begin{align*}
-        &\mathtt{Tup(1,2)}.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}\\
-        &\mathtt{Cons(True, Cons(False, Nil))}.\expatmatch{\mathttbrackets{Cons}{x, y}\Rightarrow y}   
+        &\mathtt{Tup(1,2)}.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}\tag{1}\\
+        &\mathtt{Cons(True, Cons(False, Nil))}.\expatmatch{\mathttbrackets{Cons}{x, y}\Rightarrow y}\tag{2}   
     \end{align*}
     This is the pattern matching you know and love. 
-    We will see later how this is evaluated to $\mathtt{1}$ and $\mathtt{Cons(False, Nil)}$, respectively.
+    We will see later (~\ref{sec:betaconv}) how these get evaluated to $\mathtt{1}$ and $\mathtt{Cons(False, Nil)}$, respectively.
     %TODO: ist das zu cringe? %TODO: ref
 \end{example}
 
 Since we use pattern matching to deconstruct data like Booleans, we can naturally also use it to implement conditionals:
 \begin{example}[Using pattern matching to represent conditionals]
     \begin{align*}
-        &t.\expatmatch{\True\Rightarrow e_1, \False\Rightarrow e_2} \tag*{$\widehat{=}$ if $t$ $e_1$ else $e_2$}\\
+        &t.\expatmatch{\True\Rightarrow e_1, \False\Rightarrow e_2} \tag{1}\\
         &e.\expatmatch{\mathttbrackets{Cons}{\True, x}\Rightarrow \True, 
-        \mathtt{Nil\Rightarrow False}, \mathttbrackets{Cons}{x, y}\Rightarrow\False}
+        \mathtt{Nil\Rightarrow False}, \mathttbrackets{Cons}{x, y}\Rightarrow\False}\tag{2}
     \end{align*}
-The second expression tests whether a given list starts with $\True$.
+The first example is equivalent to if $t$ $e_1$ else $e_2$. The second expression tests whether a given list starts with $\True$.
 \end{example}
 
 \begin{example}[Using copattern matching to instantiate codata]
     \begin{align*}
-        &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}\\
-        &TrafficLight = \excopatmatch{\mathtt{Green \Rightarrow Yellow, Yellow\Rightarrow, Red\Rightarrow Green}}\\
-        &Trues = \excopatmatch{\mathtt{fst \Rightarrow True, snd\Rightarrow}Trues} 
+        &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}\tag{1}\\
+        &TrafficLight = \excopatmatch{\mathtt{Green \Rightarrow Yellow, Yellow\Rightarrow, Red\Rightarrow Green}}\tag{2}\\
+        &Trues = \excopatmatch{\mathtt{fst \Rightarrow True, snd\Rightarrow}Trues}\tag{3} 
     \end{align*}
     We have seen examples like this in the introduction; the first one is a tuple with the values $\mathtt{1}$ and $\mathtt{2}$.
 
     In the second, we assume that there are destructors (on an empty sequence) for an algebraic data type that implements the colors of a traffic light.
     Notice again, that we could have defined our traffic light as what colors it displays (using a sum type), but chose to focus on how these colors change, 
-    what our traffic light \textit{does}.
+    what our traffic light \textbf{does}.
 
     The third is the infinite stream of $Trues$.
 \end{example}
 
 \begin{example}[Using destructors to take apart codata]
     \begin{align*}
-        &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst}\\
-        &TrafficLight.\mathtt{Green}\\
-        &id.\ap{\mathtt{5}}
+        &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst}\tag{1}\\
+        &TrafficLight.\mathtt{Green}\tag{2}\\
+        &id.\ap{\mathtt{5}}\tag{3}
     \end{align*}
     These do exactly what you think they do: We select the first value of the tuple,
     and turn our traffic light Yellow, respectively 
@@ -368,11 +357,11 @@ This is because we can use copattern matching to implement function definition:
 %TODO: etwas darüber schreiben, dass lambdas codata sind?
 \begin{example}[Using copattern matching for function definitions]
     \begin{align*}
-        &id = \excopatmatch{\ap{x}\Rightarrow x}\\
-        &\excopatmatch{\ap{x}\Rightarrow (\ap{y}\Rightarrow x)} \tag*{$\widehat{=}\lambda x.\lambda y.x$} \\
-        &\excopatmatch{\ap{x}\Rightarrow (\ap{y}\Rightarrow y)} \tag*{$\widehat{=}\lambda x.\lambda y.y$}
+        &id = \excopatmatch{\ap{x}\Rightarrow x}\tag{1}\\
+        &\excopatmatch{\ap{x}\Rightarrow (\ap{y}\Rightarrow x)} \tag{2} \\
+        &\excopatmatch{\ap{x}\Rightarrow (\ap{y}\Rightarrow y)} \tag{3}
     \end{align*}
-    The second and third examples implement a function that takes two arguments, ignores one and gives back the other.
+    The first example implements the identity function. The second and third examples implement a function that takes two arguments, ignores one and gives back the other.
 \end{example}
 
 \subsection{Dualities in data and codata}
@@ -381,7 +370,7 @@ The reason becomes clear when rereading the titles of the definitions:
 Constructors are used to instantiate data, pattern matching is used to take apart data.
 Copattern matching is used to instantiate codata, destructors are used to take apart codata.
 The order of the syntax definitions emphasizes these conceptual dualitites.
-One more clean example to drive the point home:  
+Consider one more clean example to drive the point home:  
 
 \begin{example}[Dualities in a tuple defined in two ways]
     \begin{align*}
@@ -469,49 +458,47 @@ The composition of two substitutions $\sigma_2 \circ \sigma_1$ which is equivale
     Concretely, this means that it doesn't matter how often we apply a substitution to a given problem.
 \end{definition}
 
-For example, $[\excopatmatch{\ap{x}\Rightarrow x} / y]$ is idempotent, since:
-\begin{align*}
-    &[\excopatmatch{\ap{x}\Rightarrow x} / y] \circ [\excopatmatch{\ap{x}\Rightarrow x} / y] \\
-    &= [\excopatmatch{\ap{x}\Rightarrow x}[\excopatmatch{\ap{x}\Rightarrow x} / y] / y] \\
-    &= [\excopatmatch{\ap{x}\Rightarrow x} / y] 
-\end{align*}
-
+Consider these two examples of an idempotent substitution, and one that is not idempotent:
+\begin{example}
+    $[\excopatmatch{\ap{x}\Rightarrow x} / y]$ is idempotent, since:
+    \begin{align*}
+        &[\excopatmatch{\ap{x}\Rightarrow x} / y] \circ [\excopatmatch{\ap{x}\Rightarrow x} / y] \tag{1}\\
+        =& [\excopatmatch{\ap{x}\Rightarrow x}[\excopatmatch{\ap{x}\Rightarrow x} / y] / y] \\
+        =& [\excopatmatch{\ap{x}\Rightarrow x} / y] 
+    \end{align*}
 On the other hand, the substitution $[\excopatmatch{\ap{y}\Rightarrow x} / x]$ is not idempotent, since:
 \begin{align*}
-    &[\excopatmatch{\ap{y}\Rightarrow x} / x] \circ [\excopatmatch{\ap{y}\Rightarrow x} / x]\\ 
-    &= [\excopatmatch{\ap{y}\Rightarrow x}[\excopatmatch{\ap{y}\Rightarrow x} / x] / x] \\
-    &= \excopatmatch{\ap{y}\Rightarrow (\ap{y}\Rightarrow x) } \neq [\excopatmatch{\ap{y}\Rightarrow x} / x]
+    &[\excopatmatch{\ap{y}\Rightarrow x} / x] \circ [\excopatmatch{\ap{y}\Rightarrow x} / x]\tag{2}\\ 
+    =& [\excopatmatch{\ap{y}\Rightarrow x}[\excopatmatch{\ap{y}\Rightarrow x} / x] / x] \\
+    =& \excopatmatch{\ap{y}\Rightarrow (\ap{y}\Rightarrow x) } \neq [\excopatmatch{\ap{y}\Rightarrow x} / x]
 \end{align*}
+
+\end{example}
 
 \begin{definition}[More General] 
     A substitution $\sigma$ is more general than a substitution $\theta$, iff. there exists a mapping $\tau$, such that: $\theta = \tau \circ \sigma$.
 \end{definition} % TODO: andere namen? maybe
 
-For example, look at the following unification problem where we are trying to substitute types for two unification variables:
-\begin{align*}
-    \mathsf{List}(\alphaunifvar) &\equiv \mathsf{List}(\betaunifvar)\\
-    \alphaunifvar &\equiv \mathsf{Int}
-\end{align*}
-
-One solution might be: $\theta = [\mathsf{Int, Int / \alphaunifvar, \betaunifvar}]$, 
+For example, in the following unification problem, we are trying to substitute types for two unification variables:
+\begin{example}
+    \begin{align*}
+        \mathsf{List}(\alphaunifvar) &\equiv \mathsf{List}(\betaunifvar)\\
+        \alphaunifvar &\equiv \mathsf{Int}
+    \end{align*}
+    One solution might be: $\theta = [\mathsf{Int, Int / \alphaunifvar, \betaunifvar}]$, 
 so substituting $\mathsf{Int}$ for both unification variables.
-The more general solution is $\sigma = [\mathsf{Int,\alphaunifvar / \alphaunifvar, \betaunifvar}]$ (substituting $\alphaunifvar$ for $\betaunifvar$, and substituting Int for $\alphaunifvar$), however.
+The more general solution is $\sigma = [\mathsf{Int,\alphaunifvar / \alphaunifvar, \betaunifvar}]$, however.
 This is because there exists a mapping $\tau = [\mathsf{Int / \alphaunifvar}]$, such that:
 \begin{align*}
-    \tau \circ \sigma &= [\mathsf{Int[Int/\alphaunifvar], \alphaunifvar[Int/\alphaunifvar] / \alphaunifvar, \betaunifvar]= [Int, Int / \alphaunifvar, \betaunifvar]= \theta}
-\end{align*}
-%TODO: das ist ein vorgriff! diese sektion doch weiter runter schieben? oder die definition von lösung weiter oben oder so? oder eben ein anderes beispiel was nicht mit unifikation zu tun hat?
-\iffalse
-For example, for the problem $\alpha x = zx$, both $\sigma_1 = [z/\alpha]$ and $\sigma_2 = [\lambda y.zx, \lambda y.zx/ \alpha, z]$ are solutions, %TODO: zeigen warum?
-but $\sigma_1$ is more general than $\sigma_2$, since there exists a substitution $\sigma_3 = [\lambda y.zx/z]$, and:
-\begin{align*}
-    \sigma_3 \circ \sigma_1 = [z[\lambda y.zx/z], \lambda y.zx /\alpha, z] = [(\lambda y.zx), \lambda y.zx /\alpha, z] = \sigma_2  
-\end{align*}
-\fi
+    \tau \circ \sigma &= [\mathsf{Int / \alphaunifvar}]\circ[\mathsf{Int,\alphaunifvar / \alphaunifvar, \betaunifvar}] \\
+    &= [\mathsf{Int[Int/\alphaunifvar], \alphaunifvar[Int/\alphaunifvar] / \alphaunifvar, \betaunifvar]= [Int, Int / \alphaunifvar, \betaunifvar]= \theta}
+\end{align*}    
+\end{example}
+%TODO: das ist ein vorgriff! diese sektion doch weiter runter schieben und neues beispiel?
 
 \subsection{Conversion}
 
-\begin{definition}[Beta-Conversion]
+\begin{definition}[Beta-Conversion] \label{sec:betaconv}
     A single step of beta-conversion $e_1 \betaconv e_2$ is defined as follows:
     \begin{align*}
         \constructor.\textbf{case}\{\dots,\exconstructor{\overline{x}}\Rightarrow e,\dots\} 
@@ -522,13 +509,16 @@ but $\sigma_1$ is more general than $\sigma_2$, since there exists a substitutio
     We require that the constructor $K(\overline{e})$ and the constructor $\exconstructor{\overline{x}}$ have the same number of arguments.
     This, in short ensures that we don't generate stuck terms, i.e. terms that can't be evaluated. %TODO: warum hier und nicht in der syntaxdefinition?
 \end{definition}
-Some examples:
-\begin{align*}
-    &\True.\expatmatch{\False\Rightarrow \True, \True \Rightarrow \False}\betaconv\False\\
-    &\excopatmatch{\ap{x}\Rightarrow \True}.\ap{x}\betaconv \True[x/x] = \True \\
-    &\excopatmatch{\ap{y}\Rightarrow y}.\ap{x} \betaconv y[x/y]= x
-\end{align*}
-Intuitively, beta-conversion means not only function application but also the reduction under pattern or copattern matching. %TODO: macht das so sinn? sollte ich das mehr erklären? sind die beispiele hier überhaupt gut?
+Consider the following examples 
+\begin{example}
+    \begin{align*}
+        &\True.\expatmatch{\False\Rightarrow \True, \True \Rightarrow \False}\betaconv\False\tag{1}\\
+        &\excopatmatch{\ap{x}\Rightarrow \True}.\ap{x}\betaconv \True[x/x] = \True \tag{2}\\
+        &\excopatmatch{\ap{y}\Rightarrow y}.\ap{x} \betaconv y[x/y]= x\tag{3}
+    \end{align*}
+    Intuitively, beta-conversion means not only function application but also the reduction under pattern or copattern matching. %TODO: macht das so sinn? sollte ich das mehr erklären? sind die beispiele hier überhaupt gut?        
+\end{example}
+
 %TODO: more explanation?
 
 \begin{definition}[Eta-Conversion for codata]
@@ -537,21 +527,35 @@ Intuitively, beta-conversion means not only function application but also the re
         \excopatmatch{\overline{d(\overline{x})\Rightarrow e.d(\overline{x})}}
         \etaconv & e \quad (\text{if } \overline{x}\notin \FV{e}) \tag{$\eta$-codata}
     \end{align*}
+    The expression $e$ needs to be the same in all the different clauses!
 \end{definition}
 
-\section{Simple Types}
+\begin{example}[Eta-conversion for codata]
+    \begin{align*}
+        \excopatmatch{\ap{y}\Rightarrow id.\ap{y}}&\etaconv id\tag{1}\\
+        \excopatmatch{\mathtt{fst\Rightarrow} specificPair.\mathtt{fst}, \mathtt{snd\Rightarrow}specificPair.\mathtt{snd}}&\etaconv e  \tag{2}\\      
+        \text{where } specificPair = \expatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}
+    \end{align*} %TODO: besserer name???
+    The first example says: The function that takes a term and applies the identity function to it, does the same thing as the identity function.
+    In the second example, we have a pair that contains the first value of a specific pair, and the second value of a specific pair, which is obviously just that specific pair.    
+\end{example}    
+    
+\section{Simple Types}\label{sec:types}
 
 We want to be able to use the unification algorithm to discern types for given terms. 
 To start, let's look at some examples terms and their types:
-\begin{align*}
-    \mathtt{5}&: \Int\\
-    \mathtt{False}&: \Bool\\
-    \mathtt{Tup(1,True)}&: \mathsf{Pair(Int, Bool)}\\
-    \excopatmatch{\mathtt{fst \Rightarrow 1, snd\Rightarrow True}}&: \mathsf{LPair(Int, Bool)}\\
-    \mathtt{Cons(1, Cons(2, Nil))}&: \mathsf{List(Int)}\\
-    \excopatmatch{\ap{x}\Rightarrow x.\expatmatch{\mathtt{True\Rightarrow False, False \Rightarrow True}}}&: \mathsf{Bool \rightarrow Bool}\\
-    \mathtt{Trues} = \excopatmatch{\mathtt{hd \Rightarrow True, tl \Rightarrow Trues}}&: \mathsf{Stream(Bool)}\\
-\end{align*}
+
+\begin{example}
+    \begin{align*}
+        \mathtt{5}&: \Int\\
+        \mathtt{False}&: \Bool\\
+        \mathtt{Tup(1,True)}&: \mathsf{Pair(Int, Bool)}\\
+        \excopatmatch{\mathtt{fst \Rightarrow 1, snd\Rightarrow True}}&: \mathsf{LPair(Int, Bool)}\\
+        \mathtt{Cons(1, Cons(2, Nil))}&: \mathsf{List(Int)}\\
+        \excopatmatch{\ap{x}\Rightarrow x.\expatmatch{\mathtt{True\Rightarrow False, False \Rightarrow True}}}&: \mathsf{Bool \rightarrow Bool}\\
+        \mathtt{Trues} = \excopatmatch{\mathtt{hd \Rightarrow True, tl \Rightarrow Trues}}&: \mathsf{Stream(Bool)}\\
+    \end{align*}    
+\end{example}
 
 \subsection{Typing Rules}
 To be able to give our examples a formal basis, we will introduce typing rules. %TODO: ich mag die satzstruktur nicht
@@ -703,14 +707,16 @@ but in many applications all we need, as in most type checking.
 \end{align*}
 \end{definition}
 
-Some examples:
-$\alphaunifvar \equiv \True$ has the solution $[\True/\alphaunifvar]$.
-$\mathtt{True \equiv False}$ doesn't have a solution.
-
-$\mathsf{Int \rightarrow \alphaunifvar \equiv Int \rightarrow Bool}$ has the solution $[\Bool/\alphaunifvar]$. 
-On the other hand, $\mathsf{\alphaunifvar\equiv List(\alphaunifvar)}$ should not have a solution. This is the negative example for the occur check rule below.
-%TODO: anders?
-
+Consider some examples of first-order unification. On the left is the problem, on the right its solution or $\emptyset$ if there is no solution.
+\begin{example}
+    \begin{align*}
+        \alphaunifvar &\equiv \True &\sigma_1 &= [\True/\alphaunifvar]\tag{1}\\
+        \True &\equiv \False &\sigma_2 &= \emptyset\tag{2}\\
+        \Int \rightarrow \alphaunifvar &\equiv \Int \rightarrow Bool &\sigma_3 &= [\Bool/\alphaunifvar]\tag{3}\\
+        \alphaunifvar&\equiv \mathsf{List(\alphaunifvar)} &\sigma_4 &= \emptyset\tag{4}
+    \end{align*}
+    The forth example is an instance of a failing occurs' check.
+\end{example}
 
 \begin{theorem}[Decidability of First-Order Unification]
     For first-order unification, there exists an algorithm on equations $\overline{e\equiv e}$, which always terminates, and returns the solution if there exists one. 
@@ -747,17 +753,15 @@ adapted to our syntax.
     \end{align*}
 \end{definition}
 
-Note that this is encompassed our syntax described in Section 2, %TODO: schlechter stil?
+Note that this is encompassed our syntax described ~\ref{sec:syntax},
 but with the addition of unification variables with substitutions. 
 To illustrate the need for this substitution, look at what problem arises when omitting the substitution:
-Take the following example: $\excopatmatch{\ap{x}\Rightarrow\alphaunifvar}.\ap{y}\equiv\betaunifvar$. 
-First focus on the left side and notice that there is a redex. What happens if we reduce it?
-
 \begin{example}
+    In $\excopatmatch{\ap{x}\Rightarrow\alphaunifvar}.\ap{y}\equiv\betaunifvar$, focus on the left side and notice that there is a redex. What happens if we reduce it?
     \begin{align*}
         \excopatmatch{\ap{x}\Rightarrow\alphaunifvar}.\ap{y}\betaconv\alphaunifvar[y/x]    
     \end{align*}     
-    If we find the following solution $[x/ \alphaunifvar]$ through another equation, we would actually need to substitute in $\alphaunifvar$!
+    If we found the solution $\sigma = [x/ \alphaunifvar]$ through another equation, we would actually need to substitute in $\alphaunifvar$!
 \end{example}
 
 This motivates our need for substitutions on unification variables: 
@@ -773,6 +777,7 @@ This further motivates the use of the symbol $\equiv$ so far. Whereas in first-o
 in higher-order unification, I use it to mean syntactically equality, beta-equality or eta-equality.
 This essentially means that two terms are equivalent if they are equivalent after function application, (co-)pattern matching evaluation, and/or are equivalent externally.
 
+In the introduction (~\ref{sec:mgu}), I alluded to problems with multiple solutions having one solution we prefer.
 Let's next consider an example again:
 \begin{example}
     \begin{align*}
@@ -783,17 +788,16 @@ Let's next consider an example again:
         \sigma_1 = [\excopatmatch{\ap{x}\Rightarrow x} / \alphaunifvar]\tag*{identity function}\\
         \sigma_2 = [\excopatmatch{\ap{x}\Rightarrow 5} / \alphaunifvar]\tag*{constant function, always returns 5}
     \end{align*}
-\end{example}
-
-In this case, neither solution is more general. Why becomes apparent when You take a look at the action of a substitution again. 
+    In this case, neither solution is more general. Why becomes apparent when You take a look at the action of a substitution again. 
 Let's say we wanted to find a substitution to apply to the identity function to get the constant function. 
 When applying a substitution to a copattern match, we substitute new variables for our bound variables to not accidentally change the meaning of the term.
 This prevents us from changing our function. 
 Since neither solution is more general (and there also is no other solution that is more general),
 there is no mgu for this problem!
-This is specific to higher-order unification, since in first-order unification we don't look at 
-higher-order terms and thus don't have that problem of not changing variables.
+\end{example}
 
+Unification problems having no mgu is specific to higher-order unification, since in first-order unification we don't look at 
+higher-order terms and thus don't have that problem of not changing variables.
 To be able to discuss unification equations in more depth, we need one more concept:
 
 \begin{definition}[Constraint]
@@ -856,6 +860,7 @@ This means that (in practice,) the pattern fragment described by Miller is a sub
 If you are familiar with other definitions of patterns, you might have noticed that 
 we have omitted the part about the variables being bound. We require this later on when looking at patterns as subterms.
 Some examples:
+
 $\alphaunifvar.\ap{x}.\ap{y}\equiv x$ is a pattern and has the solution $[\excopatmatch{\ap{x}\Rightarrow\excopatmatch{\ap{y}\Rightarrow x}}/\alphaunifvar]$.
 $\alphaunifvar.fst \equiv 2$ is a pattern and has the solution $[pair(2,x)/\alphaunifvar]$.
 
