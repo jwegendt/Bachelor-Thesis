@@ -75,7 +75,7 @@
 \newcommand{\listofvar}{x_1,...x_n}
 \newcommand{\betaconv}{\equiv_{\beta}^1}
 \newcommand{\etaconv}{\equiv_{\eta}^1}
-\newcommand{\Ap}[1]{\texttt{Ap}(#1)}
+\newcommand{\ap}[1]{\texttt{ap}(#1)}
 
 \newcommand{\partition}{\;|\;}
 \newcommand{\code}[1]{\texttt{#1}}
@@ -175,11 +175,12 @@ Write here your acknowledgements.
 I want you to understand roughly what all the terms in the title of,
 as well as the goal of this thesis in the next few paragraphs. 
 
-\subsection{Data and codata}
-While data (algebraic data types) is a well-known concept, 
-its brother codata is less talked about. Codata is dual to data, meaning any concept expressed using data may also be expressed through codata. 
-While data is concerned with how values are constructed or stored, codata is concerned with how values are destructed or used. 
+%TODO: rewrite
 
+\subsection{Data and codata}
+While data (as in algebraic data types) is a well-known concept, 
+its brother codata is less talked about. Codata is dual to data, meaning any concept expressed using data may also be expressed through codata. 
+On a high level: While data is concerned with how values are constructed or stored, codata is concerned with how values are destructed or used. 
 For instance, look at these different ways to define the same tuple: 
 
 \begin{example}[Two ways to define the same tuple]
@@ -187,17 +188,15 @@ For instance, look at these different ways to define the same tuple:
         &\mathttbrackets{Tup}{\mathtt{1,5}} \tag*{Data instantiation}\\
         &\excopatmatch{\mathtt{fst \Rightarrow 1}, \mathtt{snd \Rightarrow 5}} \tag*{Codata instantiation}
     \end{align*}     
-    While the first focuses on what we put into the tuple, the second focuses on how we can take its components out of it.   
+    While the first instantiation focuses on what we put into the tuple, the second focuses on how we can take its components out of it.   
 \end{example}
 
-We use copatterns ($\excopatmatch{...}$) to instantiate codata.
-%TODO: dann kann ich das hier auch weglassen oder?
 One form of codata often talked about is streams.
 \begin{example}[Streams]
     \begin{align*}
         Trues = \excopatmatch{\mathtt{fst \Rightarrow True, snd \Rightarrow} Trues}
     \end{align*}
-    As you can see, wth codata we can also instantiate infinite codata. 
+    As you can see, we can also instantiate infinite codata. 
     This is the stream that contains an infinite amount of Trues.
     Also notice again that there is an emphasis on how we can take things out of our stream, rather than how it is constructed.
 \end{example}
@@ -221,8 +220,8 @@ like in the interactive theorem prover Coq or in the programming language Agda, 
 \end{example}
 %TODO: Klar machen dass es sich hier um mehrere probleme handelt! aber wie?
 
-Each of the equations can be seen as their own unification problem.
-The first has an obvious solution $[\mathtt{5/\alphaunifvar}]$, so substituting $\mathtt{5}$ for $\alphaunifvar$.
+Each of the given equations can be seen as their own unification problem.
+The first has an obvious solution $[\mathtt{5/\alphaunifvar}]$, so substituting $\mathtt{5}$ for $\alphaunifvar$ (even though there are multiple solutions even here).
 The second is a unification problem without unification variables, and has no solution.
 The second and third are both unification problems on types with 2 unification variables, and have many solutions.
 %TODO: das impliziert ein bisschen dass man nur mehrere lösungen haben kann wenn es mehrere unifikationsvariablen gibt
@@ -231,9 +230,9 @@ The second and third are both unification problems on types with 2 unification v
 \begin{example}[Higher-order unification problems]
     In this first example, we are looking for a function that when applied to $\mathtt{5}$, evaluates to $\mathtt{5}$:
     \begin{align*}
-        &\alphaunifvar.\Ap{\mathtt{5}} \equiv \mathtt{5}\\
+        &\alphaunifvar.\ap{\mathtt{5}} \equiv \mathtt{5}\\
     \end{align*}
-    We can think of two obvious solutions for this: $[id / \alphaunifvar]$ and the constant function which always returns 5: $[\excopatmatch{\Ap{x}\Rightarrow \mathtt{5}} / \alphaunifvar]$
+    We can think of two obvious solutions for this: $[id / \alphaunifvar]$ and the constant function which always returns \texttt{5}: $[\excopatmatch{\ap{x}\Rightarrow \mathtt{5}} / \alphaunifvar]$
     As already implied before, sometimes our unification problems have more than one solution, 
     but we are interested in a particular solution. This is the solution that is more general, the one from which the others can be generated.
     In this case however, there is no one such solution. This can only happen in higher-order unification, but this will be explored more formally below.
@@ -265,7 +264,7 @@ $X$ represents a (possibly empty) sequence $X_1, ... X_i, ... X_n$.
 %TODO: das mit dem simultaneos indexing besser verstehen
 %TODO: das mit dem X_1, ... 
 %TODO: will ich variablen und co auch hier einführen?
-\\
+
 A pattern match $e.\textbf{case}\{\overline{K(\overline{x})\Rightarrow e}\}$ 
 matches a term $e$ against a sequence of clauses, each clause consisting of a constructor and an expression.
 The expression associated with first constructor %TODO: oder kann es nur eine geben?  
@@ -355,12 +354,12 @@ The second expression tests whether a given list starts with $\True$.
     \begin{align*}
         &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst}\\
         &TrafficLight.\mathtt{Green}\\
-        &id.\Ap{\mathtt{5}}
+        &id.\ap{\mathtt{5}}
     \end{align*}
     These do exactly what you think they do: We select the first value of the tuple,
     and turn our traffic light Yellow, respectively 
     We will see how these examples resolve to $\mathtt{1}$, $\mathtt{Yellow}$ and $\mathtt{5}$ later on. %TODO: ref
-    $\Ap{}$ is the destructor that implements function application: It applies the function on which it is "called" to the argument in the brackets.
+    $\ap{}$ is the destructor that implements function application: It applies the function on which it is "called" to the argument in the brackets.
     %TODO: formulierung
 \end{example} 
 
@@ -369,9 +368,9 @@ This is because we can use copattern matching to implement function definition:
 %TODO: etwas darüber schreiben, dass lambdas codata sind?
 \begin{example}[Using copattern matching for function definitions]
     \begin{align*}
-        &id = \excopatmatch{\Ap{x}\Rightarrow x}\\
-        &\excopatmatch{\Ap{x}\Rightarrow (\Ap{y}\Rightarrow x)} \tag*{$\widehat{=}\lambda x.\lambda y.x$} \\
-        &\excopatmatch{\Ap{x}\Rightarrow (\Ap{y}\Rightarrow y)} \tag*{$\widehat{=}\lambda x.\lambda y.y$}
+        &id = \excopatmatch{\ap{x}\Rightarrow x}\\
+        &\excopatmatch{\ap{x}\Rightarrow (\ap{y}\Rightarrow x)} \tag*{$\widehat{=}\lambda x.\lambda y.x$} \\
+        &\excopatmatch{\ap{x}\Rightarrow (\ap{y}\Rightarrow y)} \tag*{$\widehat{=}\lambda x.\lambda y.y$}
     \end{align*}
     The second and third examples implement a function that takes two arguments, ignores one and gives back the other.
 \end{example}
@@ -470,18 +469,18 @@ The composition of two substitutions $\sigma_2 \circ \sigma_1$ which is equivale
     Concretely, this means that it doesn't matter how often we apply a substitution to a given problem.
 \end{definition}
 
-For example, $[\excopatmatch{\Ap{x}\Rightarrow x} / y]$ is idempotent, since:
+For example, $[\excopatmatch{\ap{x}\Rightarrow x} / y]$ is idempotent, since:
 \begin{align*}
-    &[\excopatmatch{\Ap{x}\Rightarrow x} / y] \circ [\excopatmatch{\Ap{x}\Rightarrow x} / y] \\
-    &= [\excopatmatch{\Ap{x}\Rightarrow x}[\excopatmatch{\Ap{x}\Rightarrow x} / y] / y] \\
-    &= [\excopatmatch{\Ap{x}\Rightarrow x} / y] 
+    &[\excopatmatch{\ap{x}\Rightarrow x} / y] \circ [\excopatmatch{\ap{x}\Rightarrow x} / y] \\
+    &= [\excopatmatch{\ap{x}\Rightarrow x}[\excopatmatch{\ap{x}\Rightarrow x} / y] / y] \\
+    &= [\excopatmatch{\ap{x}\Rightarrow x} / y] 
 \end{align*}
 
-On the other hand, the substitution $[\excopatmatch{\Ap{y}\Rightarrow x} / x]$ is not idempotent, since:
+On the other hand, the substitution $[\excopatmatch{\ap{y}\Rightarrow x} / x]$ is not idempotent, since:
 \begin{align*}
-    &[\excopatmatch{\Ap{y}\Rightarrow x} / x] \circ [\excopatmatch{\Ap{y}\Rightarrow x} / x]\\ 
-    &= [\excopatmatch{\Ap{y}\Rightarrow x}[\excopatmatch{\Ap{y}\Rightarrow x} / x] / x] \\
-    &= \excopatmatch{\Ap{y}\Rightarrow (\Ap{y}\Rightarrow x) } \neq [\excopatmatch{\Ap{y}\Rightarrow x} / x]
+    &[\excopatmatch{\ap{y}\Rightarrow x} / x] \circ [\excopatmatch{\ap{y}\Rightarrow x} / x]\\ 
+    &= [\excopatmatch{\ap{y}\Rightarrow x}[\excopatmatch{\ap{y}\Rightarrow x} / x] / x] \\
+    &= \excopatmatch{\ap{y}\Rightarrow (\ap{y}\Rightarrow x) } \neq [\excopatmatch{\ap{y}\Rightarrow x} / x]
 \end{align*}
 
 \begin{definition}[More General] 
@@ -526,8 +525,8 @@ but $\sigma_1$ is more general than $\sigma_2$, since there exists a substitutio
 Some examples:
 \begin{align*}
     &\True.\expatmatch{\False\Rightarrow \True, \True \Rightarrow \False}\betaconv\False\\
-    &\excopatmatch{\Ap{x}\Rightarrow \True}.\Ap{x}\betaconv \True[x/x] = \True \\
-    &\excopatmatch{\Ap{y}\Rightarrow y}.\Ap{x} \betaconv y[x/y]= x
+    &\excopatmatch{\ap{x}\Rightarrow \True}.\ap{x}\betaconv \True[x/x] = \True \\
+    &\excopatmatch{\ap{y}\Rightarrow y}.\ap{x} \betaconv y[x/y]= x
 \end{align*}
 Intuitively, beta-conversion means not only function application but also the reduction under pattern or copattern matching. %TODO: macht das so sinn? sollte ich das mehr erklären? sind die beispiele hier überhaupt gut?
 %TODO: more explanation?
@@ -550,7 +549,7 @@ To start, let's look at some examples terms and their types:
     \mathtt{Tup(1,True)}&: \mathsf{Pair(Int, Bool)}\\
     \excopatmatch{\mathtt{fst \Rightarrow 1, snd\Rightarrow True}}&: \mathsf{LPair(Int, Bool)}\\
     \mathtt{Cons(1, Cons(2, Nil))}&: \mathsf{List(Int)}\\
-    \excopatmatch{\Ap{x}\Rightarrow x.\expatmatch{\mathtt{True\Rightarrow False, False \Rightarrow True}}}&: \mathsf{Bool \rightarrow Bool}\\
+    \excopatmatch{\ap{x}\Rightarrow x.\expatmatch{\mathtt{True\Rightarrow False, False \Rightarrow True}}}&: \mathsf{Bool \rightarrow Bool}\\
     \mathtt{Trues} = \excopatmatch{\mathtt{hd \Rightarrow True, tl \Rightarrow Trues}}&: \mathsf{Stream(Bool)}\\
 \end{align*}
 
@@ -666,11 +665,11 @@ we can deduce that $t$ has the type $\tau$.
 \begin{prooftree}
     \AxiomC{$\Gamma\vdash t_1:\tau_1\rightarrow\tau_2$}\RightLabel{\textsc{App}}
     \AxiomC{$\Gamma\vdash t_2:\tau_1$}
-    \BinaryInfC{$\Gamma\vdash t_1.\Ap{t_2}:\tau_2$}
+    \BinaryInfC{$\Gamma\vdash t_1.\ap{t_2}:\tau_2$}
 \end{prooftree}
 \begin{prooftree}
     \AxiomC{$\Gamma,x: \tau_1\vdash t:\tau_2$}\RightLabel{\textsc{Fun}}
-    \UnaryInfC{$\Gamma\vdash\excopatmatch{\Ap{x}\Rightarrow t}:\tau_1\rightarrow \tau_2$}
+    \UnaryInfC{$\Gamma\vdash\excopatmatch{\ap{x}\Rightarrow t}:\tau_1\rightarrow \tau_2$}
 \end{prooftree}    
 
 
@@ -751,34 +750,49 @@ adapted to our syntax.
 Note that this is encompassed our syntax described in Section 2, %TODO: schlechter stil?
 but with the addition of unification variables with substitutions. 
 To illustrate the need for this substitution, look at what problem arises when omitting the substitution:
-Take the following example: $\excopatmatch{\Ap{x}\Rightarrow\alphaunifvar}.\Ap{y}\equiv\betaunifvar$. 
+Take the following example: $\excopatmatch{\ap{x}\Rightarrow\alphaunifvar}.\ap{y}\equiv\betaunifvar$. 
 First focus on the left side and notice that there is a redex. What happens if we reduce it?
 
-\begin{align*}
-    \excopatmatch{\Ap{x}\Rightarrow\alphaunifvar}.\Ap{y}\betaconv\alphaunifvar[y/x]    
-\end{align*}
+\begin{example}
+    \begin{align*}
+        \excopatmatch{\ap{x}\Rightarrow\alphaunifvar}.\ap{y}\betaconv\alphaunifvar[y/x]    
+    \end{align*}     
+    If we find the following solution $[x/ \alphaunifvar]$ through another equation, we would actually need to substitute in $\alphaunifvar$!
+\end{example}
 
-This motivates our need for substitutions: We may need to apply substitutions to unification variables.
-Note that this is \textit{not} possible in first-order unification, since we don't create subsitutions through redexes! 
-
+This motivates our need for substitutions on unification variables: 
+Since we don't know what the unification variable will solve to, we might need to perform a substitution on it later.
+Note that this is \textit{not} possible in first-order unification, since we don't create substitutions through redexes! 
 When the substitution is trivial, we may  write $\alphaunifvar, \betaunifvar$ instead.
 
-In higher-order unification in contrast to in first-order unification, we are not interested in syntactic equality,but want a broader set of terms to be equal to one another.
+In higher-order unification in contrast to in first-order unification, we are not interested in syntactic equality, but want a broader set of terms to be equal to one another.
 Depending on the type of unification problem one wants to solve, they may want to only include beta-equality or both 
 beta- and eta-equality.
 
-This further motivates our use of the symbol $\equiv$ so far. Whereas in first-order unification it just stands for syntactic equality, 
+This further motivates the use of the symbol $\equiv$ so far. Whereas in first-order unification it just stands for syntactic equality, 
 in higher-order unification, I use it to mean syntactically equality, beta-equality or eta-equality.
-This essentially means that two terms are equivalent if they are equivalent after function application and/or are equivalent externally.
+This essentially means that two terms are equivalent if they are equivalent after function application, (co-)pattern matching evaluation, and/or are equivalent externally.
 
-Let's next consider a few examples:
-The problem $\alphaunifvar.\texttt{Ap}(5) \equiv 5$ has multiple solutions:
-$[\excopatmatch{\texttt{Ap}(x)\Rightarrow x} / \alphaunifvar]$ and $[\excopatmatch{\texttt{Ap}(x)\Rightarrow 5} / \alphaunifvar]$,\\
-where \texttt{Ap} is a function applicator. 
-Thus, the two given solutions are the identity function and the constant function 5, which when consuming the argument 5, both give back 5.
-In this case there also doesn't exist an mgu.
-%TODO: more!
+Let's next consider an example again:
+\begin{example}
+    \begin{align*}
+        \alphaunifvar.\ap{5} \equiv \texttt{5}
+    \end{align*}
+    This problem has multiple solutions:
+    \begin{align*}
+        \sigma_1 = [\excopatmatch{\ap{x}\Rightarrow x} / \alphaunifvar]\tag*{identity function}\\
+        \sigma_2 = [\excopatmatch{\ap{x}\Rightarrow 5} / \alphaunifvar]\tag*{constant function, always returns 5}
+    \end{align*}
+\end{example}
 
+In this case, neither solution is more general. Why becomes apparent when You take a look at the action of a substitution again. 
+Let's say we wanted to find a substitution to apply to the identity function to get the constant function. 
+When applying a substitution to a copattern match, we substitute new variables for our bound variables to not accidentally change the meaning of the term.
+This prevents us from changing our function. 
+Since neither solution is more general (and there also is no other solution that is more general),
+there is no mgu for this problem!
+This is specific to higher-order unification, since in first-order unification we don't look at 
+higher-order terms and thus don't have that problem of not changing variables.
 
 To be able to discuss unification equations in more depth, we need one more concept:
 
@@ -842,7 +856,7 @@ This means that (in practice,) the pattern fragment described by Miller is a sub
 If you are familiar with other definitions of patterns, you might have noticed that 
 we have omitted the part about the variables being bound. We require this later on when looking at patterns as subterms.
 Some examples:
-$\alphaunifvar.\Ap{x}.\Ap{y}\equiv x$ is a pattern and has the solution $[\excopatmatch{\Ap{x}\Rightarrow\excopatmatch{\Ap{y}\Rightarrow x}}/\alphaunifvar]$.
+$\alphaunifvar.\ap{x}.\ap{y}\equiv x$ is a pattern and has the solution $[\excopatmatch{\ap{x}\Rightarrow\excopatmatch{\ap{y}\Rightarrow x}}/\alphaunifvar]$.
 $\alphaunifvar.fst \equiv 2$ is a pattern and has the solution $[pair(2,x)/\alphaunifvar]$.
 
 %TODO: beispiele mit anderem destruktor??
@@ -857,15 +871,20 @@ Equations containing first-order terms that don't contain patterns still remain 
 
 The reason there always exists an mgu lies in the constraint we put on our definition: All the variables must be distinct. 
 
-To illustrate this, take the problem $\alphaunifvar.\Ap{x}.\Ap{x}\equiv x$ (where the variables are \textbf{not} distinct). 
-We can name two solutions:
+To illustrate this, take the following problem where the variables are \textbf{not} distinct:
+\begin{example}
+    \begin{align*}
+        \alphaunifvar.\ap{x}.\ap{x}\equiv x
+    \end{align*}  
+    We can name two solutions:
 \begin{align*}
-    \sigma_1 &= [\excopatmatch{\Ap{x}\Rightarrow \excopatmatch{\Ap{y}\Rightarrow x}}/\alphaunifvar]\\
-    \sigma_2 &=[\excopatmatch{\Ap{x}\Rightarrow \excopatmatch{\Ap{y}\Rightarrow y}}/\alphaunifvar]  
+    \sigma_1 &= [\excopatmatch{\ap{x}\Rightarrow \excopatmatch{\ap{y}\Rightarrow x}}/\alphaunifvar]\\
+    \sigma_2 &=[\excopatmatch{\ap{x}\Rightarrow \excopatmatch{\ap{y}\Rightarrow y}}/\alphaunifvar]  
 \end{align*}
 (Intuitively, the solutions say to select the first or second argument of the function applications, respectively.)
 These solutions are equivalent, in that no solution is more general than the other. There exists no mgu for this problem.
-The solutions aren't unique because the variables aren't unique.
+The solutions aren't unique because the variables aren't unique.  
+\end{example}
 %TODO: ist das beispiel zu ausführlich?
 
 To be able to talk about the algorithms for solving unification problems, we need another definition: %TODO: umformulieren
@@ -895,9 +914,9 @@ Some examples:
 \begin{example}
 \begin{align*}
     \begin{split}
-        r &= \alphaunifvar.\Ap{\excopatmatch{\Ap{x}\Rightarrow x}}, \\
-        s &= \excopatmatch{\Ap{x}\Rightarrow \mathtt{Cons(\mathnormal{x}, Cons(\mathnormal{y}, Nil))}},   \\
-        t &= \alphaunifvar.\Ap{x_1, x, y, z}
+        r &= \alphaunifvar.\ap{\excopatmatch{\ap{x}\Rightarrow x}}, \\
+        s &= \excopatmatch{\ap{x}\Rightarrow \mathtt{Cons(\mathnormal{x}, Cons(\mathnormal{y}, Nil))}},   \\
+        t &= \alphaunifvar.\ap{x_1, x, y, z}
     \end{split}    
 \end{align*}
 $r$ and $s$ are in normal form and $t$ is a pattern in normal form.
@@ -965,7 +984,7 @@ Since for $x = \excopatmatch{\mathtt{fst\Rightarrow 2, snd\Rightarrow 3}}$, the 
     &\vdash \mathsf{List(Int)}\equiv \mathsf{List(\alphaunifvar)}
     &\mapsto& \vdash \mathsf{Int}\equiv \alphaunifvar
     \\
-    &x \vdash x.\Ap{e_1}\equiv x.\Ap{e_2} &\mapsto& x\vdash e_1\equiv e_2 
+    &x \vdash x.\ap{e_1}\equiv x.\ap{e_2} &\mapsto& x\vdash e_1\equiv e_2 
     \end{align*}
 \end{example}
 
@@ -973,14 +992,14 @@ Since for $x = \excopatmatch{\mathtt{fst\Rightarrow 2, snd\Rightarrow 3}}$, the 
 
 \begin{example}[Pattern and Copattern Matching]
     \begin{align*}
-    &\vdash \excopatmatch{\Ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\Ap{x}\Rightarrow\betaunifvar} 
+    &\vdash \excopatmatch{\ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\ap{x}\Rightarrow\betaunifvar} 
     &\mapsto&x\vdash \alphaunifvar \equiv \betaunifvar
     \\
     &x\vdash x.\expatmatch{\texttt{T} \Rightarrow e_2, \texttt{F} \Rightarrow e_2} \equiv x.\expatmatch{\texttt{T} \Rightarrow t_1, \texttt{F} \Rightarrow t_2}\footnotemark{}
     \\ &\mapsto x\vdash  e_1 \equiv t_1\wedge x\vdash e_2\equiv t_2
     \\
-    &\excopatmatch{\mathtt{fst \Rightarrow} 5, \mathtt{snd\Rightarrow False}}\equiv \alphaunifvar
-    \\ &\mapsto \vdash 5\equiv \alphaunifvar.\mathtt{fst}\wedge \vdash \mathtt{False\equiv\alphaunifvar.snd}
+    &\excopatmatch{\mathtt{fst \Rightarrow} \mathtt{5}, \mathtt{snd\Rightarrow False}}\equiv \alphaunifvar
+    \\ &\mapsto \vdash \mathtt{5}\equiv \alphaunifvar.\mathtt{fst}\wedge \vdash \mathtt{False\equiv\alphaunifvar.snd}
     \end{align*}
 \end{example}
 
@@ -1154,8 +1173,8 @@ Für wenn wir patterns in mehr kontext behandeln i guess
 Some examples of patterns:
 \begin{align*}
     \begin{split}
-    t_1 &= \excopatmatch{\Ap{x}\Rightarrow \alphaunifvar.\Ap{x}} \\
-    t_2 &= \excopatmatch{\Ap{x}\Rightarrow \excopatmatch{\Ap{y}\Rightarrow (\alphaunifvar.\Ap{y}).\Ap{x}}}    
+    t_1 &= \excopatmatch{\ap{x}\Rightarrow \alphaunifvar.\ap{x}} \\
+    t_2 &= \excopatmatch{\ap{x}\Rightarrow \excopatmatch{\ap{y}\Rightarrow (\alphaunifvar.\ap{y}).\ap{x}}}    
     \end{split}
 \end{align*} 
 In each of these terms, our unification variable is applied to distinct variables which are bound through  cocases.
@@ -1163,9 +1182,9 @@ In each of these terms, our unification variable is applied to distinct variable
 However, these terms are not patterns:
 \begin{align*}
     \begin{split}
-        t_3 &= (\alphaunifvar.\Ap{x}).\Ap{y}\\
-        t_4 &= \excopatmatch{\Ap{y}\Rightarrow (\alphaunifvar.\Ap{x})}\\
-        t_5 &= \excopatmatch{\Ap{x}\Rightarrow (\alphaunifvar.\Ap{x}).\Ap{x}}
+        t_3 &= (\alphaunifvar.\ap{x}).\ap{y}\\
+        t_4 &= \excopatmatch{\ap{y}\Rightarrow (\alphaunifvar.\ap{x})}\\
+        t_5 &= \excopatmatch{\ap{x}\Rightarrow (\alphaunifvar.\ap{x}).\ap{x}}
     \end{split}
 \end{align*}
 as they all don't contain exactly one cocase per variable which would bind that variable distinctly.
