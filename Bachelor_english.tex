@@ -159,8 +159,6 @@ Write here your acknowledgements.
 \renewcommand{\baselinestretch}{1}
 \small\normalsize
 
-\listoftheorems
-
 \cleardoublepage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -509,12 +507,12 @@ This is because there exists a mapping $\tau = [\mathsf{Int / \alphaunifvar}]$, 
     We require that the constructor $K(\overline{e})$ and the constructor $\exconstructor{\overline{x}}$ have the same number of arguments.
     This, in short ensures that we don't generate stuck terms, i.e. terms that can't be evaluated. %TODO: warum hier und nicht in der syntaxdefinition?
 \end{definition}
-Consider the following examples 
+Consider the following examples:
 \begin{example}
     \begin{align*}
-        &\True.\expatmatch{\False\Rightarrow \True, \True \Rightarrow \False}\betaconv\False\tag{1}\\
-        &\excopatmatch{\ap{x}\Rightarrow \True}.\ap{x}\betaconv \True[x/x] = \True \tag{2}\\
-        &\excopatmatch{\ap{y}\Rightarrow y}.\ap{x} \betaconv y[x/y]= x\tag{3}
+        \True.\expatmatch{\False\Rightarrow \True, \True \Rightarrow \False}&\betaconv\False\tag{1}\\
+        \excopatmatch{\ap{x}\Rightarrow \True}.\ap{x}&\betaconv \True[x/x] = \True \tag{2}\\
+        \excopatmatch{\ap{y}\Rightarrow y}.\ap{x} &\betaconv y[x/y]= x\tag{3}
     \end{align*}
     Intuitively, beta-conversion means not only function application but also the reduction under pattern or copattern matching. %TODO: macht das so sinn? sollte ich das mehr erklären? sind die beispiele hier überhaupt gut?        
 \end{example}
@@ -696,27 +694,28 @@ such that the sides of the given equations are the same (respectively).
     A solution is the most general unifier (mgu), iff. it is more general than all other solutions.
 \end{definition} 
 
-Now let's take a look at first-order unification, which is a pretty limited subproblem, 
-but in many applications all we need, as in most type checking.
+Now let's take a look at first-order unification.
+Even though first-order unification is a pretty limited subproblem of higher-order unification, 
+in many application it is all that is needed - most simple types can be constructed from terms described by first-order unification. 
 
-\begin{definition}[First-Order unification]
+Consider some examples of first-order unification first. On the left is the problem, on the right its solution or $\emptyset$ if there is no solution.
+\begin{example}[First-order unification]
+    \begin{align*}
+        \alphaunifvar &\equiv \True &\sigma_1 &= [\True/\alphaunifvar]\tag{1}\\
+        \True &\equiv \False &\sigma_2 &= \emptyset\tag{2}\\
+        \Int \rightarrow \alphaunifvar &\equiv \Int \rightarrow \Bool &\sigma_3 &= [\Bool/\alphaunifvar]\tag{3}\\
+        \alphaunifvar&\equiv \mathsf{List(\alphaunifvar)} &\sigma_4 &= \emptyset\tag{4}
+    \end{align*}
+    The forth example is an instance of a failing ~\ref{a}.
+\end{example}
+
+\begin{definition}[First-order unification]
 \begin{align*}
     e,r,s,t ::&= \alphaunifvar, \betaunifvar \tag*{Unification variable}\\
     &\partition x\tag*{Variable} \\
     &\partition \constructor \tag*{Constructor}
 \end{align*}
 \end{definition}
-
-Consider some examples of first-order unification. On the left is the problem, on the right its solution or $\emptyset$ if there is no solution.
-\begin{example}
-    \begin{align*}
-        \alphaunifvar &\equiv \True &\sigma_1 &= [\True/\alphaunifvar]\tag{1}\\
-        \True &\equiv \False &\sigma_2 &= \emptyset\tag{2}\\
-        \Int \rightarrow \alphaunifvar &\equiv \Int \rightarrow Bool &\sigma_3 &= [\Bool/\alphaunifvar]\tag{3}\\
-        \alphaunifvar&\equiv \mathsf{List(\alphaunifvar)} &\sigma_4 &= \emptyset\tag{4}
-    \end{align*}
-    The forth example is an instance of a failing occurs' check.
-\end{example}
 
 \begin{theorem}[Decidability of First-Order Unification]
     For first-order unification, there exists an algorithm on equations $\overline{e\equiv e}$, which always terminates, and returns the solution if there exists one. 
@@ -732,10 +731,9 @@ Consider some examples of first-order unification. On the left is the problem, o
         E & \cup \{K_1(e_1,...e_n) \equiv K_2(t_1, ..., t_m)\}  \Rightarrow \perp \quad\text{if $K_1 \neq K_2$ or if $n\neq m$} \tag{conflict}\\
         E & \cup \{e \equiv \alphaunifvar\} \Rightarrow E \cup \{\alphaunifvar \equiv e\}\tag{swap}\\ 
         E & \cup \{\alphaunifvar \equiv e\} \Rightarrow E[e/\alphaunifvar] \cup \{\alphaunifvar \equiv e\} \quad\text{if $\alphaunifvar \in E$ and $\alphaunifvar \notin e$}  \tag{eliminate}\\
-        E & \cup \{\alphaunifvar \equiv K(e_1,...e_n)\}\Rightarrow \perp \quad \text{if $\alphaunifvar \in e_1,...e_n$} \tag{occurs check} 
+        E & \cup \{\alphaunifvar \equiv K(e_1,...e_n)\}\Rightarrow \perp \quad \text{if $\alphaunifvar \in e_1,...e_n$} \tag{occurs check} \label{a}
     \end{align*}
-\end{definition} 
-%TODO: will ich die regeln umsortieren?
+\end{definition}
 
 This algorithm is based on the version presented by Martelli and Montanari in \cite{10.1145/357162.357169},
 adapted to our syntax.
@@ -753,7 +751,7 @@ adapted to our syntax.
     \end{align*}
 \end{definition}
 
-Note that this is encompassed our syntax described ~\ref{sec:syntax},
+Note that this is encompassed our syntax described in \ref{sec:syntax},
 but with the addition of unification variables with substitutions. 
 To illustrate the need for this substitution, look at what problem arises when omitting the substitution:
 \begin{example}
@@ -772,12 +770,11 @@ When the substitution is trivial, we may  write $\alphaunifvar, \betaunifvar$ in
 In higher-order unification in contrast to in first-order unification, we are not interested in syntactic equality, but want a broader set of terms to be equal to one another.
 Depending on the type of unification problem one wants to solve, they may want to only include beta-equality or both 
 beta- and eta-equality.
-
 This further motivates the use of the symbol $\equiv$ so far. Whereas in first-order unification it just stands for syntactic equality, 
 in higher-order unification, I use it to mean syntactically equality, beta-equality or eta-equality.
 This essentially means that two terms are equivalent if they are equivalent after function application, (co-)pattern matching evaluation, and/or are equivalent externally.
 
-In the introduction (~\ref{sec:mgu}), I alluded to problems with multiple solutions having one solution we prefer.
+In the introduction (\ref{sec:mgu}), I alluded to the fact that in problems that have multiple solutions, we prefer a certain, most general solution.
 Let's next consider an example again:
 \begin{example}
     \begin{align*}
@@ -798,7 +795,18 @@ there is no mgu for this problem!
 
 Unification problems having no mgu is specific to higher-order unification, since in first-order unification we don't look at 
 higher-order terms and thus don't have that problem of not changing variables.
-To be able to discuss unification equations in more depth, we need one more concept:
+
+\begin{theorem}[Decidability of higher-order unification]
+    Higher-order unification includes unification problems containing higher-order terms (including functions),
+    and is covered by our introduced syntax. %TODO: bessere formulierung?
+    Higher-order unification is not decidable. This can be proven through reducing Hilbert's tenth problem to the unification problem.%TODO: schmöker citen? oder wird das da auch nicht wirklich gemacht?
+\end{theorem}
+
+Even though higher-order unification is undecidable, in many cases we can still find solutions,
+or conclude that there is no solution.
+Since we don't only want to describe higher-order unification, but the steps necessary to solve higher-order unification problems,
+we need to have a framework of our equations, where we can simplify our equations,
+and store what we have found out about our unknown variables. This is where constraints come into play:
 
 \begin{definition}[Constraint]
     \begin{align*}
@@ -810,37 +818,25 @@ To be able to discuss unification equations in more depth, we need one more conc
 $\Psi \vdash e\equiv t$ means that given the variables $\Psi$, we deduce that $e\equiv t$.
 $\Psi$ may contain variables that occur in or are even bound in $e$ or $t$. 
 $\Psi$ contains those variables we have seen before and want to remember. This motivates the naming of $\Psi$ as context, as well.
-%TODO: ist das offensichtlich?
-
-Why do we need a formal definition here? Because we don't solve our unification problem in one huge step, but
-work on it incrementally, solving parts of terms and remembering the information we have learned from these parts.
-We want to be able to talk about these processes formally.
+%TODO: too choppy
 
 We formulate our constraints from a given unification problem as follows:
 We take each given equation and formulate a constraint $K$ with empty context $\Psi$. We join them using ands:
 $\overline{e\equiv t}$ become $\constraints = C_1 \wedge ... \wedge C_n = \, \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
 
 For clarification, $C \wedge \mathcal{C}$ is the regular logical and thus, 
-and $\top \wedge \constraints = \constraints$ as well as $\bot \wedge \constraints = \bot$
-%TODO: ist das offensichtlich?
-
+and $\top \wedge \constraints = \constraints$ as well as $\bot \wedge \constraints = \bot$.
 We can also apply substitutions on a set of constraints, which just means applying the substitution to the equation part of all the constraints in the set:
 $\constraints \sigma = (C \wedge \constraints')\sigma = C \sigma \wedge \constraints' \sigma  
 = \Psi \vdash e\sigma\equiv t\sigma\wedge \constraints'$. Applying a substitution to $\top$ or $\bot$ changes nothing.
-
-\begin{theorem}[Decidability of Higher-Order Unification]
-    Higher-order unification includes unification problems containing higher-order terms (including functions),
-    and is covered by our introduced syntax. %TODO: bessere formulierung?
-    Higher-order unification is not decidable. This can be proven through reducing Hilbert's tenth problem to the unification problem.%TODO: schmöker citen? oder wird das da auch nicht wirklich gemacht?
-\end{theorem}
 
 \section{Pattern Unification}
 
 Pattern unification, also sometimes called the pattern fragment
 is a subsection of Higher-Order Unification, with its path to a solution being similarly simple as the one to first-order unification.
 It was described first by Miller in \cite{10.1093/logcom/1.4.497}.
-Since we are dealing with what amounts to an extension to the lambda calculus (as our syntax also contains constructors), we need to extend our definition to more than just function applications. 
-This means that (in practice,) the pattern fragment described by Miller is a subset of our definition.
+Since we are dealing with what amounts to an extension to the lambda calculus, we need to extend our definition to more than just function applications. 
+This means that (conceptually) the pattern fragment described by Miller is a subset of our definition.
 
 \begin{definition}[Pattern]
     A pattern is any term $p$ 
@@ -872,10 +868,8 @@ Consider some examples for patterns. On the left is the pattern unification prob
 
 Note that first-order unification is not a subset of pattern unification. 
 Equations containing first-order terms that don't contain patterns still remain solvable.
-%TODO: ist das offensichtlich? bzw soll ich das in der einleitung klar machen oder besser beschreiben?
 
 The reason there always exists an mgu lies in the constraint we put on our definition: All the variables must be distinct. 
-
 To illustrate this, take the following problem where the variables are \textbf{not} distinct:
 \begin{example}
     \begin{align*}
@@ -891,6 +885,7 @@ These solutions are equivalent, in that no solution is more general than the oth
 The solutions aren't unique because the variables aren't unique.  
 \end{example}
 
+%TODO: boring
 To be able to talk about the algorithms for solving unification problems, we need another definition: %TODO: umformulieren
 \begin{definition}[Normal Form]
     The normal form \textbf{NF} is defined as follows:
@@ -902,55 +897,57 @@ To be able to talk about the algorithms for solving unification problems, we nee
 \end{definition}
 Note that these are the terms that do not contain beta-redexes. 
 A beta-redex is a term that can be transformed using a beta-conversion.
-
 This is apparent when one tries to construct terms containing beta-redexes in normal form: 
 To construct the first kind of beta-redex: $\constructor.\textbf{case}\{\dots,\exconstructor{\overline{x}}\Rightarrow e\}$,
 we start with the term $n.\textbf{case}\{\overline{K(\overline{x})\Rightarrow v}\}$, now wanting to subtitute $K(\overline{e})$ for $n$. 
 This is not possible because we are limited to neutral terms, which constructors are not part of.
 Similarly with the second kind of beta-redex:
-$\excopatmatch{\dots,d(\overline{x}) \Rightarrow e, \dots}.d(\overline{e})$, where we could not substitute the cocase in $n.d(\overline{e})$ because we are limited to neutral terms.
+$\excopatmatch{\dots,d(\overline{x}) \Rightarrow e, \dots}.d(\overline{e})$, where we can not substitute the cocase in $n.d(\overline{e})$ because we are limited to neutral terms.
         
 This underlines the intuition that neutral terms are terms that cannot be reduced because
 they contain an term we can't further evaluate (either a variable or a unification variable) in the front.
-Values, where we don't have this assurance cannot contain the building blocks for a beta-redex.
-
+Even though we don't have this assurance in values, that is not a problem since values don't contain the building blocks for beta-reductions. 
 Some examples: 
 \begin{example}
 \begin{align*}
-    \begin{split}
-        r &= \alphaunifvar.\ap{\excopatmatch{\ap{x}\Rightarrow x}}, \\
-        s &= \excopatmatch{\ap{x}\Rightarrow \mathtt{Cons(\mathnormal{x}, Cons(\mathnormal{y}, Nil))}},   \\
-        t &= \alphaunifvar.\ap{x_1, x, y, z}
-    \end{split}    
+    \alphaunifvar.\ap{\excopatmatch{\ap{x}\Rightarrow x}} \tag{1}\\
+    \excopatmatch{\ap{x}\Rightarrow \mathtt{Cons(\mathnormal{x}, Cons(\mathnormal{y}, Nil))}} \tag{2}\\
+    \alphaunifvar.\ap{x_1, x, y, z} \tag{3}    
 \end{align*}
-$r$ and $s$ are in normal form and $t$ is a pattern in normal form.
+The first and second example are in normal form and the third is a pattern in normal form.
 \end{example}
 
 \begin{theorem}
-    If a unification problem has a solution, that solution is the same for the normal form of that same problem. 
-    No normal form of a problem that doesn't have a solution has a solution either.
+    If and only if a unification problem has a solution, that solution is the same for the normal form of that problem. 
+    The same thing holds for the other way around: If and only if a normal form has a solution, that solution is the same for the extended expression of that normal form. 
 \end{theorem}
 
+This is helpful for us, since we only have to consider normal forms in our algorithm.
+Concretely: Met with a term, we first reduce it to its normal form, and then apply the steps to find our solution.
 From this point on, we will only be looking at terms that have a normal form. This is enough in most applications. %TODO: ausschmücken?
 
-This is helpful for us, since we only have to consider normal forms in our algorithm, as in: 
-Met with a term, we first reduce it to its normal form, and then solve for our solution.
-
-As an example, the problem $\True.\expatmatch{\True \Rightarrow \alphaunifvar, \False \Rightarrow \mathtt{2}} \equiv \mathtt{3} $ has the solution $[\mathtt{3/\alphaunifvar}]$, 
-but this is more obvious after using a beta-reduction on the left-hand side bringing it into normal form:
+For a practical example for why normal forms are helpful, consider the following problem:
+\begin{example}[Beta-reductions before solving]
+    \begin{align*}
+        \True.\expatmatch{\True \Rightarrow \alphaunifvar, \False \Rightarrow \mathtt{2}} \equiv \mathtt{3} \tag{1}
+    \end{align*}
+    has the solution $[\mathtt{3/\alphaunifvar}]$, but this is more obvious after using a beta-reduction on the left side 
+    to bring it into normal form:
+    \begin{align*}
+        &\True.\expatmatch{\True \Rightarrow \alphaunifvar, \False \Rightarrow \mathtt{2}} \betaconv \alphaunifvar\\
+        &\implies \alphaunifvar \equiv \mathtt{3}   
+    \end{align*}       
+Let's take a look at another example of a using beta-conversion:
 \begin{align*}
-    &\True.\expatmatch{\True \Rightarrow \alphaunifvar, \False \Rightarrow \mathtt{2}} \betaconv \alphaunifvar  \\
-    &\implies \alphaunifvar \equiv \mathtt{3}   
-\end{align*}
-
-Let's take a look at another example:
-\begin{align*}
-    &\alphaunifvar \equiv \True \\
+    &\alphaunifvar \equiv \True \tag{2}\\
     &\alphaunifvar.\expatmatch{\mathtt{True\Rightarrow 2, False\Rightarrow 3}} \equiv \betaunifvar
 \end{align*}
 To find out that $[\mathtt{2}/\betaunifvar]$ is the solution to the second equation, we first need to find out that
 $[\True/\alphaunifvar]$ is the solution to the first equation and substitute it in the second.
-This is what is called \textit{dynamic} pattern unification, where we hold off on solving some equations we don't have all the information for yet until we know more. 
+This is what is called \textbf{dynamic pattern unification}, where we hold off on solving some equations we don't have all the information for yet until we know more. 
+ 
+\end{example}
+
 
 \section{The Algorithm For Higher-Order Unification}
 
@@ -971,8 +968,8 @@ Let's look at some examples. We would like the following to be true:
 \end{example}
 These examples might be confusing at first. Looking at the second example, one might argue that there exists a pair, say $x = \excopatmatch{\mathtt{fst\Rightarrow 2, snd\Rightarrow 2}}$, such that
 $x.\mathtt{fst} = x.\mathtt{snd}$. This is where it is important to remember that we are not looking for solutions to variables like $x$.
-Whereas to our unification variables $\alphaunifvar$ we want to assign any term such that our equations hold, variables $x$ add \textit{constraints} to our equations. 
-The equation $x \vdash x.\mathtt{fst} \equiv x.\mathtt{snd}$ must hold for \textit{any} variable $x$, since we cannot choose $x$! 
+Whereas to our unification variables $\alphaunifvar$ we want to assign any term such that our equations hold, variables $x$ add \textbf{constraints} to our equations. 
+The equation $x \vdash x.\mathtt{fst} \equiv x.\mathtt{snd}$ must hold for \textbf{any} variable $x$, since we cannot choose $x$! 
 Since for $x = \excopatmatch{\mathtt{fst\Rightarrow 2, snd\Rightarrow 3}}$, the equation does not hold, we can simplify to $\bot$.
 %TODO: rework sentence structure
 %TODO: can i explain this better?
@@ -980,42 +977,41 @@ Since for $x = \excopatmatch{\mathtt{fst\Rightarrow 2, snd\Rightarrow 3}}$, the 
 
 \begin{example}[Constructors and Destructors]
     \begin{align*}
-    &\vdash \texttt{Cons(x, Nil)} \equiv \texttt{Cons(y, Nil)}&\mapsto& \bot
-    \\
+    &\vdash \mathttbrackets{Cons}{x, \mathtt{Nil}} \equiv \mathttbrackets{Cons}{y, \mathtt{Nil}}&\mapsto& \bot
+    \tag{1}\\
     &\vdash \texttt{Cons(}\alphaunifvar, \texttt{Nil)}\equiv\texttt{Cons(}\betaunifvar, \texttt{Nil)}
     &\mapsto&\alphaunifvar\equiv \betaunifvar
-    \\
+    \tag{2}\\
     &\vdash \mathsf{List(Int)}\equiv \mathsf{List(\alphaunifvar)}
     &\mapsto& \vdash \mathsf{Int}\equiv \alphaunifvar
-    \\
+    \tag{3}\\
     &x \vdash x.\ap{e_1}\equiv x.\ap{e_2} &\mapsto& x\vdash e_1\equiv e_2 
+    \tag{4}\\
+    &\vdash\mathtt{\alphaunifvar.fst \equiv \betaunifvar.fst}&\mapsto& \vdash\alphaunifvar\equiv \betaunifvar
+    \tag{5}
     \end{align*}
 \end{example}
-
-%TODO: can i find more interesting examples for this section?
 
 \begin{example}[Pattern and Copattern Matching]
     \begin{align*}
-    &\vdash \excopatmatch{\ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\ap{x}\Rightarrow\betaunifvar} 
-    &\mapsto&x\vdash \alphaunifvar \equiv \betaunifvar
-    \\
-    &x\vdash x.\expatmatch{\texttt{T} \Rightarrow e_2, \texttt{F} \Rightarrow e_2} \equiv x.\expatmatch{\texttt{T} \Rightarrow t_1, \texttt{F} \Rightarrow t_2}\footnotemark{}
+    &x\vdash x.\expatmatch{\texttt{T} \Rightarrow e_2, \texttt{F} \Rightarrow e_2} \equiv x.\expatmatch{\texttt{T} \Rightarrow t_1, \texttt{F} \Rightarrow t_2}\footnotemark{}\tag{1}
     \\ &\mapsto x\vdash  e_1 \equiv t_1\wedge x\vdash e_2\equiv t_2
     \\
-    &\excopatmatch{\mathtt{fst \Rightarrow} \mathtt{5}, \mathtt{snd\Rightarrow False}}\equiv \alphaunifvar
+    &\vdash \excopatmatch{\ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\ap{x}\Rightarrow\betaunifvar} 
+    &\mapsto&x\vdash \alphaunifvar \equiv \betaunifvar
+    \tag{2}\\
+    &\excopatmatch{\mathtt{fst \Rightarrow} \mathtt{5}, \mathtt{snd\Rightarrow False}}\equiv \alphaunifvar \tag{3}
     \\ &\mapsto \vdash \mathtt{5}\equiv \alphaunifvar.\mathtt{fst}\wedge \vdash \mathtt{False\equiv\alphaunifvar.snd}
     \end{align*}
 \end{example}
-
-%TODO: rather have more examples with variables?
-%TODO: own section for non-matching equations? (maybe after the definition?)
-
 \footnotetext{\texttt{T} and \texttt{F} are stand-ins for $\True$ and $\False$.}
+Note that all of these examples are in normal form, i.e. they don't contain redexes.
+This means the only way for the terms on each side of the equations to be equivalent,
+is for them to be equivalent \textbf{syntactically}. 
 
-Note that none of these examples contain redexes, meaning the only way for the terms on each side of the equations to be equivalent,
-is for them to be equivalent \textit{syntactically}. %TODO: zu ungenau?
-
-We want to formulate rules which help us simplify equations like these.
+We want to formulate rules which help us simplify equations like these; equations without beta-redexes.
+We want remove redundant constraints, split constraints made up of composite terms to find solutions to their parts,
+and spot redundancies to prematurely stop the solving process.
 \begin{definition}[Decomposing Constraints]
     \begin{align*}
     &\textbf{Removing redundancy}\\
@@ -1023,7 +1019,7 @@ We want to formulate rules which help us simplify equations like these.
     \tag{1}\\
     &\Psi \vdash \alphaunifvar \equiv \alphaunifvar&\mapsto_r& \top
     \tag{2}\\
-    &\Psi \vdash \exconstructor{} \equiv \exconstructor{} &\mapsto_c& \top 
+    &\Psi \vdash \exconstructor{} \equiv \exconstructor{} &\mapsto_r& \top 
     \tag{3}\\
     &\textbf{Decomposition}\\
     \circ\,&\Psi\vdash K(\overline{e})\equiv K(\overline{t})&
@@ -1049,11 +1045,13 @@ We want to formulate rules which help us simplify equations like these.
     & \Psi \vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e.d(\overline{x})}}\equiv t
     &\mapsto_e&\Psi\vdash e\equiv t
     \tag{10}\\
-    &\textbf{Removing contradictions}\\    
+    &\textbf{Removing contradictions}\\ 
+    &\Psi \vdash x\equiv y &\mapsto_c& \bot 
+    \tag{11}\\   
     &\Psi \vdash K_1() \equiv K_2() &\mapsto_c& \bot 
-    \tag{11}\\
-    &\text{non-matching *- or $\circ$-equation}&\mapsto_c&\bot
     \tag{12}\\
+    &\text{non-matching *-equation}&\mapsto_c&\bot
+    \tag{13}\label{13}\\
     \end{align*}
 \end{definition}
 Rules 7-9 are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
@@ -1063,7 +1061,20 @@ We also require them to have the same list of variables as arguments, respective
 For equations marked with $\circ$, we only require the constructors (or destructors) to be equal to one another in each equation. 
 (i.e. no syntactic equality among arguments required).
 This is because in *-equations, we expect variables, whereas in $\circ$-arguments, we expect values (since we expect terms in normal form).
-If any of this does not hold in a given equation, rule 12 applies and we simplify to $\bot$.
+In *-equations where the arguments are not equal syntactically, rule \ref{13} applies and we simplify to $\bot$:
+
+\begin{example}[Contradiction in (co-)pattern matching]
+    \begin{align}
+        &\vdash x.\expatmatch{\mathtt{True\Rightarrow \alphaunifvar, False \Rightarrow \betaunifvar}} 
+        \equiv x.\expatmatch{\mathtt{1\Rightarrow \alphaunifvar, 2\Rightarrow\betaunifvar}}
+        &\mapsto_c& \bot \tag{1}\\
+        &\vdash \excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}
+        \equiv \excopatmatch{\ap{x}\Rightarrow \mathtt{1}}
+        &\mapsto_c& \bot \tag{2}
+    \end{align}
+\end{example}
+
+
 
 Note that \ref{8} (as well as \ref{9} with being just the mirror of \ref{8}) are possible through eta-conversion:
 \begin{align*}
@@ -1113,7 +1124,7 @@ Doing so might introduce redexes!
         \tag{3}
     \end{align*}
 \end{definition}
-Step 2 and 3 are the occurs' check.
+Step 2 and 3 are the occurs check.
 
 \subsection{The algorithm}
 We have described steps of the algorithm so far. How and when do we apply these steps?
