@@ -812,12 +812,12 @@ $\Psi$ may contain variables that occur in or are even bound in $e$ or $t$.
 $\Psi$ contains those variables we have seen before and want to remember. This motivates the naming of $\Psi$ as context, as well.
 %TODO: ist das offensichtlich?
 
-Why do we need a formal definition here? We don't solve our unification problem in one huge step, but
+Why do we need a formal definition here? Because we don't solve our unification problem in one huge step, but
 work on it incrementally, solving parts of terms and remembering the information we have learned from these parts.
 We want to be able to talk about these processes formally.
 
 We formulate our constraints from a given unification problem as follows:
-We take each given equation and formulate a constraint $K$ with empty context $\Psi$. We join them using ands: %TODO: formulierung?
+We take each given equation and formulate a constraint $K$ with empty context $\Psi$. We join them using ands:
 $\overline{e\equiv t}$ become $\constraints = C_1 \wedge ... \wedge C_n = \, \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
 
 For clarification, $C \wedge \mathcal{C}$ is the regular logical and thus, 
@@ -827,21 +827,17 @@ and $\top \wedge \constraints = \constraints$ as well as $\bot \wedge \constrain
 We can also apply substitutions on a set of constraints, which just means applying the substitution to the equation part of all the constraints in the set:
 $\constraints \sigma = (C \wedge \constraints')\sigma = C \sigma \wedge \constraints' \sigma  
 = \Psi \vdash e\sigma\equiv t\sigma\wedge \constraints'$. Applying a substitution to $\top$ or $\bot$ changes nothing.
-%TODO: ist das offensichtlich?
 
 \begin{theorem}[Decidability of Higher-Order Unification]
-    Higher-order unification includes unification problems containing higher-order terms (equivalent to lambda abstractions),
+    Higher-order unification includes unification problems containing higher-order terms (including functions),
     and is covered by our introduced syntax. %TODO: bessere formulierung?
-    Higher-order unification is not decidable. This can be proven through reducing Hilbert's tenth problem to the unification problem.
+    Higher-order unification is not decidable. This can be proven through reducing Hilbert's tenth problem to the unification problem.%TODO: schmöker citen? oder wird das da auch nicht wirklich gemacht?
 \end{theorem}
-
 
 \section{Pattern Unification}
 
 Pattern unification, also sometimes called the pattern fragment
-is a subsection of Higher-Order Unification,
-% It can be seen as an extension of first-order unification
-with its solution being similarly simple as the one to first-order unification.
+is a subsection of Higher-Order Unification, with its path to a solution being similarly simple as the one to first-order unification.
 It was described first by Miller in \cite{10.1093/logcom/1.4.497}.
 Since we are dealing with what amounts to an extension to the lambda calculus (as our syntax also contains constructors), we need to extend our definition to more than just function applications. 
 This means that (in practice,) the pattern fragment described by Miller is a subset of our definition.
@@ -859,12 +855,16 @@ This means that (in practice,) the pattern fragment described by Miller is a sub
 
 If you are familiar with other definitions of patterns, you might have noticed that 
 we have omitted the part about the variables being bound. We require this later on when looking at patterns as subterms.
-Some examples:
+%TODO: das hier nochmal überdenken+löschen?
 
-$\alphaunifvar.\ap{x}.\ap{y}\equiv x$ is a pattern and has the solution $[\excopatmatch{\ap{x}\Rightarrow\excopatmatch{\ap{y}\Rightarrow x}}/\alphaunifvar]$.
-$\alphaunifvar.fst \equiv 2$ is a pattern and has the solution $[pair(2,x)/\alphaunifvar]$.
-
-%TODO: beispiele mit anderem destruktor??
+Consider some examples for patterns. On the left is the pattern unification problem and on the right its solution:
+\begin{example}
+    \begin{align*}
+        \alphaunifvar.\ap{x}.\ap{y}&\equiv x &\sigma_1 &= [\excopatmatch{\ap{x}\Rightarrow\excopatmatch{\ap{y}\Rightarrow x}}/\alphaunifvar] \tag{1}\\
+        \alphaunifvar.fst &\equiv 2 &\sigma_2 &= [\excopatmatch{\mathtt{fst\Rightarrow 2, snd \Rightarrow}x}/\alphaunifvar] \tag{2}
+    \end{align*}   
+\end{example}
+%TODO: beispiele?
 
 \begin{theorem}[Decidability of Pattern Unification]
     Pattern Unification is decidable. If there exists a solution, there also exists a mgu.
@@ -890,7 +890,6 @@ To illustrate this, take the following problem where the variables are \textbf{n
 These solutions are equivalent, in that no solution is more general than the other. There exists no mgu for this problem.
 The solutions aren't unique because the variables aren't unique.  
 \end{example}
-%TODO: ist das beispiel zu ausführlich?
 
 To be able to talk about the algorithms for solving unification problems, we need another definition: %TODO: umformulieren
 \begin{definition}[Normal Form]
@@ -1019,54 +1018,57 @@ is for them to be equivalent \textit{syntactically}. %TODO: zu ungenau?
 We want to formulate rules which help us simplify equations like these.
 \begin{definition}[Decomposing Constraints]
     \begin{align*}
+    &\textbf{Removing redundancy}\\
     &\Psi \vdash x\equiv x&\mapsto_r&\top
     \tag{1}\\
     &\Psi \vdash \alphaunifvar \equiv \alphaunifvar&\mapsto_r& \top
     \tag{2}\\
-    \circ\,&\Psi \vdash e_1.d({\overline{e}})\equiv e_2.d({\overline{t}})
-    \\ &\mapsto_d \Psi\vdash e_1 \equiv e_2 \wedge \overline{\Psi\vdash e\equiv t}
+    &\Psi \vdash \exconstructor{} \equiv \exconstructor{} &\mapsto_c& \top 
     \tag{3}\\
-    *\,&\Psi \vdash e_1.\expatmatch{\overline{K(\overline{x})\Rightarrow e}}\equiv e_2.\expatmatch{\overline{K(\overline{x})\Rightarrow t}}
-    \\ &\mapsto_d \Psi \vdash e_1 \equiv e_2\wedge \overline{\Psi, \overline{x}\vdash e\equiv t}
-    \tag{4}\\
+    &\textbf{Decomposition}\\
     \circ\,&\Psi\vdash K(\overline{e})\equiv K(\overline{t})&
     \mapsto_d&\overline{\Psi\vdash e\equiv t}
+    \tag{4}\\
+    \circ\,&\Psi \vdash e_1.d({\overline{e}})\equiv e_2.d({\overline{t}})
+    \\ &\mapsto_d \Psi\vdash e_1 \equiv e_2 \wedge \overline{\Psi\vdash e\equiv t}
     \tag{5}\\
-    & \Psi \vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e.d(\overline{x})}}\equiv t
-    &\mapsto_e&\Psi\vdash e\equiv t
+    *\,&\Psi \vdash e_1.\expatmatch{\overline{K(\overline{x})\Rightarrow e}}\equiv e_2.\expatmatch{\overline{K(\overline{x})\Rightarrow t}}
+    \\ &\mapsto_d \Psi \vdash e_1 \equiv e_2\wedge \overline{\Psi, \overline{x}\vdash e\equiv t}
     \tag{6}\\
     *\, &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv 
     \excopatmatch{\overline{d(\overline{x})\Rightarrow t}}
     &\mapsto_d& \overline{\Psi, \overline{x}\vdash e \equiv t}
-    \tag{7}\\
+    \tag{7}\label{7}\\
     &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv t 
     &\mapsto_d& \overline{\Psi,\overline{x} \vdash e \equiv t.d(\overline{x})}
-    \tag{8}\\
+    \tag{8}\label{8}\\ 
     &\Psi\vdash t\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow e}} 
     &\mapsto_d& \overline{\Psi, \overline{x}\vdash t.d(\overline{x}) \equiv e}
-    \tag{9}\\    
+    \tag{9}\label{9}\\
+    &\textbf{Eta-reduction}\\
+    & \Psi \vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e.d(\overline{x})}}\equiv t
+    &\mapsto_e&\Psi\vdash e\equiv t
+    \tag{10}\\
+    &\textbf{Removing contradictions}\\    
+    &\Psi \vdash K_1() \equiv K_2() &\mapsto_c& \bot 
+    \tag{11}\\
     &\text{non-matching *- or $\circ$-equation}&\mapsto_c&\bot
-    \tag{10}
+    \tag{12}\\
     \end{align*}
 \end{definition}
 Rules 7-9 are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
 
 For equations marked with *, we require the constructors (or destructors) to be equal to one another in each equation. 
 We also require them to have the same list of variables as arguments, respectively (i.e. full syntactic equality).
-
 For equations marked with $\circ$, we only require the constructors (or destructors) to be equal to one another in each equation. 
 (i.e. no syntactic equality among arguments required).
+This is because in *-equations, we expect variables, whereas in $\circ$-arguments, we expect values (since we expect terms in normal form).
+If any of this does not hold in a given equation, rule 12 applies and we simplify to $\bot$.
 
-(The reason for this discrepancy lies in the fact that we are only expecting terms in normal form!)
-If any of this does not hold in a given equation, rule 9 applies and we simplify to $\bot$.
-
-In the special case of rule 5 where the constructors have no arguments, e.g. $\mathtt{True \equiv True}$, we can simplify to $\top$.
-%TODO: passt das so? oder impliziert dass dass es einfach random konstruktoren sein müssen? soll das eine eigene regel sein? ist das unnötig??
-Note that 8 (as well as 9 with being just the mirror of 8) are possible through eta-conversion:
-
+Note that \ref{8} (as well as \ref{9} with being just the mirror of \ref{8}) are possible through eta-conversion:
 \begin{align*}
     \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t \tag*{$\equiv_{\eta}$}\\
-    \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow t.d(\overline{x})}} \tag*{6}\\
+    \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow t.d(\overline{x})}} \tag*{\ref{7}}\\
     &\mapsto \overline{e \equiv t.d(\overline{x})}
 \end{align*}
 (Annotations on the right are supposed to show what rule is being used to get to the statement below.)
