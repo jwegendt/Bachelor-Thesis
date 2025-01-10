@@ -305,14 +305,14 @@ But we also use constructors for instantiating data types:
 \begin{example}[Using pattern matching to take apart data]
     \begin{align*}
         &\mathtt{Tup(1,2)}.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}\tag{1}\\
-        &\mathtt{Cons(True, Cons(False, Nil))}.\expatmatch{\mathttbrackets{Cons}{x, y}\Rightarrow y}\tag{2}   
+        &\mathtt{Cons(True, Cons(False, Nil))}.\expatmatch{\mathttbrackets{Cons}{x, y}\Rightarrow x}\tag{2}   
     \end{align*}
     This is the pattern matching you know and love. 
-    We will see later (~\ref{sec:betaconv}) how these get evaluated to $\mathtt{1}$ and $\mathtt{Cons(False, Nil)}$, respectively.
+    We will see later (~\ref{sec:betaconv}) how these get evaluated to $\mathtt{1}$ and $\True$, respectively.
     %TODO: ist das zu cringe? %TODO: ref
 \end{example}
 
-Since we use pattern matching to deconstruct data like Booleans, we can naturally also use it to implement conditionals:
+Since we use pattern matching to deconstruct data like Booleans, naturally we can also use it to implement conditionals:
 \begin{example}[Using pattern matching to represent conditionals]
     \begin{align*}
         &t.\expatmatch{\True\Rightarrow e_1, \False\Rightarrow e_2} \tag{1}\\
@@ -329,12 +329,10 @@ The first example is equivalent to if $t$ $e_1$ else $e_2$. The second expressio
         &Trues = \excopatmatch{\mathtt{fst \Rightarrow True, snd\Rightarrow}Trues}\tag{3} 
     \end{align*}
     We have seen examples like this in the introduction; the first one is a tuple with the values $\mathtt{1}$ and $\mathtt{2}$.
-
     In the second, we assume that there are destructors (on an empty sequence) for an algebraic data type that implements the colors of a traffic light.
     Notice again, that we could have defined our traffic light as what colors it displays (using a sum type), but chose to focus on how these colors change, 
     what our traffic light \textbf{does}.
-
-    The third is the infinite stream of $Trues$.
+    The third example is the infinite stream of $Trues$.
 \end{example}
 
 \begin{example}[Using destructors to take apart codata]
@@ -343,15 +341,14 @@ The first example is equivalent to if $t$ $e_1$ else $e_2$. The second expressio
         &TrafficLight.\mathtt{Green}\tag{2}\\
         &id.\ap{\mathtt{5}}\tag{3}
     \end{align*}
-    These do exactly what you think they do: We select the first value of the tuple,
-    and turn our traffic light Yellow, respectively 
-    We will see how these examples resolve to $\mathtt{1}$, $\mathtt{Yellow}$ and $\mathtt{5}$ later on. %TODO: ref
     $\ap{}$ is the destructor that implements function application: It applies the function on which it is "called" to the argument in the brackets.
-    %TODO: formulierung
+    These examples do exactly what you think they do: We select the first value of the tuple,
+    and turn our traffic light Yellow, respectively 
+    We will see how these examples resolve to $\mathtt{1}$, $\mathtt{Yellow}$ and $\mathtt{5}$ in \ref{sec:betaconv}.
 \end{example} 
 
 You might have noticed already that there is no option for function definition in the syntax of our calculus.
-This is because we can use copattern matching to implement function definition:
+This is because we can use copattern matching to implement function definitions:
 %TODO: etwas darüber schreiben, dass lambdas codata sind?
 \begin{example}[Using copattern matching for function definitions]
     \begin{align*}
@@ -365,10 +362,12 @@ This is because we can use copattern matching to implement function definition:
 \subsection{Dualities in data and codata}
 You might have wondered why in the syntax definition, copatterns are defined first, even though they need destructors to function, which are defined afterwards.
 The reason becomes clear when rereading the titles of the definitions:
-Constructors are used to instantiate data, pattern matching is used to take apart data.
-Copattern matching is used to instantiate codata, destructors are used to take apart codata.
-The order of the syntax definitions emphasizes these conceptual dualitites.
-Consider one more clean example to drive the point home:  
+Constructors are used to instantiate data, while pattern matching is used to take apart data.
+Copattern matching is used to instantiate codata, while destructors are used to take apart codata.
+The order of the syntax definitions emphasizes these conceptual dualitites:
+Conceptually, data is dual to codata, but this is only because constructors are conceptually dual to copattern matching, 
+and pattern matching is conceptually dual to destructors.
+One more clean example to drive the point home:  
 
 \begin{example}[Dualities in a tuple defined in two ways]
     \begin{align*}
