@@ -278,7 +278,7 @@ To get familiar with the syntax and to understand the underlying semantics, I wi
 %TODO: hier noch was schreiben? was????
 
 We use constructors for types:
-\begin{example}[Constructing Types with constructors]
+\begin{example}[Constructing types with constructors]
     Simple Types like $\mathsf{Int, Bool, ...}$ are constructors on an empty sequence, 
     while there are of course Types that require arguments. %TODO: reformulate
     \begin{align*}
@@ -457,7 +457,7 @@ The composition of two substitutions $\sigma_2 \circ \sigma_1$ which is equivale
 \end{definition}
 
 Consider these two examples of an idempotent substitution, and one that is not idempotent:
-\begin{example}
+\begin{example}[Idempotency]
     $[\excopatmatch{\ap{x}\Rightarrow x} / y]$ is idempotent, since:
     \begin{align*}
         &[\excopatmatch{\ap{x}\Rightarrow x} / y] \circ [\excopatmatch{\ap{x}\Rightarrow x} / y] \tag{1}\\
@@ -473,12 +473,12 @@ On the other hand, the substitution $[\excopatmatch{\ap{y}\Rightarrow x} / x]$ i
 
 \end{example}
 
-\begin{definition}[More General] 
+\begin{definition}[More general] 
     A substitution $\sigma$ is more general than a substitution $\theta$, iff. there exists a mapping $\tau$, such that: $\theta = \tau \circ \sigma$.
-\end{definition} % TODO: andere namen? maybe
+\end{definition}
 
 For example, in the following unification problem, we are trying to substitute types for two unification variables:
-\begin{example}
+\begin{example}[More general]
     \begin{align*}
         \mathsf{List}(\alphaunifvar) &\equiv \mathsf{List}(\betaunifvar)\\
         \alphaunifvar &\equiv \mathsf{Int}
@@ -496,28 +496,33 @@ This is because there exists a mapping $\tau = [\mathsf{Int / \alphaunifvar}]$, 
 
 \subsection{Conversion}
 
-\begin{definition}[Beta-Conversion] \label{sec:betaconv}
+\begin{definition}[Beta-conversion] \label{sec:betaconv}
     A single step of beta-conversion $e_1 \betaconv e_2$ is defined as follows:
     \begin{align*}
-        \constructor.\textbf{case}\{\dots,\exconstructor{\overline{x}}\Rightarrow e,\dots\} 
-        \betaconv & e[\overline{e}/\overline{x}] \tag{$\beta$-data}\\
         \excopatmatch{\dots,d(\overline{x}) \Rightarrow e, \dots}.d(\overline{e})
-        \betaconv & e[\overline{e}/\overline{x}]  \tag{$\beta$-codata}
+        \betaconv & e[\overline{e}/\overline{x}]  
+        \tag{$\beta$-codata}\\
+        \constructor.\textbf{case}\{\dots,\exconstructor{\overline{x}}\Rightarrow e,\dots\}
+        \betaconv & e[\overline{e}/\overline{x}] 
+        \tag{$\beta$-data}
     \end{align*}
     We require that the constructor $K(\overline{e})$ and the constructor $\exconstructor{\overline{x}}$ have the same number of arguments.
-    This, in short ensures that we don't generate stuck terms, i.e. terms that can't be evaluated. %TODO: warum hier und nicht in der syntaxdefinition?
+    This, in short ensures that we don't generate stuck terms, i.e. terms that can't be evaluated.
 \end{definition}
-Consider the following examples:
-\begin{example}
+Consider these examples of beta-conversion:
+\begin{example}[Beta-conversion]
     \begin{align*}
-        \True.\expatmatch{\False\Rightarrow \True, \True \Rightarrow \False}&\betaconv\False\tag{1}\\
-        \excopatmatch{\ap{x}\Rightarrow \True}.\ap{x}&\betaconv \True[x/x] = \True \tag{2}\\
-        \excopatmatch{\ap{y}\Rightarrow y}.\ap{x} &\betaconv y[x/y]= x\tag{3}
+        \excopatmatch{\ap{x}\Rightarrow \True}.\ap{x}&\betaconv \True[x/x] = \True 
+        \tag{1}\\
+        \excopatmatch{\ap{y}\Rightarrow y}.\ap{x} &\betaconv y[x/y]= x
+        \tag{2}\\
+        \True.\expatmatch{\False\Rightarrow \True, \True \Rightarrow \False}&\betaconv\False
+        \tag{3}\\
+        \excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst}\betaconv \mathtt{1}
+        \tag{4}
     \end{align*}
     Intuitively, beta-conversion means not only function application but also the reduction under pattern or copattern matching. %TODO: macht das so sinn? sollte ich das mehr erklären? sind die beispiele hier überhaupt gut?        
 \end{example}
-
-%TODO: more explanation?
 
 \begin{definition}[Eta-Conversion for codata]
     A single step of eta-conversion $e_1 \etaconv e_2$ is defined as follows:
@@ -543,7 +548,7 @@ Consider the following examples:
 We want to be able to use the unification algorithm to discern types for given terms. 
 To start, let's look at some examples terms and their types:
 
-\begin{example}
+\begin{example}[Simple types]
     \begin{align*}
         \mathtt{5}&: \Int\\
         \mathtt{False}&: \Bool\\
@@ -754,12 +759,16 @@ adapted to our syntax.
 Note that this is encompassed our syntax described in \ref{sec:syntax},
 but with the addition of unification variables with substitutions. 
 To illustrate the need for this substitution, look at what problem arises when omitting the substitution:
-\begin{example}
-    In $\excopatmatch{\ap{x}\Rightarrow\alphaunifvar}.\ap{y}\equiv\betaunifvar$, focus on the left side and notice that there is a redex. What happens if we reduce it?
+\begin{example}[Substitutions on unification variables] 
+    Consider this example:
+    \begin{align*}
+        \excopatmatch{\ap{x}\Rightarrow\alphaunifvar}.\ap{y}\equiv\betaunifvar
+    \end{align*}
+    If you focus on the left side, you might notice that there is a redex. What happens if we reduce it?
     \begin{align*}
         \excopatmatch{\ap{x}\Rightarrow\alphaunifvar}.\ap{y}\betaconv\alphaunifvar[y/x]    
     \end{align*}     
-    If we found the solution $\sigma = [x/ \alphaunifvar]$ through another equation, we would actually need to substitute in $\alphaunifvar$!
+    If we now found the solution $\sigma = [x/ \alphaunifvar]$ through another equation, we would actually need to substitute in $\alphaunifvar$!
 \end{example}
 
 This motivates our need for substitutions on unification variables: 
@@ -776,7 +785,7 @@ This essentially means that two terms are equivalent if they are equivalent afte
 
 In the introduction (\ref{sec:mgu}), I alluded to the fact that in problems that have multiple solutions, we prefer a certain, most general solution.
 Let's next consider an example again:
-\begin{example}
+\begin{example}[No more general solution]
     \begin{align*}
         \alphaunifvar.\ap{5} \equiv \texttt{5}
     \end{align*}
@@ -854,7 +863,7 @@ we have omitted the part about the variables being bound. We require this later 
 %TODO: das hier nochmal überdenken+löschen?
 
 Consider some examples for patterns. On the left is the pattern unification problem and on the right its solution:
-\begin{example}
+\begin{example}[Pattern]
     \begin{align*}
         \alphaunifvar.\ap{x}.\ap{y}&\equiv x &\sigma_1 &= [\excopatmatch{\ap{x}\Rightarrow\excopatmatch{\ap{y}\Rightarrow x}}/\alphaunifvar] \tag{1}\\
         \alphaunifvar.fst &\equiv 2 &\sigma_2 &= [\excopatmatch{\mathtt{fst\Rightarrow 2, snd \Rightarrow}x}/\alphaunifvar] \tag{2}
@@ -871,7 +880,7 @@ Equations containing first-order terms that don't contain patterns still remain 
 
 The reason there always exists an mgu lies in the constraint we put on our definition: All the variables must be distinct. 
 To illustrate this, take the following problem where the variables are \textbf{not} distinct:
-\begin{example}
+\begin{example}[Why distinct variables in patterns?]
     \begin{align*}
         \alphaunifvar.\ap{x}.\ap{x}\equiv x
     \end{align*}  
@@ -908,7 +917,7 @@ This underlines the intuition that neutral terms are terms that cannot be reduce
 they contain an term we can't further evaluate (either a variable or a unification variable) in the front.
 Even though we don't have this assurance in values, that is not a problem since values don't contain the building blocks for beta-reductions. 
 Some examples: 
-\begin{example}
+\begin{example}[Normal form]
 \begin{align*}
     \alphaunifvar.\ap{\excopatmatch{\ap{x}\Rightarrow x}} \tag{1}\\
     \excopatmatch{\ap{x}\Rightarrow \mathtt{Cons(\mathnormal{x}, Cons(\mathnormal{y}, Nil))}} \tag{2}\\
@@ -960,10 +969,11 @@ Let's look at some examples. We would like the following to be true:
 \begin{example}[There are two kinds of variables!]
     \begin{align*}
     &x \vdash x.\mathtt{fst} \equiv x.\mathtt{fst} &\mapsto& \top
-    \\
+    \tag{1}\\
     &x \vdash x.\mathtt{fst} \equiv x.\mathtt{snd} &\mapsto& \bot 
-    \\
+    \tag{2}\\
     &x,y \vdash x.\mathtt{fst} \equiv y.\mathtt{fst} &\mapsto& \bot 
+    \tag{3}
     \end{align*}
 \end{example}
 These examples might be confusing at first. Looking at the second example, one might argue that there exists a pair, say $x = \excopatmatch{\mathtt{fst\Rightarrow 2, snd\Rightarrow 2}}$, such that
@@ -1089,7 +1099,7 @@ Note that \ref{8} (as well as \ref{9} with being just the mirror of \ref{8}) are
 What do we do when we can't simplify anymore? How do we actually find the solutions?
 
 Let's start with an example. Take a look at the following unification problem:
-\begin{example}
+\begin{example}[Unification]
     \begin{align*}
         \mathtt{Tup(\alphaunifvar, False)}&\equiv \mathtt{Tup(True, False)}\\
         \betaunifvar&\equiv \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}
