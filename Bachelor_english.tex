@@ -170,10 +170,10 @@ Write here your acknowledgements.
 
 \section{Introduction}
 
-I want you to understand roughly what all the terms in the title of,
-as well as the goal of this thesis in the next few paragraphs. 
-
-%TODO: rewrite
+In this thesis, I want to present a higher-order unification algorithm for a calculus with a big focus on codata and data. 
+This requires you to know what data and codata conceptually are, how they are presented in our syntax and how they function.
+You also need to know what higher-order unification is and how it differs from the unification you probably already know.
+This is the goal for the next few paragraphs, as well as giving a quick overview of the different parts of this thesis.
 
 \subsection{Data and codata}
 While data (as in algebraic data types) is a well-known concept, 
@@ -192,13 +192,23 @@ For instance, look at these different ways to define the same tuple:
 One form of codata often talked about is streams:
 \begin{example}[Streams]
     \begin{align*}
-        Trues = \excopatmatch{\mathtt{fst \Rightarrow True, snd \Rightarrow} Trues}
+        Trues = \excopatmatch{\mathtt{hd \Rightarrow True, tl \Rightarrow} Trues}
     \end{align*}
-    As you can see, we can also instantiate infinite codata. 
     This is the stream that contains an infinite amount of Trues.
     Also notice again that there is an emphasis on how we can take things out of our stream, rather than how it is constructed.
 \end{example}
+As you can see, we can also instantiate infinite codata. 
+In our syntax, codata is also used for function application, 
+which is the part of codata you are most likely the most familiar with:
 
+\begin{example}[Function application through codata]
+    \begin{align*}
+        id = \excopatmatch{\ap{x}\Rightarrow x}
+    \end{align*}
+    This is the identity function, which is implemented through mapping a
+    function applicator on the variable $x$ to $x$.
+\end{example}
+    
 \subsection{Higher-Order Unification}
 Most people probably first encounter unification problems in school, when solving simple math problems.
 It is also necessary in a few important applications in computer science: 
@@ -242,12 +252,27 @@ like in the interactive theorem prover Coq or in the programming language Agda, 
     since the first case matches - solving the equation.
 \end{example}
 
-In this thesis, I will explore a calculus that has copattern matching and a focus on codata.
-As the goal is to present a higher-order pattern unification algorithm for this calculus,
-I go over some other smaller subsets of unification, and then explain all parts of the algorithm in more detail.
-% TODO: hier besser alle teile erklären
+\subsection{Overview}
 
-\section{The Untyped Calculus ND}
+Firstly, I will explore an (untyped) calculus with a heavy focus on the dualities between data and codata in \ref{sec:The Untyped Calculus ND}.
+I will give examples and show how we can use this syntax to define everything and point out how the duality plays out in our syntax.
+Furthermore, I will introduce some concepts we need to play around with terms.
+
+In \ref{sec:Simple Types}, I give examples of how we can type terms we have seen in our examples, 
+and present a typing system to categorize many terms in simple types.
+
+To make our way to higher-order unification, I will first discuss \ref{sec:First-Order Unification},
+explaining the problem formally and giving an algorithm to solve it.
+
+Then I explain \ref{sec:Higher-Order Unification} formally, as well as a subproblem which is easier to solve.
+
+Finally, in \ref{The Algorithm For Higher-Order Unification}, I go through our algorithm for higher-order unification problems in our calculus.
+It is made up of two parts, which I go though in more detail, 
+then describing how they fit together to form our algorithm on a high level.
+
+In the end (\ref{sec:Literature review}) is a literature review, going over connected works.
+
+\section{The Untyped Calculus ND}\label{sec:The Untyped Calculus ND}
 
 I will be introducing the Untyped Calculus ND, based on ... %TODO: citation
 
@@ -287,7 +312,7 @@ We use constructors for types:
         &\mathsf{List(Int)}\tag{3}\\
         &\mathsf{Pair(Int, Bool)}\tag{4}
     \end{align*}
-    Types are explored in detail and formally later on in ~\ref{sec:types}.
+    Types are explored in detail and formally later on in ~\ref{sec:Simple Types}.
 \end{example}
 
 But we also use constructors for instantiating data types:
@@ -325,8 +350,8 @@ The first example is equivalent to if $t$ $e_1$ else $e_2$. The second expressio
 \begin{example}[Using copattern matching to instantiate codata]
     \begin{align*}
         &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}\tag{1}\\
-        &TrafficLight = \excopatmatch{\mathtt{Green \Rightarrow Yellow, Yellow\Rightarrow, Red\Rightarrow Green}}\tag{2}\\
-        &Trues = \excopatmatch{\mathtt{fst \Rightarrow True, snd\Rightarrow}Trues}\tag{3} 
+        TrafficLight =& \excopatmatch{\mathtt{Green \Rightarrow Yellow, Yellow\Rightarrow, Red\Rightarrow Green}}\tag{2}\\
+        Trues =& \excopatmatch{\mathtt{fst \Rightarrow True, snd\Rightarrow}Trues}\tag{3} 
     \end{align*}
     We have seen examples like this in the introduction; the first one is a tuple with the values $\mathtt{1}$ and $\mathtt{2}$.
     In the second, we assume that there are destructors (on an empty sequence) for an algebraic data type that implements the colors of a traffic light.
@@ -542,7 +567,7 @@ Consider these examples of beta-conversion:
     In the second example, we have a pair that contains the first value of a specific pair, and the second value of a specific pair, which is obviously just that specific pair.    
 \end{example}    
     
-\section{Simple Types}\label{sec:types}
+\section{Simple Types}\label{sec:Simple Types}
 
 We want to be able to use the unification algorithm to discern types for given terms. 
 To start, let's look at some examples terms and their types:
@@ -679,7 +704,7 @@ we can deduce that $t$ has the type $\tau$.
 \end{prooftree}    
 
 
-\section{First-Order Unification}
+\section{First-Order Unification}\label{sec:First-Order Unification}
 
 We want to slowly make our way to higher-order unification, and thus touch on simpler problems first. 
 Furthermore, we need a couple concepts more to be able to talk about unification problems and describe our algorithm. 
@@ -742,7 +767,7 @@ Consider some examples of first-order unification first. On the left is the prob
 This algorithm is based on the version presented by Martelli and Montanari in \cite{10.1145/357162.357169},
 adapted to our syntax.
 
-\section{Higher-Order Unification}
+\section{Higher-Order Unification}\label{sec:Higher-Order Unification}
 
 \begin{definition}[Higher-Order Unification]
     \begin{align*}
@@ -838,7 +863,7 @@ We can also apply substitutions on a set of constraints, which just means applyi
 $\constraints \sigma = (C \wedge \constraints')\sigma = C \sigma \wedge \constraints' \sigma  
 = \Psi \vdash e\sigma\equiv t\sigma\wedge \constraints'$. Applying a substitution to $\top$ or $\bot$ changes nothing.
 
-\section{Pattern Unification}
+\subsection{Pattern Unification}
 
 Pattern unification, also sometimes called the pattern fragment
 is a subsection of Higher-Order Unification, with its path to a solution being similarly simple as the one to first-order unification.
@@ -957,7 +982,7 @@ This is what is called \textbf{dynamic pattern unification}, where we hold off o
 \end{example}
 
 
-\section{The Algorithm For Higher-Order Unification}
+\section{The Algorithm For Higher-Order Unification}\label{The Algorithm For Higher-Order Unification}
 
 \subsection{Decomposing Constraints}
 
@@ -1149,7 +1174,7 @@ by formulating a substitution for each assigned term.
 
 This algorithm works on any pattern unification problem, and in particular, any unification problem that can be reduced to a pattern unification problem. %TODO: how?
 
-\section{Literature review}
+\section{Literature review}\label{sec:Literature review}
 
 
 \newpage
