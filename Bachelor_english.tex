@@ -266,7 +266,7 @@ explaining the problem formally and giving an algorithm to solve it.
 
 Then I explain \ref{sec:Higher-Order Unification} formally, as well as a subproblem which is easier to solve.
 
-Finally, in \ref{The Algorithm For Higher-Order Unification}, I go through our algorithm for higher-order unification problems in our calculus.
+Finally, in \ref{The Algorithm For Higher-Order Unification}, I present the framework for our equations, and then go through our algorithm for higher-order unification problems in our calculus.
 It is made up of two parts, which I go though in more detail, 
 then describing how they fit together to form our algorithm on a high level.
 
@@ -835,34 +835,6 @@ higher-order terms and thus don't have that problem of not changing variables.
     Higher-order unification is not decidable. This can be proven through reducing Hilbert's tenth problem to the unification problem.%TODO: schmöker citen? oder wird das da auch nicht wirklich gemacht?
 \end{theorem}
 
-Even though higher-order unification is undecidable, in many cases we can still find solutions,
-or conclude that there is no solution.
-Since we don't only want to describe higher-order unification, but the steps necessary to solve higher-order unification problems,
-we need to have a framework of our equations, where we can simplify our equations,
-and store what we have found out about our unknown variables. This is where constraints come into play:
-
-\begin{definition}[Constraint]
-    \begin{align*}
-        C ::= \top \partition \bot \partition \Psi \vdash e\equiv t \tag*{where $\Psi = x_1, ..., x_n$}\\
-        \mathcal{C} ::= C \wedge \mathcal{C}
-    \end{align*}
-    The variables in the Context $\Psi$ need to be distinct. $\Psi$ may also be empty.
-\end{definition}
-$\Psi \vdash e\equiv t$ means that given the variables $\Psi$, we deduce that $e\equiv t$.
-$\Psi$ may contain variables that occur in or are even bound in $e$ or $t$. 
-$\Psi$ contains those variables we have seen before and want to remember. This motivates the naming of $\Psi$ as context, as well.
-%TODO: too choppy
-
-We formulate our constraints from a given unification problem as follows:
-We take each given equation and formulate a constraint $K$ with empty context $\Psi$. We join them using ands:
-$\overline{e\equiv t}$ become $\constraints = C_1 \wedge ... \wedge C_n = \, \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
-
-For clarification, $C \wedge \mathcal{C}$ is the regular logical and thus, 
-and $\top \wedge \constraints = \constraints$ as well as $\bot \wedge \constraints = \bot$.
-We can also apply substitutions on a set of constraints, which just means applying the substitution to the equation part of all the constraints in the set:
-$\constraints \sigma = (C \wedge \constraints')\sigma = C \sigma \wedge \constraints' \sigma  
-= \Psi \vdash e\sigma\equiv t\sigma\wedge \constraints'$. Applying a substitution to $\top$ or $\bot$ changes nothing.
-
 \subsection{Pattern Unification}
 
 Pattern unification, also sometimes called the pattern fragment
@@ -983,6 +955,36 @@ This is what is called \textbf{dynamic pattern unification}, where we hold off o
 
 
 \section{The Algorithm For Higher-Order Unification}\label{The Algorithm For Higher-Order Unification}
+
+\subsection{Constraints}
+
+Even though higher-order unification is undecidable, in many cases we can still find solutions,
+or conclude that there is no solution.
+Since we don't only want to describe higher-order unification, but the steps necessary to solve higher-order unification problems,
+we need to have a framework of our equations, where we can simplify our equations,
+and store what we have found out about our unknown variables. This is where constraints come into play:
+
+\begin{definition}[Constraint]
+    \begin{align*}
+        C ::= \top \partition \bot \partition \Psi \vdash e\equiv t \tag*{where $\Psi = x_1, ..., x_n$}\\
+        \mathcal{C} ::= C \wedge \mathcal{C}
+    \end{align*}
+    The variables in the Context $\Psi$ need to be distinct. $\Psi$ may also be empty.
+\end{definition}
+$\Psi \vdash e\equiv t$ means that given the variables $\Psi$, we deduce that $e\equiv t$.
+$\Psi$ may contain variables that occur in or are even bound in $e$ or $t$. 
+$\Psi$ contains those variables we have seen before and want to remember. This motivates the naming of $\Psi$ as context, as well.
+%TODO: too choppy
+
+We formulate our constraints from a given unification problem as follows:
+We take each given equation and formulate a constraint $K$ with empty context $\Psi$. We join them using ands:
+$\overline{e\equiv t}$ become $\constraints = C_1 \wedge ... \wedge C_n = \, \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
+
+For clarification, $C \wedge \mathcal{C}$ is the regular logical and thus, 
+and $\top \wedge \constraints = \constraints$ as well as $\bot \wedge \constraints = \bot$.
+We can also apply substitutions on a set of constraints, which just means applying the substitution to the equation part of all the constraints in the set:
+$\constraints \sigma = (C \wedge \constraints')\sigma = C \sigma \wedge \constraints' \sigma  
+= \Psi \vdash e\sigma\equiv t\sigma\wedge \constraints'$. Applying a substitution to $\top$ or $\bot$ changes nothing.
 
 \subsection{Decomposing Constraints}
 
@@ -1122,7 +1124,7 @@ Note that \ref{8} (as well as \ref{9} with being just the mirror of \ref{8}) are
 
 What do we do when we can't simplify anymore? How do we actually find the solutions?
 
-Let's start with an example. Take a look at the following unification problem:
+Let's start with an example - take a look at the following unification problem:
 \begin{example}[Unification]
     \begin{align*}
         \mathtt{Tup(\alphaunifvar, False)}&\equiv \mathtt{Tup(True, False)}\\
