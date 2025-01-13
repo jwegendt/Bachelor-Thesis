@@ -136,7 +136,16 @@ Period: from-till
 
 \section*{Abstract}
 
-Write here your abstract.
+Algorithms for different subsections of higher-order unification problems have been discussed.
+I present an untyped calculus with a focus on the data-codata duality, 
+and discuss typing for this calculus.
+
+I discuss the decidable subproblem of first-order unification and an accompanying algorithm adapted to our syntax.
+Furthermore, I explain higher-order unification and the specific problem of pattern unification formally.
+
+Finally, algorithm for the presented calculus and higher-order unification is presented, 
+which covers all pattern unification problems and those which can be reduced to patterns.
+
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Acknowledgements
@@ -266,7 +275,8 @@ explaining the problem formally and giving an algorithm to solve it.
 
 Then I explain \ref{sec:Higher-Order Unification} formally, as well as a subproblem which is easier to solve.
 
-Finally, in \ref{The Algorithm For Higher-Order Unification}, I present the framework for our equations, and then go through our algorithm for higher-order unification problems in our calculus.
+Finally, in \ref{The Algorithm For Higher-Order Unification}, I present the framework for our equations, 
+and then go through our algorithm for higher-order unification problems in our calculus.
 It is made up of two parts, which I go though in more detail, 
 then describing how they fit together to form our algorithm on a high level.
 
@@ -1130,18 +1140,49 @@ Let's start with an example - take a look at the following unification problem:
         \mathtt{Tup(\alphaunifvar, False)}&\equiv \mathtt{Tup(True, False)}\\
         \betaunifvar&\equiv \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}
     \end{align*}        
-    I will demonstrate how we want to solve this, introducing what to do when we found a solution.
+    I will demonstrate how we want to solve this, introducing what to do when we found a solution.   
     \begin{align*}
-        \constraints &= &\vdash& \mathtt{Tup(\alphaunifvar, False)}\equiv \mathtt{Tup(True, False)}&\wedge&
-        \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}\\
-        &\xmapsto{(5)}_d &\vdash& \mathtt{\alphaunifvar\equiv True}, \vdash \mathtt{False\equiv False} &\wedge& 
-        \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}\\
-        &\mapsto_u &\vdash&\mathtt{\alphaunifvar\equiv True} &\wedge&
-        \vdash \betaunifvar\equiv \mathtt{True}.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}\\
-        &\stackrel{\betaconv}{=} &\vdash&\mathtt{\alphaunifvar\equiv True} &\wedge&
+        \constraints &= &\vdash\ & \mathtt{Tup(\alphaunifvar, F)}\equiv \mathtt{Tup(T, F)}&\wedge&
+        \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\footnotemark{}\tag{1}\\
+        &\xmapsto{(5)}_d &\vdash\ & \mathtt{\alphaunifvar\equiv T}\qquad\wedge\vdash \mathtt{F\equiv F} &\wedge& 
+        \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
+        &\xmapsto{(3)}_r &\vdash\ & \mathtt{\alphaunifvar\equiv T} &\wedge& 
+        \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
+        &\mapsto_u &\vdash\ &\mathtt{\alphaunifvar\equiv T} &\wedge&
+        \vdash \betaunifvar\equiv \mathtt{T}.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
+        &\stackrel{\betaconv}{=} &\vdash\ &\mathtt{\alphaunifvar\equiv T} &\wedge&
         \vdash \betaunifvar\equiv \mathtt{1}
-    \end{align*}      
+    \end{align*}
 \end{example}
+\footnotetext{\texttt{T} and \texttt{F} are stand-ins for $\True$ and $\False$.}
+
+\iffalse
+\begin{align*} %overfull
+    \constraints &= &\vdash\ & \mathtt{Tup(\alphaunifvar, False)}\equiv \mathtt{Tup(True, False)}&\wedge&
+    \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}\\
+    &\xmapsto{(5)}_d &\vdash\ & \mathtt{\alphaunifvar\equiv True}\qquad\wedge\vdash \mathtt{False\equiv False} &\wedge& 
+    \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}\\
+    &\xmapsto{(3)}_r &\vdash\ & \mathtt{\alphaunifvar\equiv True} &\wedge& 
+    \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}\\
+    &\mapsto_u &\vdash\ &\mathtt{\alphaunifvar\equiv True} &\wedge&
+    \vdash \betaunifvar\equiv \mathtt{True}.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}\\
+    &\stackrel{\betaconv}{=} &\vdash\ &\mathtt{\alphaunifvar\equiv True} &\wedge&
+    \vdash \betaunifvar\equiv \mathtt{1}
+\end{align*} 
+\begin{align*} %split lines
+    \constraints &= \vdash\ \mathtt{Tup(\alphaunifvar, False)}\equiv \mathtt{Tup(True, False)}\\
+    &\wedge\vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}\\
+    &\xmapsto{(5)}_d \vdash\   \mathtt{\alphaunifvar\equiv True}\qquad\wedge\vdash \mathtt{False\equiv False}\\
+    &\wedge\vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}\\
+    &\xmapsto{(3)}_r \vdash\   \mathtt{\alphaunifvar\equiv True} \\
+    &\wedge\vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}\\
+    &\mapsto_u \vdash\  \mathtt{\alphaunifvar\equiv True}\\
+    &\wedge\vdash \betaunifvar\equiv \mathtt{True}.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}\\
+    &\stackrel{\betaconv}{=} \vdash\  \mathtt{\alphaunifvar\equiv True} \\
+    &\wedge\vdash \betaunifvar\equiv \mathtt{1}
+\end{align*}
+\fi
+
 %TODO: have i changed the number in of the decomposing constraints?
 This is what the example tells us: When we have found an assignment to a unification variable, we want to keep it in our constraints!
 This is because we sometimes have to substitute that assignment in other constraints that contain the same unification variable.
