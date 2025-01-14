@@ -140,11 +140,12 @@ Algorithms for different subsections of higher-order unification problems have b
 I present an untyped calculus with a focus on the data-codata duality, 
 and discuss typing for this calculus.
 
-I discuss the decidable subproblem of first-order unification and an accompanying algorithm adapted to our syntax.
-Furthermore, I explain higher-order unification and the specific problem of pattern unification formally.
+Furthermore, I go over the decidable subproblem of first-order unification and an accompanying algorithm adapted to our syntax.
+I explain higher-order unification and the specific problem of pattern unification formally, 
+discussing their differences and decidability.
 
-Finally, algorithm for the presented calculus and higher-order unification is presented, 
-which covers all pattern unification problems and those which can be reduced to patterns.
+Finally, a framework for an algorithm and the algorithm for the aforementioned calculus and higher-order unification is presented, 
+covering all pattern unification problems and those which can be reduced to pattern unification problems.
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -186,7 +187,7 @@ This is the goal for the next few paragraphs, as well as giving a quick overview
 
 \subsection{Data and codata}
 While data (as in algebraic data types) is a well-known concept, 
-its brother codata is less talked about. Codata is dual to data, meaning any concept expressed using data may also be expressed through codata. 
+its brother codata is less talked about. Codata is dual to data, meaning (roughly) any concept expressed using data may also be expressed through codata. 
 On a high level: While data is concerned with how values are constructed or stored, codata is concerned with how values are destructed or used. 
 For instance, look at these different ways to define the same tuple: 
 
@@ -235,64 +236,64 @@ like in the interactive theorem prover Coq or in the programming language Agda, 
         &\mathtt{Tup(1,\alphaunifvar)}\equiv \betaunifvar \tag{4}
     \end{align*}
     Each of the given equations can be seen as their own unification problem.
-    The first has an obvious solution $[\mathtt{5/\alphaunifvar}]$, so substituting $\mathtt{5}$ for $\alphaunifvar$ (even though there are multiple solutions even here).
+    The first has one obvious solution $[\mathtt{5/\alphaunifvar}]$, so substituting $\mathtt{5}$ for $\alphaunifvar$ (even though there are multiple solutions even here).
     The second is a unification problem without unification variables, and has no solution.
-    The second and third are both unification problems on types with 2 unification variables, and have many solutions.
-    %TODO: das impliziert ein bisschen dass man nur mehrere lösungen haben kann wenn es mehrere unifikationsvariablen gibt
-    % (obwohl es ja immer mehrere lösungen gibt, hier geht es halt darum dass die kleinste nicht unbedingt offensichtlich ist)
+    The third and forth are both unification problems with 2 unification variables, and have many solutions.
 \end{example}
+Note that unification problems may also have multiple equations!
 
 \begin{example}[Higher-order unification problems]\label{sec:mgu}
     In this first example, we are looking for a function that when applied to $\mathtt{5}$, evaluates to $\mathtt{5}$:
     \begin{align*}
         &\alphaunifvar.\ap{\mathtt{5}} \equiv \mathtt{5}\tag{1} 
     \end{align*}
-    We can think of two obvious solutions for this: $[id / \alphaunifvar]$ and the constant function which always returns \texttt{5}: $[\excopatmatch{\ap{x}\Rightarrow \mathtt{5}} / \alphaunifvar]$
+    We can think of two obvious solutions for this: $[id / \alphaunifvar]$ and the constant function which always returns \texttt{5}: $[\excopatmatch{\ap{x}\Rightarrow \mathtt{5}} / \alphaunifvar]$.
     As already implied before, sometimes our unification problems have more than one solution, 
-    but we are interested in a particular solution. This is the solution that is more general, the one from which the others can be generated.
+    even though we are interested in one particular solution. This is the solution that is more general, meaning the one from which the others can be generated.
     In this case however, there is no one such solution. This can only happen in higher-order unification, but this will be explored more formally below.
-    
-    Another example:
+    Another example of higher-order unification:
     \begin{align*}
     \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False \Rightarrow 2}}\equiv \mathtt{1} \tag{2}
     \end{align*}
     Here we have an example of pattern matching implementing an if-clause.
-    If we were to substitute $[\mathtt{True / \alphaunifvar}]$, the right side would contract to $\mathtt{1}$,
+    If we were to substitute $[\mathtt{True / \alphaunifvar}]$, the left side would contract to $\mathtt{1}$,
     since the first case matches - solving the equation.
 \end{example}
 
 \subsection{Overview}
 
 Firstly, I will explore an (untyped) calculus with a heavy focus on the dualities between data and codata in \ref{sec:The Untyped Calculus ND}.
-I will give examples and show how we can use this syntax to define everything and point out how the duality plays out in our syntax.
-Furthermore, I will introduce some concepts we need to play around with terms.
+I will give examples and show how we can use this syntax to define everything we want to define, and point out how the duality plays out in our syntax.
+Furthermore, I will introduce some concepts we need so that we can start to play around with terms.
 
 In \ref{sec:Simple Types}, I give examples of how we can type terms we have seen in our examples, 
-and present a typing system to categorize many terms in simple types.
+and present a typing system to categorize many terms with simple types.
 
-To make our way to higher-order unification, I will first discuss \ref{sec:First-Order Unification},
+To make our way to higher-order unification, I will first discuss first-order unification in \ref{sec:First-Order Unification},
 explaining the problem formally and giving an algorithm to solve it.
 
-Then I explain \ref{sec:Higher-Order Unification} formally, as well as a subproblem which is easier to solve.
+Then I explain higher-order unification (\ref{sec:Higher-Order Unification}) formally, as well as a more specific unification problem which is easier to solve.
 
 Finally, in \ref{The Algorithm For Higher-Order Unification}, I present the framework for our equations, 
 and then go through our algorithm for higher-order unification problems in our calculus.
 It is made up of two parts, which I go though in more detail, 
 then describing how they fit together to form our algorithm on a high level.
 
-In the end (\ref{sec:Literature review}) is a literature review, going over connected works.
+In the end (\ref{sec:Literature review}) is a literature review, going over related works.
 
 \section{The Untyped Calculus ND}\label{sec:The Untyped Calculus ND}
 
-I will be introducing the Untyped Calculus ND, based on ... %TODO: citation
+I will be introducing the Untyped Calculus ND, based on .... %TODO: citation 
+It may be seen as an extension to the lambda calculus, as function definition is only one application of codata in this calculus,
+meaning we can do more than just function application! 
 
 \subsection{Syntax of the Untyped Calculus ND}\label{sec:syntax}
 
-I write $\overline{e}$ to mean a (possibly empty) sequence: $\overline{e}= e_1, ..., e_n$.  
-Constructors and destructors both get a list of expressions and construct or destruct terms.
-A pattern match $\patmatch$ matches an expression $e$ against a sequence of clauses, each clause consisting of a constructor and an term $t$.
+I write $\overline{e}$ to mean a (possibly empty) list of expressions: $\overline{e}= e_1, ..., e_n$.  
+Constructors $\constructor$ and destructors $\destructor$ both get such a list of expressions and construct or destruct terms.
+A pattern match $\patmatch$ matches an expressio n $e$ against a sequence of clauses, each clause consisting of a constructor and an term $t$.
 For a copattern match $\textbf{cocase} \{\overline{d(\overline{x}) \Rightarrow e}\}$
-the same rules apply, but instead of constructors, the expression is matched against destructors.
+similar rules apply, but instead of constructors, the expression is matched against destructors.
 
 \begin{definition}[Terms of the Calculus ND]
     \begin{align*}
@@ -309,13 +310,13 @@ the same rules apply, but instead of constructors, the expression is matched aga
 \fi %TODO: warum sieht das so scheiße aus??
 \subsection{How is this used?}
 
-To get familiar with the syntax and to understand the underlying semantics, I will go through some examples and explain what they implement.
-%TODO: hier noch was schreiben? was????
+To get familiar with the syntax and to understand the underlying semantics, 
+I will go through some examples and explain what they implement.
 
 We use constructors for types:
 \begin{example}[Constructing types with constructors]
     Simple Types like $\mathsf{Int, Bool, ...}$ are constructors on an empty sequence, 
-    while there are of course Types that require arguments. %TODO: reformulate
+    while composite types of corse require arguments.
     \begin{align*}
         &\mathsf{Int}\tag{1}\\
         &\mathsf{Bool}\tag{2}\\
@@ -325,7 +326,9 @@ We use constructors for types:
     Types are explored in detail and formally later on in ~\ref{sec:Simple Types}.
 \end{example}
 
-But we also use constructors for instantiating data types:
+We of corse also want to build terms for those data types. 
+Some terms we build using constructors:
+
 \begin{example}[Instantiating data with constructors]
     \begin{align*}
         &\texttt{True, False}\tag{1}\\
@@ -333,18 +336,22 @@ But we also use constructors for instantiating data types:
         &\mathtt{Date(27, 08, 2005)}\tag{3}\\
         &\mathtt{Cons(True, Cons(False, Nil))}\tag{4}              
     \end{align*}
-    We can use constructors to define recursive data types, as you can see from the last example.
-    Numbers are also implemented recursively, as Peano numbers. I use actual numbers as a shorthand throughout this thesis, though.
+    As you can see from the last example, we can use constructors to define recursive data types.
+    Numbers for instance, are also implemented recursively as Peano numbers. 
+    I use actual numbers as a shorthand throughout this thesis, though.
 \end{example}
+
+When we have instantiated terms, we also need a way to take them apart. 
+For some terms, this can be done using pattern matching:
 
 \begin{example}[Using pattern matching to take apart data]
     \begin{align*}
-        &\mathtt{Tup(1,2)}.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}\tag{1}\\
-        &\mathtt{Cons(True, Cons(False, Nil))}.\expatmatch{\mathttbrackets{Cons}{x, y}\Rightarrow x}\tag{2}   
+        &\True.\expatmatch{\mathtt{True\Rightarrow False, False\Rightarrow True}}\tag{1}\\
+        &\mathtt{Tup(1,2)}.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}\tag{2}\\
+        &\mathtt{Cons(True, Cons(False, Nil))}.\expatmatch{\mathttbrackets{Cons}{x, y}\Rightarrow x}\tag{3}   
     \end{align*}
-    This is the pattern matching you know and love. 
-    We will see later (~\ref{sec:betaconv}) how these get evaluated to $\mathtt{1}$ and $\True$, respectively.
-    %TODO: ist das zu cringe? %TODO: ref
+    This is the pattern matching you probably know. 
+    We will see later (\ref{sec:betaconv}) how these get evaluated to $\False$, $\mathtt{1}$ and $\True$, respectively.
 \end{example}
 
 Since we use pattern matching to deconstruct data like Booleans, naturally we can also use it to implement conditionals:
@@ -356,6 +363,9 @@ Since we use pattern matching to deconstruct data like Booleans, naturally we ca
     \end{align*}
 The first example is equivalent to if $t$ $e_1$ else $e_2$. The second expression tests whether a given list starts with $\True$.
 \end{example}
+
+Now this is where codata comes into play. Until now, we have seen how to instantiate data, 
+and how to take it apart. This is how to instantiate codata:
 
 \begin{example}[Using copattern matching to instantiate codata]
     \begin{align*}
@@ -370,39 +380,40 @@ The first example is equivalent to if $t$ $e_1$ else $e_2$. The second expressio
     The third example is the infinite stream of $Trues$.
 \end{example}
 
+Now for how to take instantiations of codata apart:
+
 \begin{example}[Using destructors to take apart codata]
     \begin{align*}
         &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst}\tag{1}\\
         &TrafficLight.\mathtt{Green}\tag{2}\\
         &id.\ap{\mathtt{5}}\tag{3}
     \end{align*}
-    $\ap{}$ is the destructor that implements function application: It applies the function on which it is "called" to the argument in the brackets.
-    These examples do exactly what you think they do: We select the first value of the tuple,
-    and turn our traffic light Yellow, respectively 
+    These examples do exactly what you think they do: We select the first value of the tuple, turn our traffic light Yellow, 
+    and apply the identity function on $\mathtt{5}$, respectively.
     We will see how these examples resolve to $\mathtt{1}$, $\mathtt{Yellow}$ and $\mathtt{5}$ in \ref{sec:betaconv}.
 \end{example} 
 
 You might have noticed already that there is no option for function definition in the syntax of our calculus.
 This is because we can use copattern matching to implement function definitions:
-%TODO: etwas darüber schreiben, dass lambdas codata sind?
 \begin{example}[Using copattern matching for function definitions]
     \begin{align*}
         &id = \excopatmatch{\ap{x}\Rightarrow x}\tag{1}\\
         &\excopatmatch{\ap{x}\Rightarrow (\ap{y}\Rightarrow x)} \tag{2} \\
         &\excopatmatch{\ap{x}\Rightarrow (\ap{y}\Rightarrow y)} \tag{3}
     \end{align*}
-    The first example implements the identity function. The second and third examples implement a function that takes two arguments, ignores one and gives back the other.
+    The first example actually implements the identity function. 
+    The second and third examples implement a functions that take two arguments, ignore one and give back the other (the first and second, respectively).
 \end{example}
 
 \subsection{Dualities in data and codata}
-You might have wondered why in the syntax definition, copatterns are defined first, even though they need destructors to function, which are defined afterwards.
+You might have wondered why in the syntax definition, copatterns are defined first, even though they need destructors to function, which are defined only afterwards.
 The reason becomes clear when rereading the titles of the definitions:
 Constructors are used to instantiate data, while pattern matching is used to take apart data.
 Copattern matching is used to instantiate codata, while destructors are used to take apart codata.
 The order of the syntax definitions emphasizes these conceptual dualitites:
 Conceptually, data is dual to codata, but this is only because constructors are conceptually dual to copattern matching, 
 and pattern matching is conceptually dual to destructors.
-One more clean example to drive the point home:  
+One more clean example to drive this point home:  
 
 \begin{example}[Dualities in a tuple defined in two ways]
     \begin{align*}
@@ -454,7 +465,7 @@ The set of free variables which appear in the substitution is called the range. 
     \end{align*}
 \end{definition}
 
-What is actually interesting is what happens when we appy a substitution to an expression
+What is actually interesting is what happens when we apply a substitution to an expression:
 
 \begin{definition}[Action of a Substitution]
     The action of a substitution $\sigma$ on a term $e$, written as $e \sigma$ and is defined as follows:
