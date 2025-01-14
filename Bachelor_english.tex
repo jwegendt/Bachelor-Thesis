@@ -344,7 +344,7 @@ Some terms we build using constructors:
 When we have instantiated terms, we also need a way to take them apart. 
 For some terms, this can be done using pattern matching:
 
-\begin{example}[Using pattern matching to take apart data]
+\begin{example}[Taking apart data using pattern matching]
     \begin{align*}
         &\True.\expatmatch{\mathtt{True\Rightarrow False, False\Rightarrow True}}\tag{1}\\
         &\mathtt{Tup(1,2)}.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}\tag{2}\\
@@ -355,7 +355,7 @@ For some terms, this can be done using pattern matching:
 \end{example}
 
 Since we use pattern matching to deconstruct data like Booleans, naturally we can also use it to implement conditionals:
-\begin{example}[Using pattern matching to represent conditionals]
+\begin{example}[Representing conditionals with pattern matching]
     \begin{align*}
         &t.\expatmatch{\True\Rightarrow e_1, \False\Rightarrow e_2} \tag{1}\\
         &e.\expatmatch{\mathttbrackets{Cons}{\True, x}\Rightarrow \True, 
@@ -367,7 +367,7 @@ The first example is equivalent to if $t$ $e_1$ else $e_2$. The second expressio
 Now this is where codata comes into play. Until now, we have seen how to instantiate data, 
 and how to take it apart. This is how to instantiate codata:
 
-\begin{example}[Using copattern matching to instantiate codata]
+\begin{example}[Instantiating codata with copattern matching]
     \begin{align*}
         &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}\tag{1}\\
         TrafficLight =& \excopatmatch{\mathtt{Green \Rightarrow Yellow, Yellow\Rightarrow, Red\Rightarrow Green}}\tag{2}\\
@@ -382,7 +382,7 @@ and how to take it apart. This is how to instantiate codata:
 
 Now for how to take instantiations of codata apart:
 
-\begin{example}[Using destructors to take apart codata]
+\begin{example}[Taking apart codata using destructors]
     \begin{align*}
         &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst}\tag{1}\\
         &TrafficLight.\mathtt{Green}\tag{2}\\
@@ -395,7 +395,7 @@ Now for how to take instantiations of codata apart:
 
 You might have noticed already that there is no option for function definition in the syntax of our calculus.
 This is because we can use copattern matching to implement function definitions:
-\begin{example}[Using copattern matching for function definitions]
+\begin{example}[Defining functions using copattern matching]
     \begin{align*}
         &id = \excopatmatch{\ap{x}\Rightarrow x}\tag{1}\\
         &\excopatmatch{\ap{x}\Rightarrow (\ap{y}\Rightarrow x)} \tag{2} \\
