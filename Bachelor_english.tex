@@ -973,7 +973,7 @@ This is what is called \textbf{dynamic pattern unification}, where we hold off o
 
 \subsection{Constraints}
 
-Even though higher-order unification is undecidable, in many cases we can still find solutions,
+Even though higher-order unification is undecidable, in many cases we can of corse still find solutions,
 or conclude that there is no solution.
 Since we don't only want to describe higher-order unification, but the steps necessary to solve higher-order unification problems,
 we need to have a framework of our equations, where we can simplify our equations,
@@ -999,7 +999,7 @@ For clarification, $C \wedge \mathcal{C}$ is the regular logical and thus,
 and $\top \wedge \constraints = \constraints$ as well as $\bot \wedge \constraints = \bot$.
 We can also apply substitutions on a set of constraints, which just means applying the substitution to the equation part of all the constraints in the set:
 $\constraints \sigma = (C \wedge \constraints')\sigma = C \sigma \wedge \constraints' \sigma  
-= \Psi \vdash e\sigma\equiv t\sigma\wedge \constraints'$. Applying a substitution to $\top$ or $\bot$ changes nothing.
+= \Psi \vdash e\sigma\equiv t\sigma\wedge \constraints'\sigma$. Applying a substitution to $\top$ or $\bot$ changes nothing.
 
 \subsection{Decomposing Constraints}
 
@@ -1060,7 +1060,7 @@ Note that all of these examples are in normal form, i.e. they don't contain rede
 This means the only way for the terms on each side of the equations to be equivalent,
 is for them to be equivalent \textbf{syntactically}. 
 
-We want to formulate rules which help us simplify equations like these; equations without beta-redexes.
+We want to formulate rules which help us simplify equations like these - equations without beta-redexes.
 We want remove redundant constraints, split constraints made up of composite terms to find solutions to their parts,
 and spot redundancies to prematurely stop the solving process.
 \begin{definition}[Decomposing Constraints]
@@ -1150,7 +1150,7 @@ Let's start with an example - take a look at the following unification problem:
     \begin{align*}
         \constraints &= &\vdash\ & \mathtt{Tup(\alphaunifvar, F)}\equiv \mathtt{Tup(T, F)}&\wedge&
         \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\footnotemark[1]\\
-        &\xmapsto{(5)}_d &\vdash\ & \mathtt{\alphaunifvar\equiv T}\qquad\wedge\vdash \mathtt{F\equiv F} &\wedge& 
+        &\xmapsto{(4)}_d &\vdash\ & \mathtt{\alphaunifvar\equiv T}\qquad\wedge\vdash \mathtt{F\equiv F} &\wedge& 
         \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
         &\xmapsto{(3)}_r &\vdash\ & \mathtt{\alphaunifvar\equiv T} &\wedge& 
         \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
@@ -1188,8 +1188,8 @@ Let's start with an example - take a look at the following unification problem:
 \end{align*}
 \fi
 
-%TODO: have i changed the number in of the decomposing constraints?
-This is what the example tells us: When we have found an assignment to a unification variable, we want to keep it in our constraints!
+
+What the example tells us: When we have found an assignment to a unification variable, we want to keep it in our constraints!
 This is because we sometimes have to substitute that assignment in other constraints that contain the same unification variable.
 Doing so might introduce redexes!
 %TODO: is it possible to introduce new constraints that we can simplify? probably right? 
