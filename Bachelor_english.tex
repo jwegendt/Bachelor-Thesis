@@ -1031,7 +1031,7 @@ Let's look at some examples. We would like the following to be true:
     &\vdash \mathttbrackets{Cons}{x, \mathtt{Nil}} \equiv \mathttbrackets{Cons}{y, \mathtt{Nil}}&\mapsto& \bot
     \tag{1}\\
     &\vdash \texttt{Cons(}\alphaunifvar, \texttt{Nil)}\equiv\texttt{Cons(}\betaunifvar, \texttt{Nil)}
-    &\mapsto&\alphaunifvar\equiv \betaunifvar
+    &\mapsto&\vdash \alphaunifvar\equiv \betaunifvar
     \tag{2}\\
     &\vdash \mathsf{List(Int)}\equiv \mathsf{List(\alphaunifvar)}
     &\mapsto& \vdash \mathsf{Int}\equiv \alphaunifvar
@@ -1067,18 +1067,18 @@ and spot redundancies to prematurely stop the solving process.
     \begin{align*}
     &\textbf{Removing redundancy}\\
     &\Psi \vdash x\equiv x&\mapsto_r&\top
-    \tag{1}\\
+    \tag{1}\label{1}\\
     &\Psi \vdash \alphaunifvar \equiv \alphaunifvar&\mapsto_r& \top
     \tag{2}\\
     &\Psi \vdash \exconstructor{} \equiv \exconstructor{} &\mapsto_r& \top 
-    \tag{3}\\
+    \tag{3}\label{3}\\
     &\textbf{Decomposition}\\
     \circ\,&\Psi\vdash K(\overline{e})\equiv K(\overline{t})&
     \mapsto_d&\overline{\Psi\vdash e\equiv t}
-    \tag{4}\\
+    \tag{4}\label{4}\\
     \circ\,&\Psi \vdash e_1.d({\overline{e}})\equiv e_2.d({\overline{t}})
     \\ &\mapsto_d \Psi\vdash e_1 \equiv e_2 \wedge \overline{\Psi\vdash e\equiv t}
-    \tag{5}\\
+    \tag{5}\label{5}\\
     *\,&\Psi \vdash e_1.\expatmatch{\overline{K(\overline{x})\Rightarrow e}}\equiv e_2.\expatmatch{\overline{K(\overline{x})\Rightarrow t}}
     \\ &\mapsto_d \Psi \vdash e_1 \equiv e_2\wedge \overline{\Psi, \overline{x}\vdash e\equiv t}
     \tag{6}\\
@@ -1127,11 +1127,10 @@ In *-equations where the arguments are not equal syntactically, rule \ref{13} ap
 
 Note that \ref{8} (as well as \ref{9} with being just the mirror of \ref{8}) are possible through eta-conversion:
 \begin{align*}
-    \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t \tag*{$\equiv_{\eta}$}\\
-    \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow t.d(\overline{x})}} \tag*{\ref{7}}\\
-    &\mapsto \overline{e \equiv t.d(\overline{x})}
+    \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t \\
+    \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow t.d(\overline{x})}}\\
+    &\xmapsto{(\ref{7})}_d \overline{e \equiv t.d(\overline{x})}
 \end{align*}
-(Annotations on the right are supposed to show what rule is being used to get to the statement below.)
 
 \subsection{Unification}
 \footnotetext[1]{\texttt{T} and \texttt{F} are stand-ins for $\True$ and $\False$.}
@@ -1147,9 +1146,9 @@ Let's start with an example - take a look at the following unification problem:
     \begin{align*}
         \constraints &= &\vdash\ & \mathtt{Tup(\alphaunifvar, F)}\equiv \mathtt{Tup(T, F)}&\wedge&
         \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\footnotemark[1]\\
-        &\xmapsto{(4)}_d &\vdash\ & \mathtt{\alphaunifvar\equiv T}\qquad\wedge\vdash \mathtt{F\equiv F} &\wedge& 
+        &\xmapsto{(\ref{4})}_d &\vdash\ & \mathtt{\alphaunifvar\equiv T}\qquad\wedge\vdash \mathtt{F\equiv F} &\wedge& 
         \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
-        &\xmapsto{(3)}_r &\vdash\ & \mathtt{\alphaunifvar\equiv T} &\wedge& 
+        &\xmapsto{(\ref{3})}_r &\vdash\ & \mathtt{\alphaunifvar\equiv T} &\wedge& 
         \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
         &\mapsto_u &\vdash\ &\mathtt{\alphaunifvar\equiv T} &\wedge&
         \vdash \betaunifvar\equiv \mathtt{T}.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
@@ -1197,7 +1196,7 @@ There are very few unification steps:
         \tag{1}\\
         &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e 
         &\mapsto_u& \constraints[e/\alphaunifvar] \wedge \Psi \vdash \alphaunifvar \equiv e &(\alphaunifvar \notin e)
-        \tag{2}\\
+        \tag{2}\label{unif2}\\
         &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e
         &\mapsto_u& \bot &(\alphaunifvar\in e)
         \tag{3}
@@ -1210,13 +1209,13 @@ We should be careful, because there is another thing we could be introducing thr
     \begin{align*}
         \constraints &=& &\vdash \excopatmatch{\ap{x}\Rightarrow\alphaunifvar}\equiv id 
         &\wedge& &\vdash \betaunifvar.\ap{x}\equiv \alphaunifvar\\
-        &\xmapsto{(8)}_d& &x \vdash \alphaunifvar \equiv id.\ap{x}
+        &\xmapsto{(\ref{8})}_d& &x \vdash \alphaunifvar \equiv id.\ap{x}
         &\wedge& &\vdash \betaunifvar.\ap{x}\equiv \alphaunifvar\\
-        &\xmapsto{(2)}_u& &x \vdash \alphaunifvar \equiv id.\ap{x}
+        &\xmapsto{(\ref{unif2})}_u& &x \vdash \alphaunifvar \equiv id.\ap{x}
         &\wedge& &\vdash \betaunifvar.\ap{x}\equiv id.\ap{x}\\
-        &\xmapsto{(5)}_d& &x \vdash \alphaunifvar \equiv id.\ap{x} 
+        &\xmapsto{(\ref{5})}_d& &x \vdash \alphaunifvar \equiv id.\ap{x} 
         &\wedge& &\vdash \betaunifvar \equiv id \wedge \vdash x \equiv x\\
-        &\xmapsto{(1)}_r& &x \vdash \alphaunifvar \equiv id.\ap{x}
+        &\xmapsto{(\ref{1})}_r& &x \vdash \alphaunifvar \equiv id.\ap{x}
         &\wedge& &\vdash \betaunifvar \equiv id
     \end{align*}
     Here, the unification step introduces another constraint we can simplify! 
