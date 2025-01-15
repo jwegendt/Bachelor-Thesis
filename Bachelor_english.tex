@@ -976,7 +976,7 @@ This is what is called \textbf{dynamic pattern unification}, where we hold off o
 Even though higher-order unification is undecidable, in many cases we can of corse still find solutions,
 or conclude that there is no solution.
 Since we don't only want to describe higher-order unification, but the steps necessary to solve higher-order unification problems,
-we need to have a framework of our equations, where we can simplify our equations,
+we need to have a framework of our equations; a framework where we can simplify our equations,
 and store what we have found out about our unknown variables. This is where constraints come into play:
 
 \begin{definition}[Constraint]
@@ -1125,8 +1125,6 @@ In *-equations where the arguments are not equal syntactically, rule \ref{13} ap
     \end{align}
 \end{example}
 
-
-
 Note that \ref{8} (as well as \ref{9} with being just the mirror of \ref{8}) are possible through eta-conversion:
 \begin{align*}
     \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t \tag*{$\equiv_{\eta}$}\\
@@ -1136,10 +1134,9 @@ Note that \ref{8} (as well as \ref{9} with being just the mirror of \ref{8}) are
 (Annotations on the right are supposed to show what rule is being used to get to the statement below.)
 
 \subsection{Unification}
+\footnotetext[1]{\texttt{T} and \texttt{F} are stand-ins for $\True$ and $\False$.}
 
 What do we do when we can't simplify anymore? How do we actually find the solutions?
-
-\footnotetext[1]{\texttt{T} and \texttt{F} are stand-ins for $\True$ and $\False$.}
 Let's start with an example - take a look at the following unification problem:
 \begin{example}[Unification]
     \begin{align*}
@@ -1159,6 +1156,10 @@ Let's start with an example - take a look at the following unification problem:
         &\stackrel{\betaconv}{=} &\vdash\ &\mathtt{\alphaunifvar\equiv T} &\wedge&
         \vdash \betaunifvar\equiv \mathtt{1}
     \end{align*}
+What do we learn about unification steps from this example? When we have found an assignment to a unification variable, we want to keep it in our constraints!
+This is because we sometimes have to substitute that assignment in other constraints that contain the same unification variable.
+But this example tells us something else, too: Doing so might introduce redexes!
+This means that we might need to reduce terms to normal form again, even after applying unification steps. 
 \end{example}
 
 \iffalse
@@ -1188,35 +1189,49 @@ Let's start with an example - take a look at the following unification problem:
 \end{align*}
 \fi
 
-
-What the example tells us: When we have found an assignment to a unification variable, we want to keep it in our constraints!
-This is because we sometimes have to substitute that assignment in other constraints that contain the same unification variable.
-Doing so might introduce redexes!
-%TODO: is it possible to introduce new constraints that we can simplify? probably right? 
+There are very few unification steps: 
 \begin{definition}[Unification]
     \begin{align*}
         & e \equiv\alphaunifvar
         &\mapsto_u& \alphaunifvar \equiv e 
         \tag{1}\\
         &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e 
-        &\mapsto_u& \constraints[e/\alphaunifvar] \wedge \Psi \vdash \alphaunifvar \equiv e \qquad (\alphaunifvar \notin e)
+        &\mapsto_u& \constraints[e/\alphaunifvar] \wedge \Psi \vdash \alphaunifvar \equiv e &(\alphaunifvar \notin e)
         \tag{2}\\
         &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e
-        &\mapsto_u& \bot \qquad(\alphaunifvar\in e)
+        &\mapsto_u& \bot &(\alphaunifvar\in e)
         \tag{3}
     \end{align*}
-\end{definition}
 Step 2 and 3 are the occurs check.
+\end{definition}
+
+We should be careful, because there is another thing we could be introducing through unification steps, though:
+\begin{example}[Introducing simplifiable constraints through unficiation steps]
+    \begin{align*}
+        \constraints &=& &\vdash \excopatmatch{\ap{x}\Rightarrow\alphaunifvar}\equiv id 
+        &\wedge& &\vdash \betaunifvar.\ap{x}\equiv \alphaunifvar\\
+        &\xmapsto{(8)}_d& &x \vdash \alphaunifvar \equiv id.\ap{x}
+        &\wedge& &\vdash \betaunifvar.\ap{x}\equiv \alphaunifvar\\
+        &\xmapsto{(2)}_u& &x \vdash \alphaunifvar \equiv id.\ap{x}
+        &\wedge& &\vdash \betaunifvar.\ap{x}\equiv id.\ap{x}\\
+        &\xmapsto{(5)}_d& &x \vdash \alphaunifvar \equiv id.\ap{x} 
+        &\wedge& &\vdash \betaunifvar \equiv id \wedge \vdash x \equiv x\\
+        &\xmapsto{(1)}_r& &x \vdash \alphaunifvar \equiv id.\ap{x}
+        &\wedge& &\vdash \betaunifvar \equiv id
+    \end{align*}
+    Here, the unification step introduces another constraint we can simplify! 
+\end{example}
 
 \subsection{The algorithm}
-We have described steps of the algorithm so far. How and when do we apply these steps?
+Having described all the steps of our algorithm, the given examples lead us to a question:
+How and when do we apply these steps?
 
 Given a set of equations, we normalize the terms in them and are left with only normal forms. 
 For each equation, we formulate a constraint and get the set of constraints through logical ands.
 Next, we decompose the constraints, removing redundancies and potentially terminating early since we find contradictions.
 We do this non-deterministically, since the order doesn't matter. %TODO: does it really not?
 
-When we can't further simplify, we non-deterministically apply unification and decomposition steps.
+When we can't further simplify, we non-deterministically apply unification steps, beta-reduce our terms and apply decomposition steps.
 When we have found an assigned term for each unification variable, we can terminate and give the solution
 by formulating a substitution for each assigned term.
 
