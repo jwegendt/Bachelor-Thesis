@@ -1134,7 +1134,7 @@ In *-equations where the arguments are not equal syntactically, rule \cref{13} a
     \end{align}
 \end{example}
 
-Also note that \cref{8} (as well as \cref{9} with being just the mirror of \cref{8}) are possible through eta-conversion:
+Also note that \cref{8} (as well as \cref{9} wich is just the mirror of \cref{8}) are possible through eta-conversion:
 \begin{align*}
     \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t \\
     \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow t.d(\overline{x})}}\\
@@ -1151,7 +1151,7 @@ Let's start with an example --- take a look at the following unification problem
         \mathtt{Tup(\alphaunifvar, False)}&\equiv \mathtt{Tup(True, False)}\\
         \betaunifvar&\equiv \alphaunifvar.\expatmatch{\mathtt{True \Rightarrow 1, False\Rightarrow 5}}
     \end{align*}        
-    I will demonstrate how we want to solve this, introducing what to do when we found a solution.   
+    I will demonstrate how we want to solve this, and in the process introduces what to do when we found a solution.   
     \begin{align*}
         \constraints &= &\vdash\ & \mathtt{Tup(\alphaunifvar, F)}\equiv \mathtt{Tup(T, F)}&\wedge&
         \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\footnotemark[1]\\
@@ -1261,7 +1261,7 @@ which is often used today. \cite{10.1145/357162.357169}
 %higher-order unification schmöker
 %abel+pientka für codata (actually dependent types)
 %   -> evt hervorheben dass die super viele sachen dazu machen und dass der eine agda oder so? macht
-
+\cite{HAGINO1989629}
 
 
 
