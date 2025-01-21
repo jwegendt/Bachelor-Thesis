@@ -240,7 +240,7 @@ like in the interactive theorem prover Coq or in the programming language Agda, 
         &\mathtt{Tup(1,\alphaunifvar)}\equiv \betaunifvar \tag{4}
     \end{align*}
     Each of the given equations can be seen as their own unification problem.
-    The first has one obvious solution $[\mathtt{5/\alphaunifvar}]$, so substituting $\mathtt{5}$ for $\alphaunifvar$ (even though there are multiple solutions even here).
+    The first has an obvious solution $[\mathtt{5/\alphaunifvar}]$, so substituting $\mathtt{5}$ for $\alphaunifvar$ (even though there are multiple solutions even here).
     The second is a unification problem without unification variables, and has no solution.
     The third and forth are both unification problems with two unification variables, and have many solutions.
 \end{example}
@@ -280,10 +280,10 @@ I explain the problem formally and give an algorithm to solve it.
 Then I explain higher-order unification (\cref{sec:Higher-Order Unification}) formally, as well as a more specific unification problem which is easier to solve.
 
 In \cref{The Algorithm For Higher-Order Unification}, I present the framework for our equations, 
-and then go through our algorithm for higher-order unification problems written in our calculus.
+and then present our algorithm for higher-order unification problems written in our calculus.
 The algorithm is made up of two parts, which I go though in more detail, and describe how they fit together.
 
-In the end, there is a literature review in \cref{sec:Literature review}, as well as a small conclusion in \cref{sec:conclusion}.
+In the end, there is a section about related works (\cref{sec:Related works}), as well as a small conclusion in \cref{sec:conclusion}.
 
 \section{The Untyped Calculus ND}\label{sec:The Untyped Calculus ND}
 
@@ -386,12 +386,11 @@ Now for how to take instantiations of codata apart:
 \begin{example}[Taking apart codata using destructors]
     \begin{align*}
         &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst}\tag{1}\\
-        &TrafficLight.\mathtt{Green}\tag{2}\\
-        &id.\ap{\mathtt{5}}\tag{3}
+        &id.\ap{\mathtt{5}}\tag{2}
     \end{align*}
-    These examples do exactly what you think they do: We select the first value of the tuple, turn our traffic light Yellow, 
+    These examples do exactly what you think they do: We select the first value of the tuple, 
     and apply the identity function on $\mathtt{5}$, respectively.
-    We will see how these examples resolve to $\mathtt{1}$, $\mathtt{Yellow}$ and $\mathtt{5}$ in \cref{sec:betaconv}.
+    We will see how these examples resolve to $\mathtt{1}$ and $\mathtt{5}$ in \cref{sec:betaconv}.
 \end{example} 
 
 You might have noticed already that there is no option for function definition in the syntax of our calculus.
@@ -403,7 +402,7 @@ This is because we can use copattern matching to implement function definitions:
         &\excopatmatch{\ap{x}\Rightarrow (\ap{y}\Rightarrow y)} \tag{3}
     \end{align*}
     The first example implements the identity function, which you have already seen. 
-    The second and third examples implement a functions that take two arguments, ignore one and give back the other.
+    The second and third examples implement functions that take two arguments, ignore one and give back the other.
 \end{example}
 
 \subsection{Dualities in data and codata}
@@ -474,8 +473,8 @@ The interesting thing however, is what happens when we apply a substitution to a
         x[\listofexpr / \listofvar] :=& e_i \quad(\text{if } x=x_i) \\
         y\sigma :=& y\quad (\text{if }y\notin \texttt{dom}(\sigma))\\
         (\exconstructor{\listofexpr})\sigma :=& \exconstructor{e_1 \sigma,\dots , e_n \sigma}\\
-        (\patmatch)\sigma:=& (e\sigma).\textbf{case}\{\overline{K(\overline{y}\Rightarrow (e\sigma')\sigma)}\}\\
-        (\copatmatch)\sigma:=& \excopatmatch{\overline{(d(\overline{y})\Rightarrow(e\sigma')\sigma)}}\\
+        (\expatmatch{\overline{K(\overline{x})\Rightarrow e}})\sigma:=& (e\sigma).\textbf{case}\{\overline{K(\overline{y}\Rightarrow (e\sigma')\sigma)}\}\\
+        (\excopatmatch{\overline{d(\overline{x})\Rightarrow e}})\sigma:=& \excopatmatch{\overline{(d(\overline{y})\Rightarrow(e\sigma')\sigma)}}\\
         (\exdestructor{\listofexpr}) \sigma:=& (e \sigma).d(e_1 \sigma,\dots , e_n \sigma)
     \end{align*} 
     Where $\sigma'$ is a substitution that ensures that we don't bind new variables: 
@@ -503,7 +502,7 @@ This process is called composition of substitutions and looks like this: $\sigma
     Concretely, this means that it doesn't matter how often we apply a substitution to a given problem.
 \end{definition}
 
-Consider these two examples of an idempotent substitution, and one that is not idempotent:
+Consider these two examples. One of an idempotent substitution, and one of a substitution that is not idempotent:
 \begin{example}[Idempotency]
     $[\excopatmatch{\ap{x}\Rightarrow x} / y]$ is idempotent, since:
     \begin{align*}
@@ -1213,13 +1212,13 @@ We should be careful, because there is another thing we could introduce with uni
     \begin{align*}
         \constraints &=& &\vdash \excopatmatch{\ap{x}\Rightarrow\alphaunifvar}\equiv id 
         &\wedge& &\vdash \betaunifvar.\ap{x}\equiv \alphaunifvar\\
-        &\xmapsto{(\cref{8})}_d& &x \vdash \alphaunifvar \equiv id.\ap{x}
+        &\xmapsto{(\ref{8})}_d& &x \vdash \alphaunifvar \equiv id.\ap{x}
         &\wedge& &\vdash \betaunifvar.\ap{x}\equiv \alphaunifvar\\
-        &\xmapsto{(\cref{unif2})}_u& &x \vdash \alphaunifvar \equiv id.\ap{x}
+        &\xmapsto{(\ref{unif2})}_u& &x \vdash \alphaunifvar \equiv id.\ap{x}
         &\wedge& &\vdash \betaunifvar.\ap{x}\equiv id.\ap{x}\\
-        &\xmapsto{(\cref{5})}_d& &x \vdash \alphaunifvar \equiv id.\ap{x} 
+        &\xmapsto{(\ref{5})}_d& &x \vdash \alphaunifvar \equiv id.\ap{x} 
         &\wedge& &\vdash \betaunifvar \equiv id \wedge \vdash x \equiv x\\
-        &\xmapsto{(\cref{1})}_r& &x \vdash \alphaunifvar \equiv id.\ap{x}
+        &\xmapsto{(\ref{1})}_r& &x \vdash \alphaunifvar \equiv id.\ap{x}
         &\wedge& &\vdash \betaunifvar \equiv id
     \end{align*}
     Here, the unification step introduces another constraint we can simplify! 
@@ -1241,7 +1240,7 @@ by formulating a substitution for each assigned term.
 
 This algorithm works on any pattern unification problem, and in particular, any unification problem that can be reduced to a pattern unification problem. %TODO: how?
 
-\section{Literature review}\label{sec:Literature review}
+\section{Related works}\label{sec:Related works}
 
 Codata in action \cite{10.1007/978-3-030-17184-1_5} was an important motivating force to research codata more.
 
