@@ -253,7 +253,7 @@ Note that unification problems may also have multiple equations!
     \end{align*}
     We can think of two obvious solutions for this: The identity function: $[id / \alphaunifvar]$, and the constant function which always returns \texttt{5}: $[\excopatmatch{\ap{x}\Rightarrow \mathtt{5}} / \alphaunifvar]$.
     As already implied before, sometimes our unification problems have multiple solutions, 
-    but we are interested in one particular solution. This is the solution that is more general, meaning the one from which the others can be obtained by instantiation.
+    but we are interested in one particular solution. This is the solution that is more general, the one from which the others can be obtained by instantiation.
     In this case however, there is no one such solution. This can only happen in higher-order unification, but this will be explored more formally below.
     Another example of higher-order unification:
     \begin{align*}
@@ -287,7 +287,7 @@ In the end, there is a section about related works (\cref{sec:Related works}), a
 
 \section{The Untyped Calculus ND}\label{sec:The Untyped Calculus ND}
 
-I will be introducing the Untyped Calculus ND, based on .... %TODO: citation 
+I will introduce the Untyped Calculus ND, based on .... %TODO: citation 
 It may be seen as an extension to the lambda calculus, as function definition is only one application of codata in this calculus,
 meaning we can do more than just function application! 
 
@@ -295,7 +295,7 @@ meaning we can do more than just function application!
 
 I write $\overline{e}$ to mean a (possibly empty) list of expressions: $\overline{e}= e_1, ..., e_n$.  
 Constructors $\constructor$ and destructors $\destructor$ both get such a list of expressions and construct or destruct terms.
-A pattern match $\patmatch$ matches an expression $e$ against a sequence of clauses, each clause consisting of a constructor and an term $t$.
+A pattern match $\patmatch$ matches an expression $e$ against a sequence of clauses, where each clause consists of a constructor and an term $t$.
 For a copattern match $\textbf{cocase} \{\overline{d(\overline{x}) \Rightarrow e}\}$
 similar rules apply, but the clauses contain destructors instead of constructors.
 
@@ -407,10 +407,10 @@ This is because we can use copattern matching to implement function definitions:
 
 \subsection{Dualities in data and codata}
 You might have wondered why in the syntax definition, copatterns are defined first, even though they need destructors to function, which are defined only afterwards.
-The reason becomes clear when rereading the titles of the examples:
+The reason becomes clear when you reread the titles of the examples:
 Constructors are used to instantiate data, while pattern matching is used to take apart data.
 Copattern matching is used to instantiate codata, while destructors are used to take apart codata.
-The order of the syntax definitions emphasizes these conceptual dualitites:
+The order of the syntax definition emphasizes these conceptual dualitites:
 Data is dual to codata, but this is only because constructors are dual to copattern matching, 
 and pattern matching is dual to destructors.
 One more clean example to drive this point home:  
@@ -619,12 +619,12 @@ Here are the the basic types we consider in our examples:
     $\Gamma$ is the typing context, and contains distinct variables and their types.
     When we write $\Gamma = \cdot$, we mean that the typing context is empty.
 \end{definition}
-These of course don't cover all the types one could construct using our calculus, but they are enough to construct helpful examples.
+These of course don't cover all the types one could construct with our calculus, but they are enough to construct helpful examples.
 I omitted the formal definition for natural numbers, since I use a shorthand anyways.
 
 \subsection{Typing Rules}
 To have a formal basis for how to assign the basic types to terms, we will introduce typing rules. 
-When writing $\Gamma\vdash t:\tau$, we mean that from the variables and their types in $\Gamma$, 
+When we write, $\Gamma\vdash t:\tau$, we mean that from the variables and their types in $\Gamma$, 
 we can deduce that $t$ has the type $\tau$.
 
 %% variables + booleans
@@ -850,7 +850,7 @@ Let's next consider a familiar example again:
     \end{align*}
     In this case, neither solution is more general. The reason for this becomes apparent when you take a look at the action of a substitution again. 
 Let's say we wanted to find a substitution to apply after the identity function to get the constant function. 
-When applying a substitution to a copattern match, we substitute new variables for our bound variables to not accidentally change the meaning of the term.
+When we apply a substitution to a copattern match, we substitute new variables for our bound variables to not accidentally change the meaning of the term.
 This prevents us from changing our function. 
 Since neither solution is more general (and there also is no other solution that is more general),
 there is no mgu for this problem!
@@ -860,15 +860,13 @@ Unification problems having no mgu is specific to higher-order unification, sinc
 higher-order terms and thus don't have that problem of not changing variables.
 
 \begin{theorem}[Decidability of higher-order unification]
-    Higher-order unification includes unification problems containing higher-order terms (including functions),
-    and is covered by our introduced syntax. 
     Higher-order unification is not decidable. This can be proven through reducing Hilbert's tenth problem to the unification problem.%TODO: schmöker citen? oder wird das da auch nicht wirklich gemacht?
 \end{theorem} %TODO: citation
 
 \subsection{Pattern Unification}
 
 Pattern unification, also sometimes called the pattern fragment
-is a subset of higher-order unification, with its path to a solution being similarly simple as the one to first-order unification.
+is a subset of higher-order unification, and its path to a solution is similarly simple as the one to first-order unification.
 It was described first by Miller in \cite{10.1093/logcom/1.4.497}.
 Since our calculus ND amounts to an extension of the lambda calculus, we need to extend our definition to more than just function applications. 
 This means that (conceptually) the pattern fragment described by Miller is a subset of our definition.
@@ -923,7 +921,7 @@ To talk about the algorithms for solving unification problems, we need another d
     \end{align*}
     Terms that satisfy the $n$-definition are called neutral terms, $v$-terms are called values.
 \end{definition}
-Note that these are the terms that do not contain beta-redexes (a term that can be transformed using a beta-conversion).
+Note that these are the terms that do not contain beta-redexes (a term that can be reduced through beta-conversion).
 This is apparent when one tries to construct terms containing beta-redexes in normal form: 
 To construct the first kind of beta-redex: $\constructor.\textbf{case}\{\dots,\exconstructor{\overline{x}}\Rightarrow e\}$,
 we start with the term $n.\textbf{case}\{\overline{K(\overline{x})\Rightarrow v}\}$, now wanting to subtitute $K(\overline{e})$ for $n$. 
