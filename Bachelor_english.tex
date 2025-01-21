@@ -977,16 +977,17 @@ Let's take a look at another unification problem where beta-conversion is helpfu
 \end{align*}
 To find out that $[\mathtt{2}/\betaunifvar]$ is the solution to the second equation, we first need to find out that
 $[\True/\alphaunifvar]$ is the solution to the first equation and substitute it in the second.
-This is what is called \textbf{dynamic pattern unification}, where we hold off on solving some equations we don't have all the information for yet until we know more. 
+This is what is called \textbf{dynamic pattern unification}, where we hold off on solving some equations 
+until we have all the necessary information. 
  
 \end{example}
 
 \section{The Algorithm For Higher-Order Unification}\label{The Algorithm For Higher-Order Unification}
 In this section, I present the algorithm for higher-order unification.
-First, we need a framework to solve our algorithm in, though.
+First, we need a framework to solve our algorithm in.
 \subsection{Constraints}
 
-Even though higher-order unification is undecidable, in many cases we can of course still find solutions,
+Even though higher-order unification is undecidable, in many cases we can still find solutions,
 or conclude that there is no solution.
 So far, we have only described the problem of higher-order unification. Now we want to detail the steps necessary to solve higher-order unification problems.
 Thus, we need a framework for our equations --- one where we can simplify our equations,
@@ -997,20 +998,21 @@ and store what we have found out about our unknown variables. This is where cons
         C ::= \top \partition \bot \partition \Psi \vdash e\equiv t \tag*{where $\Psi = x_1, ..., x_n$}\\
         \mathcal{C} ::= C \wedge \mathcal{C}
     \end{align*}
+    Where $\top$ and $\bot$ are the symbols for statements that are trivially true or false. 
     The variables in the context $\Psi$ need to be distinct. $\Psi$ may also be empty.
 \end{definition}
 $\Psi \vdash e\equiv t$ means that given the variables $\Psi$, we deduce that $e\equiv t$.
-$\Psi$ may contain variables that occur in or are even bound in $e$ or $t$. 
-$\Psi$ contains those variables we have seen before and want to remember. This motivates the the name context for $\Psi$, as well.
-%TODO: too choppy
+$\Psi$ contains those variables we have seen before and want to remember.
+More precisely, $\Psi \vdash e\equiv t \Rightarrow FV(e)\subseteq \Psi \wedge FV(t)\subseteq \Psi$.
+This motivates the name context for $\Psi$, as well.
 
 We formulate our constraints from a given unification problem as follows:
 We take each given equation and formulate a constraint $K$ with empty context $\Psi$. We join them using ands:
 The equations $\overline{e\equiv t}$ become $\constraints = C_1 \wedge ... \wedge C_n = \, \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
 
-For clarification, $C \wedge \mathcal{C}$ is the regular logical and thus, 
-and $\top \wedge \constraints = \constraints$ as well as $\bot \wedge \constraints = \bot$.
-We can also apply substitutions on a set of constraints, which just means applying the substitution to the equation part of all the constraints in the set:
+For clarification, $C \wedge \mathcal{C}$ is the regular logical "and", so therefore 
+$\top \wedge \constraints$ is equivalent to $\constraints$ as well as $\bot \wedge \constraints$ to $\bot$.
+We can also apply substitutions to a set of constraints, which just means applying the substitution to the equation part of all the constraints in the set:
 $\constraints \sigma = (C \wedge \constraints')\sigma = C \sigma \wedge \constraints' \sigma  
 = \Psi \vdash e\sigma\equiv t\sigma\wedge \constraints'\sigma$. Applying a substitution to $\top$ or $\bot$ changes nothing.
 
@@ -1033,7 +1035,7 @@ Let's look at some examples. We would like the following to be true:
     $x.\mathtt{fst} = x.\mathtt{snd}$. This is where it is important to remember that we are not looking for solutions to variables like $x$.
     Whereas to our unification variables $\alphaunifvar$ we want to assign any term such that our equations hold, variables $x$ add \textbf{constraints} to our equations. 
     The equation $x \vdash x.\mathtt{fst} \equiv x.\mathtt{snd}$ must hold for \textbf{any} variable $x$, since we cannot choose $x$! 
-    Since for $x = \excopatmatch{\mathtt{fst\Rightarrow 2, snd\Rightarrow 3}}$, the equation does not hold, we can simplify to $\bot$.
+    Since for $x = \excopatmatch{\mathtt{fst\Rightarrow 2, snd\Rightarrow 3}}$, the equation does not hold, we can simplify it to $\bot$.
     %TODO: rework sentence structure
     %TODO: can i explain this better?
     %TODO: write something about the third example?
@@ -1050,30 +1052,28 @@ Let's look at some examples. We would like the following to be true:
     &\mapsto& \vdash \mathsf{Int}\equiv \alphaunifvar
     \tag{3}\\
     &x \vdash x.\ap{e_1}\equiv x.\ap{e_2} &\mapsto& x\vdash e_1\equiv e_2 
-    \tag{4}\\
-    &\vdash\mathtt{\alphaunifvar.fst \equiv \betaunifvar.fst}&\mapsto& \vdash\alphaunifvar\equiv \betaunifvar
-    \tag{5}
+    \tag{4}
     \end{align*}
 \end{example}
 
 \begin{example}[Pattern and Copattern Matching]
     \begin{align*}
-    &x\vdash x.\expatmatch{\texttt{T} \Rightarrow e_2, \texttt{F} \Rightarrow e_2} \equiv x.\expatmatch{\texttt{T} \Rightarrow t_1, \texttt{F} \Rightarrow t_2}\footnotemark[1]\tag{1}
+    &x\vdash x.\expatmatch{\texttt{T} \Rightarrow e_1, \texttt{F} \Rightarrow e_2} \equiv x.\expatmatch{\texttt{T} \Rightarrow t_1, \texttt{F} \Rightarrow t_2}\footnotemark[1]\tag{1}
     \\ &\mapsto x\vdash  e_1 \equiv t_1\wedge x\vdash e_2\equiv t_2\\
     &\vdash \excopatmatch{\ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\ap{x}\Rightarrow\betaunifvar} \tag{2}
     \\ &\mapsto x\vdash \alphaunifvar \equiv \betaunifvar\\
     &\excopatmatch{\mathtt{fst \Rightarrow} \mathtt{5}, \mathtt{snd\Rightarrow False}}\equiv \alphaunifvar \tag{3}
-    \\ &\mapsto \vdash \mathtt{5}\equiv \alphaunifvar.\mathtt{fst}\wedge \vdash \mathtt{False\equiv\alphaunifvar.snd}
+    \\ &\mapsto \vdash \mathtt{5}\equiv \alphaunifvar.\mathtt{fst}\, \wedge \,\vdash \mathtt{False\equiv\alphaunifvar.snd}
     \end{align*}
 \end{example}
-\footnotetext[1]{\texttt{T} and \texttt{F} are stand-ins for $\True$ and $\False$.}
+\footnotetext[1]{\texttt{T} and \texttt{F} are abbreviations for $\True$ and $\False$.}
 Note that all of these examples are in normal form, i.e. they don't contain redexes.
 This means the only way for the terms on each side of the equations to be equivalent,
 is for them to be equivalent \textbf{syntactically}. 
 
 We want to formulate rules which help us simplify equations like these --- equations without beta-redexes.
 We want remove redundant constraints, split constraints made up of composite terms to find solutions to their parts,
-and spot redundancies to prematurely stop the solving process.
+and spot redundancies to stop the solving process as early as possible
 \begin{definition}[Decomposing Constraints]
     \begin{align*}
     &\textbf{Removing redundancy}\\
@@ -1081,40 +1081,38 @@ and spot redundancies to prematurely stop the solving process.
     \tag{1}\label{1}\\
     &\Psi \vdash \alphaunifvar \equiv \alphaunifvar&\mapsto_r& \top
     \tag{2}\\
-    &\Psi \vdash \exconstructor{} \equiv \exconstructor{} &\mapsto_r& \top 
-    \tag{3}\label{3}\\
     &\textbf{Decomposition}\\
     \circ\,&\Psi\vdash K(\overline{e})\equiv K(\overline{t})&
     \mapsto_d&\overline{\Psi\vdash e\equiv t}
-    \tag{4}\label{4}\\
-    \circ\,&\Psi \vdash e_1.d({\overline{e}})\equiv e_2.d({\overline{t}})\tag{5}\label{5}
+    \tag{3}\label{3}\\
+    \circ\,&\Psi \vdash e_1.d({\overline{e}})\equiv e_2.d({\overline{t}})\tag{4}\label{4}
     \\ &\mapsto_d \Psi\vdash e_1 \equiv e_2 \wedge \overline{\Psi\vdash e\equiv t}\\
-    *\,&\Psi \vdash e_1.\expatmatch{\overline{K(\overline{x})\Rightarrow e}}\equiv e_2.\expatmatch{\overline{K(\overline{x})\Rightarrow t}}\tag{6}
+    *\,&\Psi \vdash e_1.\expatmatch{\overline{K(\overline{x})\Rightarrow e}}\equiv e_2.\expatmatch{\overline{K(\overline{x})\Rightarrow t}}\tag{5}
     \\ &\mapsto_d \Psi \vdash e_1 \equiv e_2\wedge \overline{\Psi, \overline{x}\vdash e\equiv t}\\
     *\, &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv 
     \excopatmatch{\overline{d(\overline{x})\Rightarrow t}}
     &\mapsto_d& \overline{\Psi, \overline{x}\vdash e \equiv t}
-    \tag{7}\label{7}\\
+    \tag{6}\label{6}\\
     &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv t 
     &\mapsto_d& \overline{\Psi,\overline{x} \vdash e \equiv t.d(\overline{x})}
-    \tag{8}\label{8}\\ 
+    \tag{7}\label{7}\\ 
     &\Psi\vdash t\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow e}} 
     &\mapsto_d& \overline{\Psi, \overline{x}\vdash t.d(\overline{x}) \equiv e}
-    \tag{9}\label{9}\\
+    \tag{8}\label{8}\\
     &\textbf{Eta-reduction}\\
     & \Psi \vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e.d(\overline{x})}}\equiv t
     &\mapsto_e&\Psi\vdash e\equiv t
-    \tag{10}\\
+    \tag{9}\\
     &\textbf{Removing contradictions}\\ 
     &\Psi \vdash x\equiv y &\mapsto_c& \bot 
-    \tag{11}\\   
+    \tag{10}\\   
     &\Psi \vdash K_1() \equiv K_2() &\mapsto_c& \bot 
-    \tag{12}\\
+    \tag{11}\\
     &\text{non-matching *-equation}&\mapsto_c&\bot
-    \tag{13}\label{13}\\
+    \tag{12}\label{12}\\
     \end{align*}
 \end{definition}
-Rules 7-9 are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
+Rules 6-8 are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
 
 For equations marked with *, we require the constructors (or destructors) to be equal to one another in each equation. 
 We also require them to have the same list of variables as arguments, respectively (i.e. full syntactic equality).
@@ -1134,15 +1132,14 @@ In *-equations where the arguments are not equal syntactically, rule \cref{13} a
     \end{align}
 \end{example}
 
-Also note that \cref{8} (as well as \cref{9} wich is just the mirror of \cref{8}) are possible through eta-conversion:
+Also note that \cref{7} (as well as \cref{8} wich is just the mirror of \cref{7}) are possible through eta-conversion:
 \begin{align*}
     \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t \\
     \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow t.d(\overline{x})}}\\
-    &\xmapsto{(\cref{7})}_d \overline{e \equiv t.d(\overline{x})}
+    &\xmapsto{(\cref{6})}_d \overline{e \equiv t.d(\overline{x})}
 \end{align*}
 
 \subsection{Unification}
-\footnotetext[1]{\texttt{T} and \texttt{F} are stand-ins for $\True$ and $\False$.}
 
 What do we do when we can't simplify anymore? How do we actually find the solutions?
 Let's start with an example --- take a look at the following unification problem:
@@ -1155,9 +1152,9 @@ Let's start with an example --- take a look at the following unification problem
     \begin{align*}
         \constraints &= &\vdash\ & \mathtt{Tup(\alphaunifvar, F)}\equiv \mathtt{Tup(T, F)}&\wedge&
         \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\footnotemark[1]\\
-        &\xmapsto{(\cref{4})}_d &\vdash\ & \mathtt{\alphaunifvar\equiv T}\qquad\wedge\vdash \mathtt{F\equiv F} &\wedge& 
+        &\xmapsto{(\cref{3})}_d &\vdash\ & \mathtt{\alphaunifvar\equiv T}\qquad\wedge\vdash \mathtt{F\equiv F} &\wedge& 
         \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
-        &\xmapsto{(\cref{3})}_r &\vdash\ & \mathtt{\alphaunifvar\equiv T} &\wedge& 
+        &\xmapsto{(\cref{3})}_d &\vdash\ & \mathtt{\alphaunifvar\equiv T} &\wedge& 
         \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
         &\mapsto_u &\vdash\ &\mathtt{\alphaunifvar\equiv T} &\wedge&
         \vdash \betaunifvar\equiv \mathtt{T}.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
@@ -1201,7 +1198,7 @@ There are very few unification steps:
 \begin{definition}[Unification]
     \begin{align*}
         & e \equiv\alphaunifvar
-        &\mapsto_u& \alphaunifvar \equiv e 
+        &\mapsto_u& \alphaunifvar \equiv e &(e\neq \betaunifvar)
         \tag{1}\\
         &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e 
         &\mapsto_u& \constraints[e/\alphaunifvar] \wedge \Psi \vdash \alphaunifvar \equiv e &(\alphaunifvar \notin e)
@@ -1218,11 +1215,11 @@ We should be careful, because there is another thing we could introduce with uni
     \begin{align*}
         \constraints &=& &\vdash \excopatmatch{\ap{x}\Rightarrow\alphaunifvar}\equiv id 
         &\wedge& &\vdash \betaunifvar.\ap{x}\equiv \alphaunifvar\\
-        &\xmapsto{(\ref{8})}_d& &x \vdash \alphaunifvar \equiv id.\ap{x}
+        &\xmapsto{(\ref{7})}_d& &x \vdash \alphaunifvar \equiv id.\ap{x}
         &\wedge& &\vdash \betaunifvar.\ap{x}\equiv \alphaunifvar\\
         &\xmapsto{(\ref{unif2})}_u& &x \vdash \alphaunifvar \equiv id.\ap{x}
         &\wedge& &\vdash \betaunifvar.\ap{x}\equiv id.\ap{x}\\
-        &\xmapsto{(\ref{5})}_d& &x \vdash \alphaunifvar \equiv id.\ap{x} 
+        &\xmapsto{(\ref{4})}_d& &x \vdash \alphaunifvar \equiv id.\ap{x} 
         &\wedge& &\vdash \betaunifvar \equiv id \wedge \vdash x \equiv x\\
         &\xmapsto{(\ref{1})}_r& &x \vdash \alphaunifvar \equiv id.\ap{x}
         &\wedge& &\vdash \betaunifvar \equiv id
@@ -1269,7 +1266,7 @@ which is often used today. \cite{10.1145/357162.357169}
 
 
 \section{Conclusion}\label{sec:conclusion}
-In summary, there exists a higher-order unification algorithm solving pattern unification for languages with a strong data-codata duality.
+In summary, I presented a higher-order unification algorithm solving pattern unification for languages with a strong data-codata duality.
 The higher-order unification algorithm presented is a step towards 
 being able to use languages with strong dualities like the data-codata duality in practice,
 as it shows that type-checking and -verification is very much possible.
