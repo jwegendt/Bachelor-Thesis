@@ -143,7 +143,7 @@ and discuss typing for this calculus.
 
 Furthermore, I go over the decidable subproblem of first-order unification and an accompanying algorithm adapted to our syntax.
 I explain higher-order unification and the specific problem of pattern unification formally, 
-and discuss their differences and decidabilities.
+and discuss how they differ, especially what parts are decidable.
 
 Finally, I present a framework for our algorithm, as well as our unification algorithm for the aforementioned calculus. 
 This algorithm covers pattern unification problems, as well as problems which can be reduced to pattern unification problems.
@@ -182,24 +182,23 @@ Write here your acknowledgements.
 
 \section{Introduction}
 
-In this thesis, I want to present a higher-order unification algorithm for a calculus with a big focus on codata and data. 
+In this thesis, I want to present a higher-order unification algorithm for a calculus with codata and data.. 
 For this, you need to know what data and codata conceptually are, how they are presented in our syntax and how they function.
-You also need to know what higher-order unification is and how it differs from the unification you probably already know.
+You also need to know what higher-order unification is and how it differs from the first-order unification you probably already know.
 These are the goals for the next few paragraphs, after which I then give a quick overview of the different parts of this thesis.
 
 \subsection{Data and codata}
-While data (as in algebraic data types) is a well-known concept, 
-its brother codata is less talked about. Codata is dual to data, which means that
-you can (roughly) express any concept with codata that you would with data.
+While algebraic data are a well-known concept, their brother codata is less talked about. 
+Codata is dual to data, which (roughly) means that you can express any concept with codata that you would with data.
 On a high level: While data is concerned with how values are constructed or stored, codata is concerned with how values are destructed or used. 
 For instance, look at these different ways to define the same tuple: 
 
 \begin{example}[Two ways to define the same tuple]
     \begin{align*}
-        &\mathttbrackets{Tup}{\mathtt{1,5}} \tag*{Data instantiation}\\
-        &\excopatmatch{\mathtt{fst \Rightarrow 1}, \mathtt{snd \Rightarrow 5}} \tag*{Codata instantiation}
+        &\mathttbrackets{Tup}{\mathtt{1,5}} \tag*{Data}\\
+        &\excopatmatch{\mathtt{fst \Rightarrow 1}, \mathtt{snd \Rightarrow 5}} \tag*{Codata}
     \end{align*}     
-    While the first instantiation focuses on what we put into the tuple, the second focuses on how we can take its components out of it.   
+    While the first variant focuses on what we put into the tuple, the second focuses on how we can take its components out of it.   
 \end{example}
 
 One form of codata often talked about is streams:
@@ -209,10 +208,10 @@ One form of codata often talked about is streams:
     \end{align*}
     This is the stream that contains an infinite amount of Trues.
     Also notice again that there is an emphasis on how we can take things out of our stream, rather than how it is constructed.
+    As you can see, we can also instantiate infinite codata. 
 \end{example}
-As you can see, we can also instantiate infinite codata. 
 In our syntax, codata is also used for function application, 
-which is the part of codata you are most likely the most familiar with:
+which is the part of codata you are likely most familiar with:
 
 \begin{example}[Function application through codata]
     \begin{align*}
@@ -228,7 +227,7 @@ Type checking and type inference, in proof assistants, as well as more particula
 
 While unification means solving equations with unknown variables, there are two major types of unification: First-order unification and higher-order unification.
 First-order unification is enough for the type systems in most typed programming languages. It is only when more complex types are introduced, 
-like in the interactive theorem prover Coq or in the programming language Agda, higher-order unification is required.
+like in the interactive theorem prover Coq or in the programming language Agda, that higher-order unification is required.
 % Yes, this is not completely old->new, but i want to create a strong dichotomy between first and higher order unification, 
 % and want the reader to keep both concepts in mind at the same time => i repeat them and contrast them twice.
 
@@ -242,9 +241,9 @@ like in the interactive theorem prover Coq or in the programming language Agda, 
     Each of the given equations can be seen as their own unification problem.
     The first has an obvious solution $[\mathtt{5/\alphaunifvar}]$, so substituting $\mathtt{5}$ for $\alphaunifvar$ (even though there are multiple solutions even here).
     The second is a unification problem without unification variables, and has no solution.
-    The third and forth are both unification problems with two unification variables, and have many solutions.
+    The third and forth are both unification problems with two unification variables, and have many solutions, but one most general solution.
 \end{example}
-Note that unification problems may also have multiple equations!
+Note that unification problems may also have multiple equations.
 
 \begin{example}[Higher-order unification problems]\label{sec:mgu}
     In this first example, we are looking for a function that when applied to $\mathtt{5}$, evaluates to $\mathtt{5}$:
@@ -267,7 +266,7 @@ Note that unification problems may also have multiple equations!
 \subsection{Overview}
 This Bachelors thesis is structured as follows:
 
-First, I will explore an (untyped) calculus with a heavy focus on the dualities between data and codata in \cref{sec:The Untyped Calculus ND}.
+First, I will explore a calculus with a heavy focus on the dualities between data and codata in \cref{sec:The Untyped Calculus ND}.
 I will give examples and show how we can use this syntax to define everything we want to define, and point out how the duality plays out in our syntax.
 In addition, I will introduce some concepts we need so that we can start to play around with terms.
 
@@ -277,7 +276,7 @@ and present a typing system to categorize many terms with simple types.
 To make our way to higher-order unification, I will first discuss first-order unification in \cref{sec:First-Order Unification}.
 I explain the problem formally and give an algorithm to solve it.
 
-Then I explain higher-order unification (\cref{sec:Higher-Order Unification}) formally, as well as a more specific unification problem which is easier to solve.
+Then I explain higher-order unification (\cref{sec:Higher-Order Unification}) formally, as well as the pattern unification problem which is easier to solve.
 
 In \cref{The Algorithm For Higher-Order Unification}, I present the framework for our equations, 
 and then present our algorithm for higher-order unification problems written in our calculus.
@@ -288,7 +287,7 @@ In the end, there is a section about related works (\cref{sec:Related works}), a
 \section{The Untyped Calculus ND}\label{sec:The Untyped Calculus ND}
 
 I will introduce the Untyped Calculus ND, based on .... %TODO: citation 
-It may be seen as an extension to the lambda calculus, as function definition is only one application of codata in this calculus,
+This calculus may be seen as an extension to the lambda calculus, as function definition is only one application of codata in this calculus,
 meaning we can do more than just function application! 
 
 \subsection{Syntax of the Untyped Calculus ND}\label{sec:syntax}
@@ -296,7 +295,7 @@ meaning we can do more than just function application!
 I write $\overline{e}$ to mean a (possibly empty) list of expressions: $\overline{e}= e_1, ..., e_n$.  
 Constructors $\constructor$ and destructors $\destructor$ both get such a list of expressions and construct or destruct terms.
 A pattern match $\patmatch$ matches an expression $e$ against a sequence of clauses, where each clause consists of a constructor and an term $t$.
-For a copattern match $\textbf{cocase} \{\overline{d(\overline{x}) \Rightarrow e}\}$
+For a copattern match $\copatmatch$
 similar rules apply, but the clauses contain destructors instead of constructors.
 
 \begin{definition}[Terms of the Calculus ND]
@@ -307,13 +306,16 @@ similar rules apply, but the clauses contain destructors instead of constructors
         &\partition\copatmatch  \tag*{Copattern match}\\
         &\partition\destructor  \tag*{Destructor}
     \end{align*}
-    In pattern and copattern matching, every con- or destructor may occur no more than once.
-    This is so we don't match multiple clauses (since $\mathttbrackets{Tup}{x_1, x_2}$ and $\mathttbrackets{Tup}{x, y}$ have the same meaning). %TODO: ist das offensichtlich?
+    In pattern and copattern matching, every constructor or destructor may occur no more than once.
+    This is so we don't match multiple clauses:
+    In $e.\expatmatch{\mathttbrackets{Tup}{x_1, x_2}\Rightarrow t_1, \mathttbrackets{Tup}{x, y}\Rightarrow t_2}$, the same tuple could be reduced to two different terms, $t_1, t_2$.
 \end{definition}
 
-$x, y \in Var, \constructor \in \texttt{CtorDtorName} \lor \textsf{TypeName}, \destructor \in\texttt{CtorDtorName}.$
+I use different fonts for different uses of our syntax: 
+%$x, y \in Var, \constructor \in \textsc{CtorDtorName} \lor \textsc{TypeName}, \destructor \in\textsc{CtorDtorName}.$
+Variables, and names of terms are in $VarFont$. When constructors and destructors are used for data and codata, they appear in $\mathtt{CtorDtorFont}$, 
+but when constructors are used for types, they appear in $\mathsf{TypeFont}$.
 
- %TODO: warum sieht das so scheiße aus??
 \subsection{How is this used?}
 
 To get familiar with the syntax and to understand the underlying semantics, 
@@ -321,14 +323,14 @@ I will go through some examples and explain what they implement.
 
 We use constructors for types:
 \begin{example}[Constructing types with constructors]
-    Simple Types like $\mathsf{Int, Bool, ...}$ are constructors on an empty sequence, 
+    Simple Types like $\mathsf{Int, Bool, ...}$ are constructors applied to an empty sequence, 
     while composite types of course require arguments.
     \begin{align*}
         &\mathsf{Bool}\tag{1}\\
         &\mathsf{List(Int)}\tag{2}\\
         &\mathsf{Pair(Int, Bool)}\tag{3}
     \end{align*}
-    Types are explored in detail and formally later on in ~\cref{sec:Simple Types}.
+    Types are explored later on in \cref{sec:Simple Types}.
 \end{example}
 
 We of course also want to build terms for those data types. 
@@ -342,11 +344,11 @@ Some terms we build with constructors:
         &\mathtt{Cons(True, Cons(False, Nil))}\tag{4}              
     \end{align*}
     As you can see from the last example, we can use constructors to define recursive data types.
-    Numbers for instance, are also implemented recursively as Peano numbers. 
-    I use numerals $(\mathtt{1, 2, 5, ...})$ as a shorthand throughout this thesis, though.
+    Numbers for instance, are also implemented recursively as Peano numbers.
+    I use numerals $(\mathtt{1, 2, 5, ...})$ as a shorthand for $\mathtt{suc(zero), suc(suc(zero)), ...}$ throughout this thesis, though.
 \end{example}
 
-When we have instantiated terms, we also need a way to take them apart. 
+If we construct terms, we might also want a way to take them apart. 
 For the terms we just saw, this can be done using pattern matching:
 
 \begin{example}[Taking apart data using pattern matching]
@@ -366,16 +368,16 @@ Since we use pattern matching to deconstruct data like Booleans, naturally we ca
         &e.\expatmatch{\mathttbrackets{Cons}{\True, x}\Rightarrow \True, 
         \mathtt{Nil\Rightarrow False}, \mathttbrackets{Cons}{x, y}\Rightarrow\False}\tag{2}
     \end{align*}
-The first example is equivalent to if $t$ $e_1$ else $e_2$. The second expression tests whether a given list starts with $\True$.
+The first example is equivalent to if $t$ then $e_1$ else $e_2$. The second expression tests whether a given list starts with $\True$.
 \end{example}
 
-Now this is where codata comes into play. Until now, we have seen how to instantiate data, 
-and how to take it apart. This is how to instantiate codata:
+Until now, we have seen how to instantiate data, and how to take it apart. 
+Now this is where codata comes into play ---this is how to instantiate it:
 
 \begin{example}[Instantiating codata with copattern matching]
     \begin{align*}
         &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}\tag{1}\\
-        Trues =& \excopatmatch{\mathtt{fst \Rightarrow True, snd\Rightarrow}Trues}\tag{2} 
+        Trues =& \excopatmatch{\mathtt{hd \Rightarrow True, tl\Rightarrow}Trues}\tag{2} 
     \end{align*}
     We have seen examples like this in the introduction; the first one is a tuple with the values $\mathtt{1}$ and $\mathtt{2}$.
     The second example is the infinite stream of $Trues$.
@@ -386,20 +388,21 @@ Now for how to take instantiations of codata apart:
 \begin{example}[Taking apart codata using destructors]
     \begin{align*}
         &\excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst}\tag{1}\\
-        &id.\ap{\mathtt{5}}\tag{2}
+        &Trues.\mathtt{hd}\tag{2}\\
+        &id.\ap{\mathtt{5}}\tag{3}
     \end{align*}
     These examples do exactly what you think they do: We select the first value of the tuple, 
-    and apply the identity function on $\mathtt{5}$, respectively.
-    We will see how these examples resolve to $\mathtt{1}$ and $\mathtt{5}$ in \cref{sec:betaconv}.
+    take out the first element of our stream, and apply the identity function on $\mathtt{5}$, respectively.
+    We will see how these examples resolve to $\mathtt{1}$, $\True$ and $\mathtt{5}$ in \cref{sec:betaconv}.
 \end{example} 
 
-You might have noticed already that there is no option for function definition in the syntax of our calculus.
+You might have already noticed that there is no option for function definition in the syntax of our calculus.
 This is because we can use copattern matching to implement function definitions:
 \begin{example}[Defining functions using copattern matching]
     \begin{align*}
         &id = \excopatmatch{\ap{x}\Rightarrow x}\tag{1}\\
-        &\excopatmatch{\ap{x}\Rightarrow (\ap{y}\Rightarrow x)} \tag{2} \\
-        &\excopatmatch{\ap{x}\Rightarrow (\ap{y}\Rightarrow y)} \tag{3}
+        &\excopatmatch{\ap{x}\Rightarrow \excopatmatch{\ap{y}\Rightarrow x}} \tag{2} \\
+        &\excopatmatch{\ap{x}\Rightarrow \excopatmatch{\ap{y}\Rightarrow y}} \tag{3}
     \end{align*}
     The first example implements the identity function, which you have already seen. 
     The second and third examples implement functions that take two arguments, ignore one and give back the other.
@@ -413,7 +416,7 @@ Copattern matching is used to instantiate codata, while destructors are used to 
 The order of the syntax definition emphasizes these conceptual dualitites:
 Data is dual to codata, but this is only because constructors are dual to copattern matching, 
 and pattern matching is dual to destructors.
-One more clean example to drive this point home:  
+Here is one more clean example to drive this point home:  
 
 \begin{example}[Dualities in a tuple defined in two ways]
     \begin{align*}
@@ -473,8 +476,8 @@ The interesting thing however, is what happens when we apply a substitution to a
         x[\listofexpr / \listofvar] :=& e_i \quad(\text{if } x=x_i) \\
         y\sigma :=& y\quad (\text{if }y\notin \texttt{dom}(\sigma))\\
         (\exconstructor{\listofexpr})\sigma :=& \exconstructor{e_1 \sigma,\dots , e_n \sigma}\\
-        (\expatmatch{\overline{K(\overline{x})\Rightarrow e}})\sigma:=& (e\sigma).\textbf{case}\{\overline{K(\overline{y}\Rightarrow (e\sigma')\sigma)}\}\\
-        (\excopatmatch{\overline{d(\overline{x})\Rightarrow e}})\sigma:=& \excopatmatch{\overline{(d(\overline{y})\Rightarrow(e\sigma')\sigma)}}\\
+        (\expatmatch{\overline{K(\overline{x})\Rightarrow e}})\sigma:=& (e\sigma).\textbf{case}\{\overline{K(\overline{y})\Rightarrow (e\sigma')\sigma}\}\\
+        (\excopatmatch{\overline{d(\overline{x})\Rightarrow e}})\sigma:=& \excopatmatch{\overline{d(\overline{y})\Rightarrow(e\sigma')\sigma}}\\
         (\exdestructor{\listofexpr}) \sigma:=& (e \sigma).d(e_1 \sigma,\dots , e_n \sigma)
     \end{align*} 
     Where $\sigma'$ is a substitution that ensures that we don't bind new variables: 
@@ -499,7 +502,7 @@ This process is called composition of substitutions and looks like this: $\sigma
 
 \begin{definition}[Idempotency]
     A substitution $\sigma$ is idempotent, iff. $\sigma \circ \sigma = \sigma$.
-    Concretely, this means that it doesn't matter how often we apply a substitution to a given problem.
+    Concretely, this means that it doesn't matter how often we apply a substitution to a given expression.
 \end{definition}
 
 Consider these two examples. One of an idempotent substitution, and one of a substitution that is not idempotent:
@@ -516,10 +519,9 @@ On the other hand, the substitution $[\excopatmatch{\ap{y}\Rightarrow x} / x]$ i
     =& [\excopatmatch{\ap{y}\Rightarrow x}[\excopatmatch{\ap{y}\Rightarrow x} / x] / x] \\
     =& \excopatmatch{\ap{y}\Rightarrow (\ap{y}\Rightarrow x) } \neq [\excopatmatch{\ap{y}\Rightarrow x} / x]
 \end{align*}
-
 \end{example}
 
-\begin{definition}[More general] 
+\begin{definition}[More general]\label{more general}
     A substitution $\sigma$ is more general than a substitution $\theta$, iff. there exists a mapping $\tau$, such that: $\theta = \tau \circ \sigma$.
 \end{definition}
 
@@ -583,9 +585,9 @@ Now consider these examples of eta-conversion:
 \begin{example}[Eta-conversion for codata]
     \begin{align*}
         \excopatmatch{\ap{y}\Rightarrow id.\ap{y}}&\etaconv id\tag{1}\\
-        \excopatmatch{\mathtt{fst\Rightarrow} specificPair.\mathtt{fst}, \mathtt{snd\Rightarrow}specificPair.\mathtt{snd}}&\etaconv e  \tag{2}\\      
-        \text{where } specificPair = \expatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}
-    \end{align*} %TODO: besserer name???
+        \excopatmatch{\mathtt{fst\Rightarrow} specificPair.\mathtt{fst}, \mathtt{snd\Rightarrow}specificPair.\mathtt{snd}}&\etaconv specificPair \tag{2}\\      
+        \text{where } specificPair = \excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}
+    \end{align*} %TODO: besserer name??? sodass es nicht zu lang wird
     The first example says: The function that takes a term and applies the identity function to it, does the same thing as the identity function.
     In the second example, we have a pair that contains the first value of a specific pair, and the second value of a specific pair, which is obviously just that specific pair.    
 \end{example}    
@@ -614,7 +616,7 @@ Here are the the basic types we consider in our examples:
         &\partition \mathsfbrackets{List}{\tau}\\
         &\partition \mathsfbrackets{Stream}{\tau}\\
         &\partition \mathsf{\tau_1 \rightarrow \tau_2}\\
-        \Gamma :&= \cdot \partition x_1:\tau_1, ... x_n:\tau_n
+        \Gamma :&= \cdot \partition x_1:\tau, \Gamma
     \end{align*}
     $\Gamma$ is the typing context, and contains distinct variables and their types.
     When we write $\Gamma = \cdot$, we mean that the typing context is empty.
@@ -649,13 +651,14 @@ we can deduce that $t$ has the type $\tau$.
 
 %% tuple
 \begin{prooftree}
-    \AxiomC{$\Gamma\vdash t_1:\tau_1 \Gamma \vdash t_2:\tau_2 $}\RightLabel{\textsc{Tup}}
-    \UnaryInfC{$\Gamma \vdash \mathtt{Tup(}t_1,t_2\mathsf{)}: \mathsf{Pair(}\tau_1, \tau_2\mathsf{)}$}    
+    \AxiomC{$\Gamma\vdash t_1:\tau_1$}\RightLabel{\textsc{Tup}}
+    \AxiomC{$\Gamma \vdash t_2:\tau_2 $}
+    \BinaryInfC{$\Gamma \vdash \mathtt{Tup(}t_1,t_2\mathsf{)}: \mathsf{Pair(}\tau_1, \tau_2\mathsf{)}$}    
 \end{prooftree}
 \begin{prooftree}
-    \AxiomC{$\Gamma\vdash t: \mathsf{Pair(}t_1,t_2\mathsf{)}$}\RightLabel{\textsc{Case-Pair}}
+    \AxiomC{$\Gamma\vdash t: \mathsfbrackets{Pair}{\tau_1,\tau_2}$}\RightLabel{\textsc{Case-Pair}}
     \AxiomC{$\Gamma, x\vdash:\tau_1, y: \tau_2, t':\tau' $}
-    \BinaryInfC{$\Gamma \vdash t.\expatmatch{\mathtt{Tup(}t_1,t_2\mathsf{)}\Rightarrow t'}:\tau' $}    
+    \BinaryInfC{$\Gamma \vdash t.\expatmatch{\mathttbrackets{Tup}{t_1,t_2}\Rightarrow t'}:\tau' $}    
 \end{prooftree}
 
 
@@ -739,11 +742,11 @@ we can deduce that $t$ has the type $\tau$.
 \section{First-Order Unification}\label{sec:First-Order Unification}
 
 We want to slowly make our way to higher-order unification, and thus touch on simpler problems first. 
-Furthermore, we need a couple concepts more to talk about unification problems and describe our algorithm. 
+Furthermore, we need a couple more concepts to talk about unification problems and describe our algorithm. 
 
 A unification problem is described by a set of equations with expressions on each side $\overline{e\equiv e}$ containing unknown unification variables $\alphaunifvar_1, \alphaunifvar_2, \betaunifvar...$, 
 where our goal is to find a simultaneous substitution $[\listofexpr / \alphaunifvar_1, \dots, \alphaunifvar_n]$ which substitutes expressions for unification variables, 
-such that the sides of the given equations are the same (respectively). 
+such that the sides of the given equations are the same. 
 
 \begin{definition}[Solution]
     A solution to a given unification problem is described by a simultaneous substitution $[\listofexpr / \alphaunifvar_1, \dots, \alphaunifvar_n]$
@@ -751,25 +754,26 @@ such that the sides of the given equations are the same (respectively).
 \end{definition}
     
 \begin{definition}[Most General]
-    A solution is the most general unifier (mgu), iff. it is more general than all other solutions.
+    A solution is the most general unifier (mgu), iff. it is more general (see \cref{more general}) than all other solutions.
 \end{definition} 
 
 Now let's take a look at first-order unification.
 Even though first-order unification is a pretty limited subproblem of higher-order unification, 
-in many application it is all that is needed --- most simple types can be constructed from first-order terms. 
+in many applications it is all that is needed --- most simple types can be constructed from first-order terms. 
 
-Consider some examples of first-order unification. On the left is the problem, on the right its solution or $\emptyset$ if there is no solution.
+Consider some examples of first-order unification. On the left is the problem, on the right its solution or $\bot$ if there is no solution.
 \begin{example}[First-order unification]
     \begin{align*}
         \alphaunifvar &\equiv \True &\sigma_1 &= [\True/\alphaunifvar]\tag{1}\\
-        \True &\equiv \False &\sigma_2 &= \emptyset\tag{2}\\
+        \True &\equiv \False &\sigma_2 &= \bot\tag{2}\\
         \Int \rightarrow \alphaunifvar &\equiv \Int \rightarrow \Bool &\sigma_3 &= [\Bool/\alphaunifvar]\tag{3}\\
-        \alphaunifvar&\equiv \mathsf{List(\alphaunifvar)} &\sigma_4 &= \emptyset\tag{4}
+        \alphaunifvar&\equiv \mathsf{List(\alphaunifvar)} &\sigma_4 &= \bot\tag{4}
     \end{align*}
     The forth example is an instance of a failing \ref{a}.
 \end{example}
 
 \begin{definition}[First-order unification]
+    A first-order unification problem consists of expressions from this restricted grammar:
 \begin{align*}
     e,r,s,t ::&= \alphaunifvar, \betaunifvar \tag*{Unification variable}\\
     &\partition x\tag*{Variable} \\
@@ -787,11 +791,11 @@ Consider some examples of first-order unification. On the left is the problem, o
     The algorithm is defined by non-deterministically applying the rules below:
     \begin{align*}
         E & \cup \{ e \equiv e\} \Rightarrow E \tag{delete}\\
-        E & \cup \{\exconstructor{e_1 ... e_n} \equiv \exconstructor{t_1 ... t_n}\} \Rightarrow E \cup \{e_1 \equiv t_1, ... e_n \equiv t_n\}\tag{decompose}\\
-        E & \cup \{K_1(e_1,...e_n) \equiv K_2(t_1, ..., t_m)\}  \Rightarrow \perp \quad\text{if $K_1 \neq K_2$ or if $n\neq m$} \tag{conflict}\\
+        E & \cup \{\exconstructor{e_1, ..., e_n} \equiv \exconstructor{t_1, ..., t_n}\} \Rightarrow E \cup \{e_1 \equiv t_1, ..., e_n \equiv t_n\}\tag{decompose}\\
+        E & \cup \{K_1(e_1,..., e_n) \equiv K_2(t_1, ..., t_m)\}  \Rightarrow \perp \quad\text{if $K_1 \neq K_2$ or if $n\neq m$} \tag{conflict}\\
         E & \cup \{e \equiv \alphaunifvar\} \Rightarrow E \cup \{\alphaunifvar \equiv e\}\tag{swap}\\ 
         E & \cup \{\alphaunifvar \equiv e\} \Rightarrow E[e/\alphaunifvar] \cup \{\alphaunifvar \equiv e\} \quad\text{if $\alphaunifvar \in E$ and $\alphaunifvar \notin e$}  \tag{eliminate}\\
-        E & \cup \{\alphaunifvar \equiv K(e_1,...e_n)\}\Rightarrow \perp \quad \text{if $\alphaunifvar \in e_1,...e_n$} \tag{occurs check} \label{a}
+        E & \cup \{\alphaunifvar \equiv K(\overline{e})\}\Rightarrow \perp \quad \text{if $\alphaunifvar \in \overline{e}$} \tag{occurs check} \label{a}
     \end{align*}
 \end{definition}
 
@@ -800,9 +804,12 @@ adapted to our syntax.
 
 \section{Higher-Order Unification}\label{sec:Higher-Order Unification}
 
+In this section, I introduce higher-order unification.
+
 \begin{definition}[Higher-Order Unification]
+    A higher-order unification problem consists of expressions from the following grammar:
     \begin{align*}
-        e,r,s,t  ::&= \alphaunifvar\sigma, \betaunifvar\sigma \tag*{Unification Variables with substitution}\\ %TODO: name? 
+        e,r,s,t  ::&= \alphaunifvar\sigma \tag*{Unification variable with substitution}\\ %TODO: name? 
             &\partition x  \tag*{Variable} \\
             &\partition\constructor \tag*{Constructor} \\
             &\partition\patmatch  \tag*{Pattern match}\\
@@ -827,19 +834,19 @@ To illustrate the need for this substitution, look at what problem arises when w
 \end{example}
 
 This motivates our need for substitutions on unification variables: 
-Since we don't know what the unification variable will solve to, we might need to perform a substitution on it later.
+Since we don't know what the solution for a unification variable will be, we might need to perform a substitution on it later.
 Note that this is \textit{not} possible in first-order unification, since we don't create substitutions through redexes! 
 When the substitution is trivial, we may  write $\alphaunifvar, \betaunifvar$ instead.
 
-In higher-order unification in contrast to in first-order unification, we are not interested in syntactic equality, but want a broader set of terms to be equal to one another.
+In higher-order unification in contrast to first-order unification, we are not interested in syntactic equality, but want a broader set of terms to be equal to one another.
 Depending on the type of unification problem one wants to solve, one may want to only include beta-equality or both beta- and eta-equality.
 This further motivates the use of the symbol $\equiv$ so far. Whereas in first-order unification it just stands for syntactic equality, 
 in higher-order unification, I use it to mean syntactic equality, beta-equality or eta-equality.
 This essentially means that two terms are equivalent if they are equivalent after function application, (co-)pattern matching evaluation, and/or are equivalent extensionally.
 
-In the introduction (\cref{sec:mgu}), I alluded to the fact that many problems have multiple solutions, but we prefer a certain, most general solution.
+In the introduction in \cref{sec:mgu}, I alluded to the fact that many problems have multiple solutions, but we prefer a certain, most general solution.
 Let's next consider a familiar example again:
-\begin{example}[No more general solution]
+\begin{example}[No most general solution]
     \begin{align*}
         \alphaunifvar.\ap{5} \equiv \texttt{5}
     \end{align*}
@@ -866,15 +873,15 @@ higher-order terms and thus don't have that problem of not changing variables.
 \subsection{Pattern Unification}
 
 Pattern unification, also sometimes called the pattern fragment
-is a subset of higher-order unification, and its path to a solution is similarly simple as the one to first-order unification.
+is a subset of higher-order unification problems, and its path to a solution is similarly simple as the one to first-order unification.
 It was described first by Miller in \cite{10.1093/logcom/1.4.497}.
 Since our calculus ND amounts to an extension of the lambda calculus, we need to extend our definition to more than just function applications. 
-This means that (conceptually) the pattern fragment described by Miller is a subset of our definition.
+This means that the pattern fragment described by Miller is a subset of our definition.
 
 \begin{definition}[Pattern]
     A pattern is any term $p$ 
     \begin{align*}
-        p ::= \alphaunifvar, \betaunifvar \partition p.d(\listofvar)
+        p ::= \alphaunifvar \partition p.d(\listofvar)
     \end{align*}
     where it holds that all $\listofvar$ are distinct variables.
 \end{definition}
@@ -883,7 +890,7 @@ Consider some examples for patterns. On the left is the pattern unification prob
 \begin{example}[Pattern]
     \begin{align*}
         \alphaunifvar.\ap{x}.\ap{y}&\equiv x &\sigma_1 &= [\excopatmatch{\ap{x}\Rightarrow\excopatmatch{\ap{y}\Rightarrow x}}/\alphaunifvar] \tag{1}\\
-        \alphaunifvar.\mathtt{fst} &\equiv 2 &\sigma_2 &= [\excopatmatch{\mathtt{fst\Rightarrow 2, snd \Rightarrow}x}/\alphaunifvar] \tag{2}
+        \alphaunifvar.\mathtt{fst} &\equiv 2 &\sigma_2 &= [\excopatmatch{\mathtt{fst\Rightarrow 2, snd \Rightarrow}\betaunifvar}/\alphaunifvar] \tag{2}
     \end{align*}   
 \end{example}
 %TODO: beispiele?
@@ -893,7 +900,7 @@ Consider some examples for patterns. On the left is the pattern unification prob
 \end{theorem}
 
 Note that first-order unification is not a subset of pattern unification. 
-Equations containing first-order terms that don't contain patterns still remain solvable.
+Equations that contain first-order terms, but no patterns still remain solvable.
 
 The reason there always exists an mgu lies in the constraint we put on our definition: All the variables must be distinct. 
 To illustrate this, take the following problem where the variables are \textbf{not} distinct:
@@ -922,15 +929,16 @@ To talk about the algorithms for solving unification problems, we need another d
     Terms that satisfy the $n$-definition are called neutral terms, $v$-terms are called values.
 \end{definition}
 Note that these are the terms that do not contain beta-redexes (a term that can be reduced through beta-conversion).
-This is apparent when one tries to construct terms containing beta-redexes in normal form: 
+This is apparent when one tries to construct terms that do beta-redexes in normal form: 
 To construct the first kind of beta-redex: $\constructor.\textbf{case}\{\dots,\exconstructor{\overline{x}}\Rightarrow e\}$,
-we start with the term $n.\textbf{case}\{\overline{K(\overline{x})\Rightarrow v}\}$, now wanting to subtitute $K(\overline{e})$ for $n$. 
-This is not possible because we are limited to neutral terms, which constructors are not part of.
-Similarly with the second kind of beta-redex:
-$\excopatmatch{\dots,d(\overline{x}) \Rightarrow e, \dots}.d(\overline{e})$, where we can not substitute the cocase in $n.d(\overline{e})$ because we are limited to neutral terms.
+we start with the term $n.\textbf{case}\{\overline{K(\overline{x})\Rightarrow v}\}$, and now want to substitute $K(\overline{e})$ for $n$. 
+This is not possible because we are limited to neutral terms, which constructors are not a part of.
+Similarly for the second kind of beta-redex:
+$\excopatmatch{\dots,d(\overline{x}) \Rightarrow e, \dots}.d(\overline{e})$, 
+here we can not substitute the cocase in $n.d(\overline{e})$ because we are limited to neutral terms.
         
 This underlines the intuition that neutral terms are terms that cannot be reduced because
-they contain an term we can't further evaluate (either a variable or a unification variable) in the front.
+they contain a term which blocks the evaluation (either a variable or a unification variable) in the front.
 Even though we don't have this assurance in values, that is not a problem since values don't contain the building blocks for beta-reductions. 
 Some examples of terms in normal form: 
 \begin{example}[Normal form]
@@ -946,8 +954,8 @@ The first and second example are in normal form and the third is a pattern in no
     A unification problem has a solution if and only if that solution is the same for the normal form of that problem. 
 \end{theorem}
 
-This is helpful for us, since we only have to consider normal forms in our algorithm.
-Concretely: Met with a term, we first reduce it to its normal form, and then apply the steps to find our solution.
+This is helpful for us since we only have to consider normal forms in our algorithm.
+Concretely: We first reduce a given term it to its normal form, and then apply the steps to find our solution.
 
 Thus, from this point on, we will only be looking at terms that have a normal form. This is enough in most applications. %TODO: ausschmücken?
 
@@ -956,13 +964,13 @@ For a practical example for why normal forms are helpful, consider the following
     \begin{align*}
         \True.\expatmatch{\True \Rightarrow \alphaunifvar, \False \Rightarrow \mathtt{2}} \equiv \mathtt{3} \tag{1}
     \end{align*}
-    has the solution $[\mathtt{3/\alphaunifvar}]$, but this is more obvious after using a beta-reduction on the left side 
+    has the solution $[\mathtt{3/\alphaunifvar}]$, but this is more obvious after performing a beta-reduction on the left side 
     to bring it into normal form:
     \begin{align*}
         &\True.\expatmatch{\True \Rightarrow \alphaunifvar, \False \Rightarrow \mathtt{2}} \betaconv \alphaunifvar\\
         &\implies \alphaunifvar \equiv \mathtt{3}   
     \end{align*}       
-Let's take a look at another unification problem where using beta-conversion is helpful:
+Let's take a look at another unification problem where beta-conversion is helpful:
 \begin{align*}
     &\alphaunifvar \equiv \True \tag{2}\\
     &\alphaunifvar.\expatmatch{\mathtt{True\Rightarrow 2, False\Rightarrow 3}} \equiv \betaunifvar
@@ -980,8 +988,8 @@ First, we need a framework to solve our algorithm in, though.
 
 Even though higher-order unification is undecidable, in many cases we can of course still find solutions,
 or conclude that there is no solution.
-Since we don't only want to describe higher-order unification, but the steps necessary to solve higher-order unification problems,
-we need to have a framework of our equations; a framework where we can simplify our equations,
+So far, we have only described the problem of higher-order unification. Now we want to detail the steps necessary to solve higher-order unification problems.
+Thus, we need a framework for our equations --- one where we can simplify our equations,
 and store what we have found out about our unknown variables. This is where constraints come into play:
 
 \begin{definition}[Constraint]
@@ -993,12 +1001,12 @@ and store what we have found out about our unknown variables. This is where cons
 \end{definition}
 $\Psi \vdash e\equiv t$ means that given the variables $\Psi$, we deduce that $e\equiv t$.
 $\Psi$ may contain variables that occur in or are even bound in $e$ or $t$. 
-$\Psi$ contains those variables we have seen before and want to remember. This motivates the naming of $\Psi$ as context, as well.
+$\Psi$ contains those variables we have seen before and want to remember. This motivates the the name context for $\Psi$, as well.
 %TODO: too choppy
 
 We formulate our constraints from a given unification problem as follows:
 We take each given equation and formulate a constraint $K$ with empty context $\Psi$. We join them using ands:
-$\overline{e\equiv t}$ become $\constraints = C_1 \wedge ... \wedge C_n = \, \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
+The equations $\overline{e\equiv t}$ become $\constraints = C_1 \wedge ... \wedge C_n = \, \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
 
 For clarification, $C \wedge \mathcal{C}$ is the regular logical and thus, 
 and $\top \wedge \constraints = \constraints$ as well as $\bot \wedge \constraints = \bot$.
