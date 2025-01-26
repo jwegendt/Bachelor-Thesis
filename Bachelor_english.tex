@@ -872,11 +872,8 @@ higher-order terms and thus don't have that problem of not changing variables.
 
 \subsection{Pattern Unification}
 
-Pattern unification, also sometimes called the pattern fragment
-is a subset of higher-order unification problems, and finding a solution is as simple as in to first-order unification.
-It was described first by Miller in \cite{10.1093/logcom/1.4.497}.
-Since our calculus ND amounts to an extension of the lambda calculus, we need to extend our definition to more than just function applications. 
-This means that the pattern fragment described by Miller is a subset of our definition.
+Pattern unification is a helpful tool for certain terms called \textbf{patterns}, which were first described by Miller in \cite{10.1093/logcom/1.4.497}.
+While Miller described patterns for the lambda calculus, we need to extend that definition, since our calculus ND is also an extension of the lambda calculus. 
 
 \begin{definition}[Pattern]
     A pattern is any term $p$ 
@@ -893,14 +890,16 @@ Consider some examples for patterns. On the left is the pattern unification prob
         \alphaunifvar.\mathtt{fst} &\equiv 2 &\sigma_2 &= [\excopatmatch{\mathtt{fst\Rightarrow 2, snd \Rightarrow}\betaunifvar}/\alphaunifvar] \tag{2}
     \end{align*}   
 \end{example}
-%TODO: beispiele?
+
+Note that even first-order unification contains terms that are not patterns, i.e.
+patterns are not a subset of first-order unification, only of higher-order unification.
 
 \begin{theorem}[Decidability of Pattern Unification]
-    Pattern Unification is decidable. If there exists a solution, there also exists a mgu.
+    Unification on patterns is decidable.
+    Iff. there exists a solution, there also exists a mgu.
 \end{theorem}
-
-Note that first-order unification is not a subset of pattern unification. 
-Equations that contain first-order terms, but no patterns still remain solvable.
+Thus, the nice thing about pattern unification is that if we restrict our higher-order unification problem to only contain unification variables in patterns, 
+finding a solution becomes much easier. 
 
 The reason there always exists an mgu lies in the constraint we put on our definition: All the variables must be distinct. 
 To illustrate this, take the following problem where the variables are \textbf{not} distinct:
@@ -976,7 +975,7 @@ Let's take a look at another unification problem where beta-conversion is helpfu
 \end{align*}
 To find out that $[\mathtt{2}/\betaunifvar]$ is the solution to the second equation, we first need to find out that
 $[\True/\alphaunifvar]$ is the solution to the first equation and substitute it in the second.
-This is what is called \textbf{dynamic pattern unification}, where we hold off on solving some equations 
+This is what is called \textbf{dynamic unification}, where we hold off on solving some equations 
 until we have all the necessary information. 
  
 \end{example}
@@ -1271,7 +1270,7 @@ In \cite{10.5555/2021953.2021960}, the authors describe a higher-order unificati
 
 
 \section{Conclusion}\label{sec:conclusion}
-In summary, I presented a higher-order unification algorithm solving pattern unification 
+In summary, I presented a higher-order unification algorithm solving unification problems containing patterns 
 for languages with a strong data-codata duality.
 This is an important improvement on previously presented higher-order unification algorithms
 which don't take codata types apart from (dependent) function types into account. 
