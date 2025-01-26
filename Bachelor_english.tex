@@ -287,8 +287,8 @@ In the end, there is a section about related works (\cref{sec:Related works}), a
 \section{The Untyped Calculus ND}\label{sec:The Untyped Calculus ND}
 
 I will introduce the Untyped Calculus ND, based on \cite{binder2024programming}.
-This calculus may be seen as an extension to the lambda calculus, as function definition is only one application of codata in this calculus,
-meaning we can do more than just function application! 
+This calculus may be seen as an extension to the lambda calculus,
+since codata definitions other than function definition are possible!
 
 \subsection{Syntax of the Untyped Calculus ND}\label{sec:syntax}
 
@@ -300,7 +300,7 @@ similar rules apply, but the clauses contain destructors instead of constructors
 
 \begin{definition}[Terms of the Calculus ND]
     \begin{align*}
-    e,r,s,t ::&=  x,y  \tag*{Variable} \\
+    e,t ::&=  x,y  \tag*{Variable} \\
         &\partition\constructor \tag*{Constructor} \\
         &\partition\patmatch  \tag*{Pattern match}\\
         &\partition\copatmatch  \tag*{Copattern match}\\
@@ -584,7 +584,7 @@ Consider these examples of beta-conversion:
 Now consider these examples of eta-conversion:
 \begin{example}[Eta-conversion for codata]
     \begin{align*}
-        \excopatmatch{\ap{y}\Rightarrow id.\ap{y}}&\etaconv id\tag{1}\\
+        \excopatmatch{\ap{x}\Rightarrow id.\ap{x}}&\etaconv id\tag{1}\\
         \excopatmatch{\mathtt{fst\Rightarrow} specificPair.\mathtt{fst}, \mathtt{snd\Rightarrow}specificPair.\mathtt{snd}}&\etaconv specificPair \tag{2}\\      
         \text{where } specificPair = \excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}
     \end{align*} %TODO: besserer name??? sodass es nicht zu lang wird
@@ -775,7 +775,7 @@ Consider some examples of first-order unification. On the left is the problem, o
 \begin{definition}[First-order unification]
     A first-order unification problem consists of expressions from this restricted grammar:
 \begin{align*}
-    e,r,s,t ::&= \alphaunifvar, \betaunifvar \tag*{Unification variable}\\
+    e ::&= \alphaunifvar, \betaunifvar \tag*{Unification variable}\\
     &\partition x\tag*{Variable} \\
     &\partition \constructor \tag*{Constructor}
 \end{align*}
@@ -809,7 +809,7 @@ In this section, I introduce higher-order unification.
 \begin{definition}[Higher-Order Unification]
     A higher-order unification problem consists of expressions from the following grammar:
     \begin{align*}
-        e,r,s,t  ::&= \alphaunifvar\sigma \tag*{Unification variable with substitution}\\ %TODO: name? 
+        e,t  ::&= \alphaunifvar\sigma \tag*{Unification variable with substitution}\\ %TODO: name? 
             &\partition x  \tag*{Variable} \\
             &\partition\constructor \tag*{Constructor} \\
             &\partition\patmatch  \tag*{Pattern match}\\
@@ -883,7 +883,7 @@ While Miller described patterns for the lambda calculus, we need to extend that 
     where it holds that all $\listofvar$ are distinct variables.
 \end{definition}
 
-Consider some examples for patterns. On the left is the pattern unification problem and on the right its solution:
+Consider some examples for patterns. On the left is the unification problem consisting of a pattern, and on the right its solution:
 \begin{example}[Pattern]
     \begin{align*}
         \alphaunifvar.\ap{x}.\ap{y}&\equiv x &\sigma_1 &= [\excopatmatch{\ap{x}\Rightarrow\excopatmatch{\ap{y}\Rightarrow x}}/\alphaunifvar] \tag{1}\\
