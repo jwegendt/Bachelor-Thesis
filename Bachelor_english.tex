@@ -190,7 +190,7 @@ These are the goals for the next few paragraphs, after which I then give a quick
 \subsection{Data and codata}
 While algebraic data are a well-known concept, their brother codata is less talked about. 
 Codata is dual to data, which (roughly) means that you can express any concept with codata that you would with data.
-On a high level: While data is concerned with how values are constructed or stored, codata is concerned with how values are destructed or used. 
+On a high level: While data is concerned with how values are constructed or put in, codata is concerned with how values are destructed or taken out. 
 For instance, look at these different ways to define the same tuple: 
 
 \begin{example}[Two ways to define the same tuple]
@@ -286,7 +286,7 @@ In the end, there is a section about related works (\cref{sec:Related works}), a
 
 \section{The Untyped Calculus ND}\label{sec:The Untyped Calculus ND}
 
-I will introduce the Untyped Calculus ND, based on .... %TODO: citation 
+I will introduce the Untyped Calculus ND, based on \cite{binder2024programming}.
 This calculus may be seen as an extension to the lambda calculus, as function definition is only one application of codata in this calculus,
 meaning we can do more than just function application! 
 
@@ -443,8 +443,8 @@ Here is one more clean example to drive this point home:
         \begin{split}
             \FV{x} &:= \{x\}\\
             \FV{\exconstructor{\listofexpr}} &:= \FV{e_1} \cup \dots\cup \FV{e_n}\\
-            \FV{\patmatch} &:= \FV{e}\cup (\FV{t_1}\backslash\overline{x})\cup \dots\cup (\FV{t_n}\backslash\overline{x})\\
-            \FV{\copatmatch} &:= (\FV{t_1}\backslash\overline{x})\cup \dots\cup (\FV{t_n}\backslash\overline{x})\\
+            \FV{\patmatch} &:= \FV{e}\cup (\FV{t_1}\backslash(\overline{x})_1)\cup \dots\cup (\FV{t_n}\backslash(\overline{x})_n)\\
+            \FV{\copatmatch} &:= (\FV{t_1}\backslash(\overline{x})_1)\cup \dots\cup (\FV{t_n}\backslash(\overline{x})_n)\\
             \FV{\exdestructor{e_1,...e_n}} &:= \FV{e}\cup FV(e_1) \cup \dots \cup \FV{e_n}    
         \end{split}
     \end{align*}
@@ -759,7 +759,7 @@ such that the sides of the given equations are the same.
 
 Now let's take a look at first-order unification.
 Even though first-order unification is a pretty limited subproblem of higher-order unification, 
-in many applications it is all that is needed --- most simple types can be constructed from first-order terms. 
+in many applications it is all that is needed --- the types of most (non-dependent) programming languages can be represented with first-order terms.
 
 Consider some examples of first-order unification. On the left is the problem, on the right its solution or $\bot$ if there is no solution.
 \begin{example}[First-order unification]
@@ -795,7 +795,7 @@ Consider some examples of first-order unification. On the left is the problem, o
         E & \cup \{K_1(e_1,..., e_n) \equiv K_2(t_1, ..., t_m)\}  \Rightarrow \perp \quad\text{if $K_1 \neq K_2$ or if $n\neq m$} \tag{conflict}\\
         E & \cup \{e \equiv \alphaunifvar\} \Rightarrow E \cup \{\alphaunifvar \equiv e\}\tag{swap}\\ 
         E & \cup \{\alphaunifvar \equiv e\} \Rightarrow E[e/\alphaunifvar] \cup \{\alphaunifvar \equiv e\} \quad\text{if $\alphaunifvar \in E$ and $\alphaunifvar \notin e$}  \tag{eliminate}\\
-        E & \cup \{\alphaunifvar \equiv K(\overline{e})\}\Rightarrow \perp \quad \text{if $\alphaunifvar \in \overline{e}$} \tag{occurs check} \label{a}
+        E & \cup \{\alphaunifvar \equiv e\}\Rightarrow \perp \quad \text{if $\alphaunifvar \in e$} \tag{occurs check} \label{a}
     \end{align*}
 \end{definition}
 
@@ -873,7 +873,7 @@ higher-order terms and thus don't have that problem of not changing variables.
 \subsection{Pattern Unification}
 
 Pattern unification, also sometimes called the pattern fragment
-is a subset of higher-order unification problems, and its path to a solution is similarly simple as the one to first-order unification.
+is a subset of higher-order unification problems, and finding a solution is as simple as in to first-order unification.
 It was described first by Miller in \cite{10.1093/logcom/1.4.497}.
 Since our calculus ND amounts to an extension of the lambda calculus, we need to extend our definition to more than just function applications. 
 This means that the pattern fragment described by Miller is a subset of our definition.
@@ -956,7 +956,6 @@ The first and second example are in normal form and the third is a pattern in no
 
 This is helpful for us since we only have to consider normal forms in our algorithm.
 Concretely: We first reduce a given term it to its normal form, and then apply the steps to find our solution.
-
 Thus, from this point on, we will only be looking at terms that have a normal form. This is enough in most applications. %TODO: ausschmücken?
 
 For a practical example for why normal forms are helpful, consider the following problem:
@@ -998,7 +997,7 @@ and store what we have found out about our unknown variables. This is where cons
         C ::= \top \partition \bot \partition \Psi \vdash e\equiv t \tag*{where $\Psi = x_1, ..., x_n$}\\
         \mathcal{C} ::= C \wedge \mathcal{C}
     \end{align*}
-    Where $\top$ and $\bot$ are the symbols for statements that are trivially true or false. 
+    Where $\top$ means that an equation is trivially true, whereas $\bot$ is for contradictory equations. 
     The variables in the context $\Psi$ need to be distinct. $\Psi$ may also be empty.
 \end{definition}
 $\Psi \vdash e\equiv t$ means that given the variables $\Psi$, we deduce that $e\equiv t$.
@@ -1105,10 +1104,10 @@ and spot redundancies to stop the solving process as early as possible
     \tag{9}\\
     &\textbf{Removing contradictions}\\ 
     &\Psi \vdash x\equiv y &\mapsto_c& \bot 
-    \tag{10}\\   
-    &\Psi \vdash K_1() \equiv K_2() &\mapsto_c& \bot 
-    \tag{11}\\
-    &\text{non-matching *-equation}&\mapsto_c&\bot
+    \tag{10}\\
+    &\text{non-matching con-/destructors or non-matching}\\
+    &\text{variables in }\text{$\circ$-equation} &\mapsto_c& \bot\\
+    &\text{non-matching con-/destructors in *-equation}&\mapsto_c&\bot
     \tag{12}\label{12}\\
     \end{align*}
 \end{definition}
@@ -1118,8 +1117,9 @@ For equations marked with *, we require the constructors (or destructors) to be 
 We also require them to have the same list of variables as arguments, respectively (i.e. full syntactic equality).
 For equations marked with $\circ$, we only require the constructors (or destructors) to be equal to one another in each equation. 
 (i.e. no syntactic equality among arguments required).
-This is because in *-equations, we expect variables, whereas in $\circ$-arguments, we expect \textbf{values} (since we expect terms in normal form).
-In *-equations where the arguments are not equal syntactically, rule \cref{13} applies and we simplify to $\bot$:
+This is because in *-equations, we expect variables, whereas in $\circ$-arguments, we expect expressions (or \textbf{values} to be exact --- since we expect terms in normal form).
+
+In *-equations where the arguments are not equal syntactically, rule \cref{12} applies and we simplify to $\bot$:
 
 \begin{example}[Contradiction in (co-)pattern matching]
     \begin{align}
@@ -1245,20 +1245,25 @@ This algorithm works on any pattern unification problem, and in particular, any 
 
 \section{Related works}\label{sec:Related works}
 
+%codata zuerst beschrieben? https://www.sciencedirect.com/science/article/pii/S0747717189800653
+In \cite{HAGINO1989629}, the author presents codata types in the programming language ML
+
+%codata in action
 Codata in action \cite{10.1007/978-3-030-17184-1_5} was an important motivating force to research codata more.
 
-%codata zuerst beschrieben? https://www.sciencedirect.com/science/article/pii/S0747717189800653
-%codata in action
+The calculus ND is taken from \cite{binder2024programming}.
 
 %das erste mal wo unifikation beschrieben wurde?
 %der unifikationsalgorithmus für first order unif (martelli)
 Martelli and Montanari presented the algorithm for first-order unification problems
 which is often used today. \cite{10.1145/357162.357169}
 %pattern unification
+Pattern unfication is first described in \cite{10.1093/logcom/1.4.497}.
 %higher-order unification schmöker
+
 %abel+pientka für codata (actually dependent types)
 %   -> evt hervorheben dass die super viele sachen dazu machen und dass der eine agda oder so? macht
-\cite{HAGINO1989629}
+In \cite{10.5555/2021953.2021960}, the authors describe a higher-order unification algorithm for dependent types and records.
 
 
 
@@ -1266,7 +1271,10 @@ which is often used today. \cite{10.1145/357162.357169}
 
 
 \section{Conclusion}\label{sec:conclusion}
-In summary, I presented a higher-order unification algorithm solving pattern unification for languages with a strong data-codata duality.
+In summary, I presented a higher-order unification algorithm solving pattern unification 
+for languages with a strong data-codata duality.
+This is an important improvement on previously presented higher-order unification algorithms
+which don't take codata types apart from (dependent) function types into account. 
 The higher-order unification algorithm presented is a step towards 
 being able to use languages with strong dualities like the data-codata duality in practice,
 as it shows that type-checking and -verification is very much possible.
