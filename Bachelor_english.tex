@@ -122,7 +122,7 @@ Date\\[3cm]
 \textbf{Wegendt, Julia}\\
 \emph{Higher-Order Unification for Data and Codata Types}\\ Bachelor Thesis Computer Science\\
 Eberhard Karls Universität Tübingen\\
-Period: from-till
+Period: 12.12.2024-12.02.2025
 \end{minipage}
 \newpage
 
@@ -867,8 +867,8 @@ Unification problems having no mgu is specific to higher-order unification, sinc
 higher-order terms and thus don't have that problem of not changing variables.
 
 \begin{theorem}[Decidability of higher-order unification]
-    Higher-order unification is not decidable. This can be proven through reducing Hilbert's tenth problem to the unification problem.%TODO: schmöker citen? oder wird das da auch nicht wirklich gemacht?
-\end{theorem} %TODO: citation
+    Higher-order unification is not decidable. This can be proven through reducing Hilbert's tenth problem to the unification problem. \cite{DBLP:books/el/RV01/Dowek01}
+\end{theorem}
 
 \subsection{Pattern Unification}
 
@@ -944,7 +944,7 @@ Some examples of terms in normal form:
 \begin{align*}
     \alphaunifvar.\ap{\excopatmatch{\ap{x}\Rightarrow x}} \tag{1}\\
     \excopatmatch{\ap{x}\Rightarrow \mathtt{Cons(\mathnormal{x}, Cons(\mathnormal{y}, Nil))}} \tag{2}\\
-    \alphaunifvar.\ap{x_1, x, y, z} \tag{3}    
+    \alphaunifvar.\ap{x, y, z} \tag{3}    
 \end{align*}
 The first and second example are in normal form and the third is a pattern in normal form.
 \end{example}
@@ -1245,24 +1245,29 @@ This algorithm works on any pattern unification problem, and in particular, any 
 \section{Related works}\label{sec:Related works}
 
 %codata zuerst beschrieben? https://www.sciencedirect.com/science/article/pii/S0747717189800653
-In \cite{HAGINO1989629}, the author presents codata types in the programming language ML
-
+Codata was first introduced in \cite{HAGINO1989629}, specifically for the programming language ML.
+Nonetheless, the author described its duality to data and gives a theoretical overview of codata. %TODO: he does more than that! but i dont know how to describe it in a sentence. is this relevant?
 %codata in action
-Codata in action \cite{10.1007/978-3-030-17184-1_5} was an important motivating force to research codata more.
+More recently, the paper Codata in action \cite{10.1007/978-3-030-17184-1_5} 
+focused on how to convert from data to codata and the other way around, 
+and was an important motivating force to research codata more.
 
-The calculus ND is taken from \cite{binder2024programming}.
+The calculus ND is taken from the PhD of my supervisor \cite{binder2024programming}.
 
 %das erste mal wo unifikation beschrieben wurde?
+The name unification was first used by Robinson in \cite{10.1145/321250.321253}. 
+He provided the framework needed to later discuss the problem of unification and the algorithms to solve it.
 %der unifikationsalgorithmus für first order unif (martelli)
-Martelli and Montanari presented the algorithm for first-order unification problems
-which is often used today. \cite{10.1145/357162.357169}
+Martelli and Montanari \cite{10.1145/357162.357169} presented the algorithm for first-order unification problems
+which is often used today. 
 %pattern unification
-Pattern unfication is first described in \cite{10.1093/logcom/1.4.497}.
-%higher-order unification schmöker
+Pattern unification was first described by Miller in \cite{10.1093/logcom/1.4.497}.
+He described a language used in logic programming where the use of unification variables is restricted to patterns.
 
 %abel+pientka für codata (actually dependent types)
 %   -> evt hervorheben dass die super viele sachen dazu machen und dass der eine agda oder so? macht
-In \cite{10.5555/2021953.2021960}, the authors describe a higher-order unification algorithm for dependent types and records.
+In \cite{10.5555/2021953.2021960}, Abel and Pientka expanded on the higher-order unification algorithm discussed up until then 
+by describing a higher-order unification algorithm for dependent types and records.
 
 
 
