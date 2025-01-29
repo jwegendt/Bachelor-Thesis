@@ -369,6 +369,10 @@ Since we use pattern matching to deconstruct data like Booleans, naturally we ca
         \mathtt{Nil\Rightarrow False}, \mathttbrackets{Cons}{x, y}\Rightarrow\False}\tag{2}
     \end{align*}
 The first example is equivalent to if $t$ then $e_1$ else $e_2$. The second expression tests whether a given list starts with $\True$.
+
+You might wonder why I put the same constructor into the pattern match twice, or even why I use something other than variables in constructors, 
+even though this doesn't follow the restrictions put on terms by our syntax. 
+The reason is that we would still like to use terms like these, and they can be compiled to terms that conform to our restrictions. \cite{10.1007/978-3-030-17184-1_5}
 \end{example}
 
 Until now, we have seen how to instantiate data, and how to take it apart. 
@@ -886,7 +890,7 @@ Unification problems having no mgu is specific to higher-order unification, sinc
 higher-order terms and thus don't have that problem of not changing variables.
 
 \begin{theorem}[Decidability of higher-order unification]
-    Higher-order unification is not decidable. This can be proven through reducing Hilbert's tenth problem to the unification problem. \cite{DBLP:books/el/RV01/Dowek01}
+    Higher-order unification is not decidable. This can be proven through reducing Hilbert's tenth problem to the unification problem. \cite{GOLDFARB1981225}
 \end{theorem}
 
 \subsection{Pattern Unification}
