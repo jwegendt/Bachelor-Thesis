@@ -145,7 +145,7 @@ Furthermore, I go over the decidable subproblem of first-order unification and a
 I explain higher-order unification and the specific problem of pattern unification formally, 
 and discuss how they differ, especially what parts are decidable.
 
-Finally, I present a framework for our algorithm, as well as our unification algorithm for the aforementioned calculus. 
+Finally, I present a framework for our algorithm, as well as a unification algorithm for the aforementioned calculus. 
 This algorithm covers pattern unification problems, as well as problems which can be reduced to pattern unification problems.
 
 
@@ -182,13 +182,13 @@ Write here your acknowledgements.
 
 \section{Introduction}
 
-In this thesis, I want to present a higher-order unification algorithm for a calculus with codata and data.. 
+In this thesis, my goal is to present a higher-order unification algorithm for a calculus with codata and data.. 
 For this, you need to know what data and codata conceptually are, how they are presented in our syntax and how they function.
 You also need to know what higher-order unification is and how it differs from the first-order unification you probably already know.
-These are the goals for the next few paragraphs, after which I then give a quick overview of the different parts of this thesis.
+These are the goals for the next few paragraphs, after which I give a quick overview of the different parts of this thesis.
 
 \subsection{Data and codata}
-While algebraic data are a well-known concept, their brother codata is less talked about. 
+While algebraic data are a well-known concept, their sibling codata is less talked about. 
 Codata is dual to data, which (roughly) means that you can express any concept with codata that you would with data.
 On a high level: While data is concerned with how values are constructed or put in, codata is concerned with how values are destructed or taken out. 
 For instance, look at these different ways to define the same tuple: 
@@ -286,7 +286,7 @@ In the end, there is a section about related works (\cref{sec:Related works}), a
 
 \section{The Untyped Calculus ND}\label{sec:The Untyped Calculus ND}
 
-I will introduce the Untyped Calculus ND, based on \cite{binder2024programming}.
+In this section, I introduce the Untyped Calculus ND, based on \cite{binder2024programming}.
 This calculus may be seen as an extension to the lambda calculus,
 since codata definitions other than function definition are possible!
 
@@ -308,7 +308,7 @@ similar rules apply, but the clauses contain destructors instead of constructors
     \end{align*}
     In pattern and copattern matching, every constructor or destructor may occur no more than once.
     This is so we don't match multiple clauses:
-    In $e.\expatmatch{\mathttbrackets{Tup}{x_1, x_2}\Rightarrow t_1, \mathttbrackets{Tup}{x, y}\Rightarrow t_2}$, the same tuple could be reduced to two different terms, $t_1, t_2$.
+    In $e.\expatmatch{\mathttbrackets{Tup}{x_1, x_2}\Rightarrow t_1, \mathttbrackets{Tup}{x, y}\Rightarrow t_2}$, the same tuple could be reduced to two different terms, $t_1$ and $t_2$.
 \end{definition}
 
 I use different fonts for different uses of our syntax: 
@@ -323,8 +323,8 @@ I will go through some examples and explain what they implement.
 
 We use constructors for types:
 \begin{example}[Constructing types with constructors]
-    Simple Types like $\mathsf{Int, Bool, ...}$ are constructors applied to an empty sequence, 
-    while composite types of course require arguments.
+    Simple types like $\mathsf{Int, Bool, ...}$ are constructors applied to an empty sequence, 
+    while composite types require arguments.
     \begin{align*}
         &\mathsf{Bool}\tag{1}\\
         &\mathsf{List(Int)}\tag{2}\\
@@ -348,7 +348,7 @@ Some terms we build with constructors:
     I use numerals $(\mathtt{1, 2, 5, ...})$ as a shorthand for $\mathtt{suc(zero), suc(suc(zero)), ...}$ throughout this thesis, though.
 \end{example}
 
-If we construct terms, we might also want a way to take them apart. 
+If we construct terms, we naturally also want a way to take them apart. 
 For the terms we just saw, this can be done using pattern matching:
 
 \begin{example}[Taking apart data using pattern matching]
@@ -436,6 +436,8 @@ Here is one more clean example to drive this point home:
 
 \subsection{Free Variables, Substitutions, Contexts}
 
+We need a couple of concepts to describe the processes needed in unification algorithms. 
+
 \begin{definition}[Free Variables]
     The set of free variables of a term $e$ is FV($e$). A term is closed if this set is empty.
     Free Variables are defined recursively over the structure of terms as follows:
@@ -476,7 +478,7 @@ The interesting thing however, is what happens when we apply a substitution to a
         x[\listofexpr / \listofvar] :=& e_i \quad(\text{if } x=x_i) \\
         y\sigma :=& y\quad (\text{if }y\notin \texttt{dom}(\sigma))\\
         (\exconstructor{\listofexpr})\sigma :=& \exconstructor{e_1 \sigma,\dots , e_n \sigma}\\
-        (\expatmatch{\overline{K(\overline{x})\Rightarrow e}})\sigma:=& (e\sigma).\textbf{case}\{\overline{K(\overline{y})\Rightarrow (e\sigma')\sigma}\}\\
+        (e.\expatmatch{\overline{K(\overline{x})\Rightarrow e}})\sigma:=& (e\sigma).\textbf{case}\{\overline{K(\overline{y})\Rightarrow (e\sigma')\sigma}\}\\
         (\excopatmatch{\overline{d(\overline{x})\Rightarrow e}})\sigma:=& \excopatmatch{\overline{d(\overline{y})\Rightarrow(e\sigma')\sigma}}\\
         (\exdestructor{\listofexpr}) \sigma:=& (e \sigma).d(e_1 \sigma,\dots , e_n \sigma)
     \end{align*} 
@@ -502,10 +504,27 @@ This process is called composition of substitutions and looks like this: $\sigma
 
 \begin{definition}[Idempotency]
     A substitution $\sigma$ is idempotent, iff. $\sigma \circ \sigma = \sigma$.
-    Concretely, this means that it doesn't matter how often we apply a substitution to a given expression.
+    This means that it doesn't matter how often we apply a substitution to a given expression.
 \end{definition}
 
 Consider these two examples. One of an idempotent substitution, and one of a substitution that is not idempotent:
+\begin{example}[Idempotency]
+    $[\mathtt{Tup(5, 7)}/x]$ is idempotent, since:
+    \begin{align*}
+        &[\mathtt{Tup(5, 7)}/x] \circ [\mathtt{Tup(5, 7)}/x]\\
+        =& [\mathtt{Tup(5[\mathtt{Tup(5, 7)}/x], 7[\mathtt{Tup(5, 7)}/x])}/x]\\
+        =& [\mathtt{Tup(5, 7)}/x]
+    \end{align*}
+    On the other hand, the substitution $[\mathttbrackets{Tup}{x, y}/x]$ is not idempotent, since:
+    \begin{align*}
+        &[\mathttbrackets{Tup}{x, y}/x]\circ [\mathttbrackets{Tup}{x, y}/x]\\
+        =& [\mathttbrackets{Tup}{x[\mathttbrackets{Tup}{x, y}/x], y[\mathttbrackets{Tup}{x, y}/x]}/x]\\
+        =& [\mathttbrackets{Tup}{\mathttbrackets{Tup}{x, y}, y}/x]\\
+        \neq& [\mathttbrackets{Tup}{x, y}/x]
+    \end{align*}
+\end{example} %TODO: interessanteres beispiel??
+
+\iffalse
 \begin{example}[Idempotency]
     $[\excopatmatch{\ap{x}\Rightarrow x} / y]$ is idempotent, since:
     \begin{align*}
@@ -520,6 +539,7 @@ On the other hand, the substitution $[\excopatmatch{\ap{y}\Rightarrow x} / x]$ i
     =& \excopatmatch{\ap{y}\Rightarrow (\ap{y}\Rightarrow x) } \neq [\excopatmatch{\ap{y}\Rightarrow x} / x]
 \end{align*}
 \end{example}
+\fi
 
 \begin{definition}[More general]\label{more general}
     A substitution $\sigma$ is more general than a substitution $\theta$, iff. there exists a mapping $\tau$, such that: $\theta = \tau \circ \sigma$.
@@ -585,11 +605,11 @@ Now consider these examples of eta-conversion:
 \begin{example}[Eta-conversion for codata]
     \begin{align*}
         \excopatmatch{\ap{x}\Rightarrow id.\ap{x}}&\etaconv id\tag{1}\\
-        \excopatmatch{\mathtt{fst\Rightarrow} specificPair.\mathtt{fst}, \mathtt{snd\Rightarrow}specificPair.\mathtt{snd}}&\etaconv specificPair \tag{2}\\      
-        \text{where } specificPair = \excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}
-    \end{align*} %TODO: besserer name??? sodass es nicht zu lang wird
+        \excopatmatch{\mathtt{fst\Rightarrow} somePair.\mathtt{fst}, \mathtt{snd\Rightarrow}somePair.\mathtt{snd}}&\etaconv somePair \tag{2}\\      
+        \text{where } somePair = \excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}
+    \end{align*} 
     The first example says: The function that takes a term and applies the identity function to it, does the same thing as the identity function.
-    In the second example, we have a pair that contains the first value of a specific pair, and the second value of a specific pair, which is obviously just that specific pair.    
+    In the second example, we have a pair that contains the first value of some pair, and the second value of some pair, which is obviously just equivalent to some pair.    
 \end{example}    
     
 \section{Simple Types}\label{sec:Simple Types}
@@ -607,7 +627,7 @@ To start, let's look at some example terms and their types:
         \excopatmatch{\ap{x}\Rightarrow x.\expatmatch{\mathtt{True\Rightarrow False, False \Rightarrow True}}}&: \mathsf{Bool \rightarrow Bool}
     \end{align*}    
 \end{example}
-Here are the the basic types we consider in our examples:
+Here are the the basic types we use in our examples:
 \begin{definition}[Basic types]
     \begin{align*}
         \tau, \tau_1, \tau_2, ... ::&= \mathsf{Bool} \\
@@ -744,7 +764,7 @@ we can deduce that $t$ has the type $\tau$.
 We want to slowly make our way to higher-order unification, and thus touch on simpler problems first. 
 Furthermore, we need a couple more concepts to talk about unification problems and describe our algorithm. 
 
-A unification problem is described by a set of equations with expressions on each side $\overline{e\equiv e}$ containing unknown unification variables $\alphaunifvar_1, \alphaunifvar_2, \betaunifvar...$, 
+A unification problem is described by a set of equations with expressions on each side $\overline{e\equiv e}$ containing unknown unification variables $\alphaunifvar_1, \alphaunifvar_2, ...$, 
 where our goal is to find a simultaneous substitution $[\listofexpr / \alphaunifvar_1, \dots, \alphaunifvar_n]$ which substitutes expressions for unification variables, 
 such that the sides of the given equations are the same. 
 
@@ -769,7 +789,7 @@ Consider some examples of first-order unification. On the left is the problem, o
         \Int \rightarrow \alphaunifvar &\equiv \Int \rightarrow \Bool &\sigma_3 &= [\Bool/\alphaunifvar]\tag{3}\\
         \alphaunifvar&\equiv \mathsf{List(\alphaunifvar)} &\sigma_4 &= \bot\tag{4}
     \end{align*}
-    The forth example is an instance of a failing \ref{a}.
+    The fourth example is an instance of a failing \ref{a}.
 \end{example}
 
 \begin{definition}[First-order unification]
@@ -783,11 +803,11 @@ Consider some examples of first-order unification. On the left is the problem, o
 
 \begin{theorem}[Decidability of First-Order Unification]
     For first-order unification, there exists an algorithm on equations $\overline{e\equiv e}$, which always terminates, and returns the solution if there exists one. 
-    In particular, this solution is always a mgu (i.e. if there is a solution, then there always exists a most general one).
+    In particular, this solution is always a mgu i.e. if there is a solution, then it is always the most general one.
 \end{theorem}%TODO: citation
 
 \begin{definition}[Unification algorithm for First-Order Unification ]
-    $\perp$ is the symbol for fail.
+    $\perp$ is the symbol that indicates that there is no solution.
     The algorithm is defined by non-deterministically applying the rules below:
     \begin{align*}
         E & \cup \{ e \equiv e\} \Rightarrow E \tag{delete}\\
@@ -1118,7 +1138,7 @@ For equations marked with $\circ$, we only require the constructors (or destruct
 (i.e. no syntactic equality among arguments required).
 This is because in *-equations, we expect variables, whereas in $\circ$-arguments, we expect expressions (or \textbf{values} to be exact --- since we expect terms in normal form).
 
-In *-equations where the arguments are not equal syntactically, rule \cref{12} applies and we simplify to $\bot$:
+In *-equations where the arguments are not equal syntactically, rule (\ref{12}) applies and we simplify to $\bot$:
 
 \begin{example}[Contradiction in (co-)pattern matching]
     \begin{align}
@@ -1252,7 +1272,8 @@ More recently, the paper Codata in action \cite{10.1007/978-3-030-17184-1_5}
 focused on how to convert from data to codata and the other way around, 
 and was an important motivating force to research codata more.
 
-The calculus ND is taken from the PhD of my supervisor \cite{binder2024programming}.
+The calculus ND is taken from the PhD of my supervisor \cite{binder2024programming}, 
+where he also goes into more depth on 
 
 %das erste mal wo unifikation beschrieben wurde?
 The name unification was first used by Robinson in \cite{10.1145/321250.321253}. 
