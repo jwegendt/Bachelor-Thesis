@@ -821,7 +821,6 @@ Consider some examples of first-order unification. On the left is the problem, o
 
 This algorithm is based on the version presented by Martelli and Montanari in \cite{10.1145/357162.357169},
 adapted to our syntax.
-
 \section{Higher-Order Unification}\label{sec:Higher-Order Unification}
 
 In this section, I introduce higher-order unification.
@@ -1080,7 +1079,7 @@ Let's look at some examples. We would like the following to be true:
     \\ &\mapsto x\vdash  e_1 \equiv t_1\wedge x\vdash e_2\equiv t_2\\
     &\vdash \excopatmatch{\ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\ap{x}\Rightarrow\betaunifvar} \tag{2}
     \\ &\mapsto x\vdash \alphaunifvar \equiv \betaunifvar\\
-    &\excopatmatch{\mathtt{fst \Rightarrow} \mathtt{5}, \mathtt{snd\Rightarrow False}}\equiv \alphaunifvar \tag{3}
+    &\vdash\excopatmatch{\mathtt{fst \Rightarrow} \mathtt{5}, \mathtt{snd\Rightarrow False}}\equiv \alphaunifvar \tag{3}
     \\ &\mapsto \vdash \mathtt{5}\equiv \alphaunifvar.\mathtt{fst}\, \wedge \,\vdash \mathtt{False\equiv\alphaunifvar.snd}
     \end{align*}
 \end{example}
@@ -1091,7 +1090,7 @@ is for them to be equivalent \textbf{syntactically}.
 
 We want to formulate rules which help us simplify equations like these --- equations without beta-redexes.
 We want remove redundant constraints, split constraints made up of composite terms to find solutions to their parts,
-and spot redundancies to stop the solving process as early as possible
+and spot redundancies to stop the solving process as early as possible.
 \begin{definition}[Decomposing Constraints]
     \begin{align*}
     &\textbf{Removing redundancy}\\
@@ -1124,10 +1123,10 @@ and spot redundancies to stop the solving process as early as possible
     &\textbf{Removing contradictions}\\ 
     &\Psi \vdash x\equiv y &\mapsto_c& \bot 
     \tag{10}\\
+    &\text{non-matching con-/destructors in $\circ$-equation}&\mapsto_c&\bot\tag{11}\\
     &\text{non-matching con-/destructors or non-matching}\\
-    &\text{variables in }\text{$\circ$-equation} &\mapsto_c& \bot\\
-    &\text{non-matching con-/destructors in *-equation}&\mapsto_c&\bot
-    \tag{12}\label{12}\\
+    &\text{variables in *-equation} &\mapsto_c& \bot
+    \tag{12}\label{12}
     \end{align*}
 \end{definition}
 Rules 6-8 are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
@@ -1230,7 +1229,7 @@ Step 2 and 3 are the occurs check, which ensures that we don't infinitely substi
 \end{definition}
 
 We should be careful, because there is another thing we could introduce with unification steps:
-\begin{example}[Introducing simplifiable constraints through unficiation steps]
+\begin{example}[Introducing simplifiable constraints through unificiation steps]
     \begin{align*}
         \constraints &=& &\vdash \excopatmatch{\ap{x}\Rightarrow\alphaunifvar}\equiv id 
         &\wedge& &\vdash \betaunifvar.\ap{x}\equiv \alphaunifvar\\
