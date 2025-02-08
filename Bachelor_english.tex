@@ -21,7 +21,6 @@
 \usepackage{mathtools}
 \usepackage{array} %for the \newcolumntype macro
 \usepackage{amsthm} %for theorems/definitions
-\usepackage{thmtools} %for listofheorems TODO: remove/integrate?
 \usepackage{bussproofs}
 
 \textwidth 14cm
@@ -44,8 +43,7 @@
 \begin{document}
 
 
-%%%%% Macros %TODO: sollten die wo anders hin/in ein eigenes file?
-
+%%%%% Macros 
 
 %Macros for Theorems/Definitions/...
 \theoremstyle{definition}
@@ -301,7 +299,7 @@ A pattern match $\patmatch$ matches an expression $e$ against a sequence of clau
 For a copattern match $\copatmatch$
 similar rules apply, but the clauses contain destructors instead of constructors.
 
-\begin{definition}[Terms of the Calculus ND]
+\begin{definition}[Terms of the calculus ND]
     \begin{align*}
     e,t ::&=  x,y  \tag*{Variable} \\
         &\partition\constructor \tag*{Constructor} \\
@@ -446,7 +444,7 @@ Here is one more clean example to drive this point home:
 
 In this section, I describe a couple of concepts needed to describe the processes of unification algorithms. 
 
-\begin{definition}[Free Variables]
+\begin{definition}[Free variables]
     The set of free variables of a term $e$ is FV($e$). A term is closed if this set is empty.
     Free Variables are defined recursively over the structure of terms as follows:
     \begin{align*}
@@ -455,20 +453,26 @@ In this section, I describe a couple of concepts needed to describe the processe
             \FV{\exconstructor{\listofexpr}} &:= \FV{e_1} \cup \dots\cup \FV{e_n}\\
             \FV{\patmatch} &:= \FV{e}\cup (\FV{t_1}\backslash(\overline{x})_1)\cup \dots\cup (\FV{t_n}\backslash(\overline{x})_n)\\
             \FV{\copatmatch} &:= (\FV{t_1}\backslash(\overline{x})_1)\cup \dots\cup (\FV{t_n}\backslash(\overline{x})_n)\\
-            \FV{\exdestructor{e_1,...e_n}} &:= \FV{e}\cup FV(e_1) \cup \dots \cup \FV{e_n}    
+            \FV{\exdestructor{e_1,...e_n}} &:= \FV{e}\cup \FV{e_1} \cup \dots \cup \FV{e_n}    
         \end{split}
     \end{align*}
-%TODO: explanation
 \end{definition}
+
+\begin{example}[Free variables]
+    \begin{align*}
+        a
+    \end{align*}
+\end{example}
 
 \begin{definition}[Substitution]
-    A simultaneous substitution $\sigma$ of the terms $\listofexpr$ for the distinct variables $\listofvar$ is defined as follows:
-    \begin{align*} %TODO: geht das mit dem distinct da oben unter?
+    A simultaneous substitution $\sigma$ of the terms $\listofexpr$ for the variables $\listofvar$ is defined as follows:
+    \begin{align*}
         \sigma ::= [\listofexpr \backslash\listofvar]
     \end{align*}
+    The variables $\listofvar$ must be distinct.
 \end{definition}
 
-\begin{definition}[Domain and Range of a Substitution]
+\begin{definition}[Domain and range of a substitution]
     The definitions of Domain and Range of a Substitution are as follows:
     \begin{align*}
         \texttt{dom}([\listofexpr/\listofvar]) &:= \{\listofvar\}\\
@@ -480,7 +484,7 @@ In this section, I describe a couple of concepts needed to describe the processe
 
 The interesting thing however, is what happens when we apply a substitution to an expression:
 
-\begin{definition}[Action of a Substitution]
+\begin{definition}[Action of a substitution]
     The action of a substitution $\sigma$ on a term $e$, is written as $e \sigma$ and is defined as follows:
     \begin{align*}
         x[\listofexpr / \listofvar] :=& e_i \quad(\text{if } x=x_i) \\
@@ -499,7 +503,7 @@ Sometimes we want to attach multiple substitutions together.
 This process is called composition of substitutions and looks like this: $\sigma = \sigma_2 \circ \sigma_1$.
 It is equivalent to first applying the substitution $\sigma_1$, then the substitution $\sigma_2$.
 
-\begin{definition}[Composition of Subsitutions]
+\begin{definition}[Composition of subsitutions]
     Given two substitutions
     \begin{align*}
         \sigma_1 := [\listofexpr/\listofvar],\qquad \sigma_2 := [t_1,\dots,t_m/y_1,\dots,y_m],
@@ -601,7 +605,7 @@ Consider these examples of beta-conversion:
     Intuitively, beta-conversion means not only function application but also the reduction under pattern or copattern matching. %TODO: macht das so sinn? sollte ich das mehr erklären? sind die beispiele hier überhaupt gut?        
 \end{example}
 
-\begin{definition}[Eta-Conversion for codata]
+\begin{definition}[Eta-conversion for codata]
     A single step of eta-conversion $e_1 \etaconv e_2$ is defined as follows:
     \begin{align*}
         \excopatmatch{\overline{d(\overline{x})\Rightarrow e.d(\overline{x})}}
@@ -781,7 +785,7 @@ such that the sides of the given equations are the same.
     which when applied to the problem solves it, i.e. makes the sides of the equations equal.
 \end{definition}
     
-\begin{definition}[Most General]
+\begin{definition}[Most general]
     A solution to a unification problem is the most general unifier (mgu), iff. it is more general (see \cref{more general}) than all other solutions.
 \end{definition} 
 
@@ -809,12 +813,12 @@ Consider some examples of first-order unification. On the left is the problem, o
 \end{align*}
 \end{definition}
 
-\begin{theorem}[Decidability of First-Order Unification]
+\begin{theorem}[Decidability of first-order unification]
     For first-order unification, there exists an algorithm on equations $\overline{e\equiv t}$, which always terminates, and returns the solution if there exists one. 
     In particular, this solution is always a mgu i.e. iff. there is a solution, it is always the most general one.
 \end{theorem}%TODO: citation
 
-\begin{definition}[Unification algorithm for First-Order Unification ]
+\begin{definition}[Unification algorithm for first-order unification]
     $\perp$ is the symbol that indicates that there is no solution.
     The algorithm is defined by non-deterministically applying the rules below:
     \begin{align*}
@@ -833,7 +837,7 @@ adapted to our syntax.
 
 In this section, I introduce higher-order unification.
 
-\begin{definition}[Higher-Order Unification]
+\begin{definition}[Higher-order unification]
     A higher-order unification problem consists of expressions from the following grammar:
     \begin{align*}
         e,t  ::&= \alphaunifvar\sigma \tag*{Unification variable with substitution}\\ %TODO: name? 
@@ -946,7 +950,7 @@ The solutions aren't unique because the variables aren't unique.
 
 %TODO: boring
 To talk about the algorithms for solving unification problems, we need another definition: %TODO: umformulieren
-\begin{definition}[Normal Form]
+\begin{definition}[Normal form]
     The normal form \textbf{NF} is defined as follows:
     \begin{align*}
         n &::= x \partition \alphaunifvar \partition n.d(\overline{v})\partition n.\textbf{case}\{\overline{K(\overline{x})\Rightarrow v}\}\\
@@ -1030,7 +1034,7 @@ and store what we have found out about our unknown variables. This is where cons
 \end{definition}
 $\Psi \vdash e\equiv t$ means that given the variables $\Psi$, we deduce that $e\equiv t$.
 $\Psi$ contains those variables we have seen before and want to remember.
-More precisely, $\Psi \vdash e\equiv t \Rightarrow FV(e)\subseteq \Psi \wedge FV(t)\subseteq \Psi$.
+More precisely: $\Psi \vdash e\equiv t \Rightarrow FV(e)\subseteq \Psi \wedge FV(t)\subseteq \Psi$.
 This motivates the name context for $\Psi$, as well.
 
 We formulate our constraints from a given unification problem as follows: %TODO: is the \text still necessary?
@@ -1069,7 +1073,7 @@ Let's look at some examples. We would like the following to be T:
 \end{example}
 
 Let's look at some more examples:
-\begin{example}[Constructors and Destructors]
+\begin{example}[Constructors and destructors]
     \begin{align*}
     &\vdash \mathttbrackets{Cons}{x, \mathtt{Nil}} \equiv \mathttbrackets{Cons}{y, \mathtt{Nil}}&\mapsto& \bot
     \tag{1}\\
@@ -1084,7 +1088,7 @@ Let's look at some more examples:
     \end{align*}
 \end{example}
 
-\begin{example}[Pattern and Copattern Matching]
+\begin{example}[Pattern and copattern matching]
     \begin{align*}
     &x\vdash x.\expatmatch{\texttt{T} \Rightarrow e_1, \texttt{F} \Rightarrow e_2} \equiv x.\expatmatch{\texttt{T} \Rightarrow t_1, \texttt{F} \Rightarrow t_2}\tag{1}
     \\ &\mapsto x\vdash  e_1 \equiv t_1\wedge x\vdash e_2\equiv t_2\\
@@ -1101,7 +1105,7 @@ is for them to be equivalent \textbf{syntactically}.
 We want to formulate rules which help us simplify equations like these --- equations without beta-redexes.
 We want to remove redundant constraints, split constraints made up of composite terms to find solutions to their parts,
 and spot redundancies to stop the solving process as early as possible.
-\begin{definition}[Decomposing Constraints]
+\begin{definition}[Decomposing constraints]
     \begin{align*}
     &\textbf{Removing redundancy}\\
     &\Psi \vdash x\equiv x&\mapsto_r&\top
@@ -1252,10 +1256,17 @@ There are very few unification steps:
         \tag{2}\label{unif2}\\
         &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e
         &\mapsto_u& \bot &(\alphaunifvar\in e)
-        \tag{3}
+        \tag{3}\label{unif3}
     \end{align*}
 Step 2 and 3 are the occurs check, which ensures that we don't infinitely substitute terms for unification variables.
 \end{definition}
+
+\begin{example}[Failing the occurs check]
+    \begin{align*}
+        &\vdash\alphaunifvar \equiv \; \vdash \mathsfbrackets{List}{\alphaunifvar} \xmapsto{(\ref{unif3})}_u \bot\tag{1}\\
+        &\vdash\alphaunifvar \equiv \expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow \alphaunifvar}\xmapsto{(\ref{unif3})}_u \bot\tag{2}
+    \end{align*}
+\end{example}
 
 We should be careful of one other thing we could introduce with unification step:
 \begin{example}[Introducing simplifiable constraints through unificiation steps]
@@ -1287,7 +1298,7 @@ We should be careful of one other thing we could introduce with unification step
     \end{align*}
 \fi
 
-\subsection{The algorithm}
+\subsection{The Algorithm}
 Having described all the steps of our algorithm, the given examples lead us to a question:
 How and when do we apply these steps?
 
@@ -1303,7 +1314,7 @@ by formulating a substitution for each assigned term.
 
 This algorithm works on any pattern unification problem, and in particular, any unification problem that can be reduced to a pattern unification problem. %TODO: how?
 
-\section{Related works}\label{sec:Related works}
+\section{Related Works}\label{sec:Related works}
 
 %codata zuerst beschrieben? https://www.sciencedirect.com/science/article/pii/S0747717189800653
 Codata was first introduced in \cite{HAGINO1989629}, specifically for the programming language ML.
