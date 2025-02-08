@@ -460,7 +460,12 @@ In this section, I describe a couple of concepts needed to describe the processe
 
 \begin{example}[Free variables]
     \begin{align*}
-        a
+        \FV{\mathtt{Tup(5, 7)}} &= \emptyset \tag{1}\\
+        \FV{\mathttbrackets{Tup}{x, y}} &= \{x, y\}\tag{2}\\
+        \FV{x.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}} 
+        &= \FV{x}\cup \FV{x}\backslash\{x, y\} = \{x\}\cup \emptyset = \{x\}\tag{3}\\
+        \FV{\excopatmatch{\ap{x}\Rightarrow y}} &= \FV{y} \backslash \{x\} = \{y\}\tag{4}\\
+        \FV{x.\mathtt{fst}} &= \{x\}\tag{5}
     \end{align*}
 \end{example}
 
