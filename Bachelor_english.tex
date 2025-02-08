@@ -540,7 +540,7 @@ Consider these two examples. One of an idempotent substitution, and one of a sub
         =& [\mathttbrackets{Tup}{\mathttbrackets{Tup}{x, y}, y}/x]\\
         \neq& [\mathttbrackets{Tup}{x, y}/x]
     \end{align*}
-\end{example} %TODO: interessanteres beispiel??
+\end{example}
 
 \iffalse
 \begin{example}[Idempotency]
@@ -578,7 +578,6 @@ This is because there exists a mapping $\tau = [\mathsf{Int / \alphaunifvar}]$, 
     &= [\mathsf{Int[Int/\alphaunifvar], \alphaunifvar[Int/\alphaunifvar] / \alphaunifvar, \betaunifvar]= [Int, Int / \alphaunifvar, \betaunifvar]= \theta}
 \end{align*}    
 \end{example}
-%TODO: das ist ein vorgriff! diese sektion doch weiter runter schieben und neues beispiel?
 
 \subsection{Conversion}
 
@@ -607,7 +606,7 @@ Consider these examples of beta-conversion:
         \excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}.\mathtt{fst}\betaconv \mathtt{1}
         \tag{4}
     \end{align*}
-    Intuitively, beta-conversion means not only function application but also the reduction under pattern or copattern matching. %TODO: macht das so sinn? sollte ich das mehr erklären? sind die beispiele hier überhaupt gut?        
+    Intuitively, beta-conversion means not only function application but also the reduction under pattern or copattern matching.
 \end{example}
 
 \begin{definition}[Eta-conversion for codata]
@@ -820,8 +819,8 @@ Consider some examples of first-order unification. On the left is the problem, o
 
 \begin{theorem}[Decidability of first-order unification]
     For first-order unification, there exists an algorithm on equations $\overline{e\equiv t}$, which always terminates, and returns the solution if there exists one. 
-    In particular, this solution is always a mgu i.e. iff. there is a solution, it is always the most general one.
-\end{theorem}%TODO: citation
+    In particular, this solution is always a mgu i.e. iff. there is a solution, it is always the most general one.\cite{10.1145/321250.321253}
+\end{theorem}
 
 \begin{definition}[Unification algorithm for first-order unification]
     $\perp$ is the symbol that indicates that there is no solution.
@@ -845,7 +844,7 @@ In this section, I introduce higher-order unification.
 \begin{definition}[Higher-order unification]
     A higher-order unification problem consists of expressions from the following grammar:
     \begin{align*}
-        e,t  ::&= \alphaunifvar\sigma \tag*{Unification variable with substitution}\\ %TODO: name? 
+        e,t  ::&= \alphaunifvar\sigma \tag*{Unification variable with substitution}\\ 
             &\partition x  \tag*{Variable} \\
             &\partition\constructor \tag*{Constructor} \\
             &\partition\patmatch  \tag*{Pattern match}\\
@@ -932,7 +931,7 @@ patterns are not a subset of first-order unification, only of higher-order unifi
 
 \begin{theorem}[Decidability of Pattern Unification]
     Unification on patterns is decidable.
-    Iff. there exists a solution, there also exists a mgu.
+    Iff. there exists a solution, there also exists a mgu. \cite{10.1093/logcom/1.4.497}
 \end{theorem}
 Thus, the nice thing about pattern unification is that if we restrict our higher-order unification problem to only contain unification variables in patterns, 
 finding a solution becomes much easier. 
@@ -953,8 +952,7 @@ These solutions are equivalent, in that no solution is more general than the oth
 The solutions aren't unique because the variables aren't unique.  
 \end{example}
 
-%TODO: boring
-To talk about the algorithms for solving unification problems, we need another definition: %TODO: umformulieren
+We need another definition so that we can categorize unification problems further:
 \begin{definition}[Normal form]
     The normal form \textbf{NF} is defined as follows:
     \begin{align*}
@@ -987,11 +985,11 @@ The first and second example are in normal form and the third is a pattern in no
 
 \begin{theorem}
     A unification problem has a solution iff. that solution is the same for the normal form of that problem. 
-\end{theorem}
+\end{theorem}%TODO: citation
 
 This is helpful for us since we only have to consider normal forms in our algorithm.
 Concretely: We first reduce a given term it to its normal form, and then apply the steps to find our solution.
-Thus, from this point on, we will only be looking at terms that have a normal form. This is enough in most applications. %TODO: ausschmücken?
+Thus, from this point on, we will only be looking at terms that have a normal form. This is enough in most applications.
 
 For a practical example for why normal forms are helpful, consider the following problem:
 \begin{example}[Beta-reductions before solving]
@@ -1042,8 +1040,8 @@ $\Psi$ contains those variables we have seen before and want to remember.
 More precisely: $\Psi \vdash e\equiv t \Rightarrow FV(e)\subseteq \Psi \wedge FV(t)\subseteq \Psi$.
 This motivates the name context for $\Psi$, as well.
 
-We formulate our constraints from a given unification problem as follows: %TODO: is the \text still necessary?
-We take each given equation and formulate a constraint $K$ with $\text{empty context }\Psi$. We join them using ands:
+We formulate our constraints from a given unification problem as follows:
+We take each given equation and turn it into a constraint $K$ with $\text{empty context }\Psi$. We join these constraints using ands:
 The equations $\overline{e\equiv t}= e_1 \equiv t_1, ... e_n\equiv t_n$ become $\constraints = C_1 \wedge ... \wedge C_n = \, \vdash e_1 \equiv t_1 \wedge ...\wedge \vdash e_n \equiv t_n $  
 
 To clarify: $C \wedge \mathcal{C}$ is the regular logical "and", therefore 
@@ -1057,7 +1055,7 @@ $\constraints \sigma = (C \wedge \constraints')\sigma = C \sigma \wedge \constra
 It is helpful to simplify our equations a bit before starting the unification process.
 We do this by taking out redundant equations, spotting clearly contradictory equations and splitting our equations into smaller parts which we can further simplify and unify.
 
-Let's look at some examples. We would like the following to be T:
+Let's look at some examples. We would like the following to be True:
 \begin{example}[There are two kinds of variables!]
     \begin{align*}
     &x \vdash x.\mathtt{fst} \equiv x.\mathtt{fst} &\mapsto& \top
@@ -1072,9 +1070,6 @@ Let's look at some examples. We would like the following to be T:
     Whereas to our unification variables $\alphaunifvar$ we want to assign any term such that our equations hold, variables $x$ add \textbf{constraints} to our equations. 
     The equation $x \vdash x.\mathtt{fst} \equiv x.\mathtt{snd}$ must hold for \textbf{any} variable $x$, since we cannot choose $x$! 
     And since the equation does not hold for $x = \excopatmatch{\mathtt{fst\Rightarrow 2, snd\Rightarrow 3}}$, we can simplify to $\bot$.
-    %TODO: rework sentence structure
-    %TODO: can i explain this better?
-    %TODO: write something about the third example?
 \end{example}
 
 Let's look at some more examples:
@@ -1310,7 +1305,7 @@ How and when do we apply these steps?
 Given a set of equations, we normalize the terms in them and are left with only normal forms. 
 For each equation, we formulate a constraint and get the set of constraints through logical ands.
 Next, we decompose the constraints, removing redundancies and potentially terminating early after finding contradictions.
-We do this non-deterministically, since the order doesn't matter. %TODO: does it really not?
+We do this non-deterministically, since the order doesn't matter.
 This makes our algorithm dynamic, since we hold off on solving certain equations until we know more.
 
 When we can't further simplify, we non-deterministically apply unification steps, beta-reduce our terms and apply decomposition steps.
@@ -1323,7 +1318,7 @@ This algorithm works on any pattern unification problem, and in particular, any 
 
 %codata zuerst beschrieben? https://www.sciencedirect.com/science/article/pii/S0747717189800653
 Codata was first introduced in \cite{HAGINO1989629}, specifically for the programming language ML.
-Nonetheless, the author described its duality to data and gives a theoretical overview of codata. %TODO: he does more than that! but i dont know how to describe it in a sentence. is this relevant?
+Nonetheless, the author gave a theoretical overview of codata and described its duality to data.
 %codata in action
 More recently, the paper Codata in action \cite{10.1007/978-3-030-17184-1_5} 
 focused on how to convert from data to codata and the other way around, 
@@ -1398,27 +1393,3 @@ Ort, Datum	\hfill Unterschrift \hfill
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \end{document}
-
-\iffalse
-Für wenn wir patterns in mehr kontext behandeln i guess
-
-Some examples of patterns:
-\begin{align*}
-    \begin{split}
-    t_1 &= \excopatmatch{\ap{x}\Rightarrow \alphaunifvar.\ap{x}} \\
-    t_2 &= \excopatmatch{\ap{x}\Rightarrow \excopatmatch{\ap{y}\Rightarrow (\alphaunifvar.\ap{y}).\ap{x}}}    
-    \end{split}
-\end{align*} 
-In each of these terms, our unification variable is applied to distinct variables which are bound through  cocases.
-
-However, these terms are not patterns:
-\begin{align*}
-    \begin{split}
-        t_3 &= (\alphaunifvar.\ap{x}).\ap{y}\\
-        t_4 &= \excopatmatch{\ap{y}\Rightarrow (\alphaunifvar.\ap{x})}\\
-        t_5 &= \excopatmatch{\ap{x}\Rightarrow (\alphaunifvar.\ap{x}).\ap{x}}
-    \end{split}
-\end{align*}
-as they all don't contain exactly one cocase per variable which would bind that variable distinctly.
-%TODO: macht das sinn mit dem distinctly? 
-\fi
