@@ -540,6 +540,14 @@ Consider these two examples. One of an idempotent substitution, and one of a sub
         =& [\mathttbrackets{Tup}{\mathttbrackets{Tup}{x, y}, y}/x]\\
         \neq& [\mathttbrackets{Tup}{x, y}/x]
     \end{align*}
+    The substitution $[\excopatmatch{\ap{x}\Rightarrow y}/y]$ also not idempotent:
+    \begin{align*}
+        &[\excopatmatch{\ap{x}\Rightarrow y}/y] \circ [\excopatmatch{\ap{x}\Rightarrow y}/y]\\
+        =& [\excopatmatch{\ap{x}\Rightarrow y}[\excopatmatch{\ap{x}\Rightarrow y}/y]/y]\\
+        =& [\excopatmatch{\ap{z}\Rightarrow y[z/x][\excopatmatch{\ap{x}\Rightarrow y}/y]}/y]\\
+        =& [\excopatmatch{\ap{z}\Rightarrow \excopatmatch{\ap{x}\Rightarrow y}}/y]\\
+        \neq & [\excopatmatch{\ap{x}\Rightarrow y}/y]
+    \end{align*}
 \end{example}
 
 \iffalse
@@ -1166,13 +1174,13 @@ See the following examples for further clarification:
 
 \begin{example}[Removing contradictions in *-equations]
     \begin{align*}
-        &\vdash x.\expatmatch{\mathttbrackets{Cons}{y_1, y_2}} 
+        &x\vdash x.\expatmatch{\mathttbrackets{Cons}{y_1, y_2}} 
         \equiv x.\expatmatch{\True \Rightarrow\alphaunifvar, \False\Rightarrow \betaunifvar}
         &\mapsto_c& \bot \tag{1}\\
         &\vdash \excopatmatch{\ap{x}\Rightarrow \mathtt{1}}
         \equiv \excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}
         &\mapsto_c& \bot \tag{2}\\
-        &\vdash x.\expatmatch{\mathttbrackets{Cons}{x_1, x_2}\Rightarrow \True} 
+        &x\vdash x.\expatmatch{\mathttbrackets{Cons}{x_1, x_2}\Rightarrow \True} 
         \equiv x.\expatmatch{\mathttbrackets{Cons}{y_1, y_2}\Rightarrow\True}
         &\mapsto_c& \bot \tag{3}\\
         &\vdash \excopatmatch{\ap{x}\Rightarrow x}
