@@ -993,7 +993,12 @@ The first and second example are in normal form and the third is a pattern in no
 
 \begin{theorem}
     A unification problem has a solution iff. that solution is the same for the normal form of that problem. 
-\end{theorem}%TODO: citation
+    
+    \textbf{Proof sketch:} Let $e \equiv t$ be our unification problem with only one equation (w.l.o.g.).
+    Let $e'$ be the normal form of $e$ and $t'$ the normal form of $t$, so: $e'\betaconv e \land t'\betaconv t$.
+    Thus, it follows that: $e' \betaconv e \equiv t \betaconv t'$. This means that the unification problem stays the same modulo beta-reduction.
+    This is not a problem since $\equiv$ is already modulo beta-reduction. 
+\end{theorem}
 
 This is helpful for us since we only have to consider normal forms in our algorithm.
 Concretely: We first reduce a given term it to its normal form, and then apply the steps to find our solution.
