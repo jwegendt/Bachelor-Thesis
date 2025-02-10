@@ -22,6 +22,7 @@
 \usepackage{array} %for the \newcolumntype macro
 \usepackage{amsthm} %for theorems/definitions
 \usepackage{bussproofs}
+\usepackage{amssymb}
 
 \textwidth 14cm
 \textheight 22cm
@@ -1045,12 +1046,14 @@ and store what we have found out about our unknown variables. This is where cons
         C ::= \top \partition \bot \partition \Psi \vdash e\equiv t \tag*{where $\Psi = x_1, ..., x_n$}\\
         \mathcal{C} ::= C \wedge \mathcal{C}
     \end{align*}
-    Where $\top$ means that an equation is trivially T, whereas $\bot$ is for contradictory equations. 
+    Where $\top$ means that an equation is trivially True, whereas $\bot$ is for contradictory equations. 
     The variables in the context $\Psi$ need to be distinct. $\Psi$ may also be empty.
 \end{definition}
 $\Psi \vdash e\equiv t$ means that given the variables $\Psi$, we deduce that $e\equiv t$.
 $\Psi$ contains those variables we have seen before and want to remember.
-More precisely: $\Psi \vdash e\equiv t \Rightarrow FV(e)\subseteq \Psi \wedge FV(t)\subseteq \Psi$.
+More precisely, the context maintains the following invariant:
+$\Psi \vdash e\equiv t \Rightarrow FV(e)\subseteq \Psi \wedge FV(t)\subseteq \Psi$, %TODO: zeilenumbruch verhindern?
+which means our expression remains well-scoped throughout our algorithm.
 This motivates the name context for $\Psi$, as well.
 
 We formulate our constraints from a given unification problem as follows:
@@ -1231,33 +1234,6 @@ But this example tells us something else, too: Doing so might introduce redexes!
 This means that we might need to reduce terms to normal form again, even after applying unification steps. 
 \end{example}
 
-\iffalse
-\begin{align*} %overfull
-    \constraints &= &\vdash\ & \mathtt{Tup(\alphaunifvar, F)}\equiv \mathtt{Tup(T, F)}&\wedge&
-    \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
-    &\xmapsto{(5)}_d &\vdash\ & \mathtt{\alphaunifvar\equiv T}\qquad\wedge\vdash \mathtt{F\equiv F} &\wedge& 
-    \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
-    &\xmapsto{(3)}_r &\vdash\ & \mathtt{\alphaunifvar\equiv T} &\wedge& 
-    \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
-    &\mapsto_u &\vdash\ &\mathtt{\alphaunifvar\equiv T} &\wedge&
-    \vdash \betaunifvar\equiv \mathtt{T}.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
-    &\stackrel{\betaconv}{=} &\vdash\ &\mathtt{\alphaunifvar\equiv T} &\wedge&
-    \vdash \betaunifvar\equiv \mathtt{1}
-\end{align*} 
-\begin{align*} %split lines
-    \constraints &= \vdash\ \mathtt{Tup(\alphaunifvar, F)}\equiv \mathtt{Tup(T, F)}\\
-    &\wedge\vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
-    &\xmapsto{(5)}_d \vdash\   \mathtt{\alphaunifvar\equiv T}\qquad\wedge\vdash \mathtt{F\equiv F}\\
-    &\wedge\vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
-    &\xmapsto{(3)}_r \vdash\   \mathtt{\alphaunifvar\equiv T} \\
-    &\wedge\vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
-    &\mapsto_u \vdash\  \mathtt{\alphaunifvar\equiv T}\\
-    &\wedge\vdash \betaunifvar\equiv \mathtt{T}.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
-    &\stackrel{\betaconv}{=} \vdash\  \mathtt{\alphaunifvar\equiv T} \\
-    &\wedge\vdash \betaunifvar\equiv \mathtt{1}
-\end{align*}
-\fi
-
 There are very few unification steps: 
 \begin{definition}[Unification]
     \begin{align*}
@@ -1265,51 +1241,35 @@ There are very few unification steps:
         &\mapsto_u& \alphaunifvar \equiv e &(e\neq \betaunifvar)
         \tag{1}\label{unif1}\\
         &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e 
-        &\mapsto_u& \constraints[e/\alphaunifvar] \wedge \Psi \vdash \alphaunifvar \equiv e &(\alphaunifvar \notin e)
+        &\mapsto_u& \constraints[e/\alphaunifvar] \wedge \Psi \vdash \alphaunifvar \equiv e &(\alphaunifvar \notin e \land\nexists\,\alphaunifvar\equiv t)
         \tag{2}\label{unif2}\\
         &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e
-        &\mapsto_u& \bot &(\alphaunifvar\in e)
+        &\mapsto_u& \bot &(\alphaunifvar\in e \lor \exists \,\alphaunifvar\equiv t )
         \tag{3}\label{unif3}
     \end{align*}
-Step 2 and 3 are the occurs check, which ensures that we don't infinitely substitute terms for unification variables.
+Step 2 and 3 are the occurs check, which ensures that we don't infinitely substitute terms for unification variables 
+and stops us from finding two different solutions for the same unification variable.
 \end{definition}
 
 \begin{example}[Failing the occurs check]
     \begin{align*}
         &\vdash\alphaunifvar \equiv \; \vdash \mathsfbrackets{List}{\alphaunifvar} \xmapsto{(\ref{unif3})}_u \bot\tag{1}\\
         &\vdash\alphaunifvar \equiv \expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow \alphaunifvar}\xmapsto{(\ref{unif3})}_u \bot\tag{2}
-    \end{align*}
+    \end{align*}%TODO: examples of failing the occurs check bc of same unif variable
 \end{example}
 
 We should be careful of one other thing we could introduce with unification step:
 \begin{example}[Introducing simplifiable constraints through unificiation steps]
     \begin{align*}
-        \constraints &=& \excopatmatch{\ap{x}\Rightarrow\alphaunifvar}\equiv \betaunifvar
+        \constraints &=& \betaunifvar \equiv \excopatmatch{\ap{x}\Rightarrow\alphaunifvar}
         &\wedge& \alphaunifvar \equiv x.\ap{x}\\
-        &\xmapsto{\ref{unif2}}_u& \excopatmatch{\ap{x}\Rightarrow x.\ap{x}}\equiv \betaunifvar
+        &\xmapsto{\ref{unif2}}_u& \betaunifvar\equiv \excopatmatch{\ap{x}\Rightarrow x.\ap{x}}
         &\wedge& \alphaunifvar \equiv x.\ap{x}\\
-        &\xmapsto{\ref{constraints_eta}}_e& x\equiv \betaunifvar
-        &\wedge& \alphaunifvar \equiv x.\ap{x}\\
-        &\xmapsto{\ref{unif1}}_u&\betaunifvar\equiv x
+        &\xmapsto{\ref{constraints_eta}}_e& \betaunifvar\equiv x 
         &\wedge& \alphaunifvar \equiv x.\ap{x}
     \end{align*}
     Here, the first unification step introduces another constraint we can simplify! 
 \end{example}
-
-\iffalse
-\begin{align*}
-        \constraints &=& &\vdash \excopatmatch{\ap{x}\Rightarrow\alphaunifvar}\equiv id 
-        &\wedge& &\vdash \betaunifvar.\ap{x}\equiv \alphaunifvar\\
-        &\xmapsto{(\ref{7})}_d& &x \vdash \alphaunifvar \equiv id.\ap{x}
-        &\wedge& &\vdash \betaunifvar.\ap{x}\equiv \alphaunifvar\\
-        &\xmapsto{(\ref{unif2})}_u& &x \vdash \alphaunifvar \equiv id.\ap{x}
-        &\wedge& &\vdash \betaunifvar.\ap{x}\equiv id.\ap{x}\\
-        &\xmapsto{(\ref{4})}_d& &x \vdash \alphaunifvar \equiv id.\ap{x} 
-        &\wedge& &\vdash \betaunifvar \equiv id \wedge \vdash x \equiv x\\
-        &\xmapsto{(\ref{1})}_r& &x \vdash \alphaunifvar \equiv id.\ap{x}
-        &\wedge& &\vdash \betaunifvar \equiv id
-    \end{align*}
-\fi
 
 \subsection{The Algorithm}
 Having described all the steps of our algorithm, the given examples lead us to a question:
