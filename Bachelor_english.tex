@@ -1234,29 +1234,41 @@ But this example tells us something else, too: Doing so might introduce redexes!
 This means that we might need to reduce terms to normal form again, even after applying unification steps. 
 \end{example}
 
-There are very few unification steps: 
+These are the unification steps: 
 \begin{definition}[Unification]
     \begin{align*}
-        & e \equiv\alphaunifvar
-        &\mapsto_u& \alphaunifvar \equiv e &(e\neq \betaunifvar)
+        &\constraints \wedge \Psi \vdash e \equiv\alphaunifvar
+        &\mapsto_u& \constraints \wedge \Psi \vdash \alphaunifvar \equiv e &(e\neq \betaunifvar)
         \tag{1}\label{unif1}\\
         &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e 
-        &\mapsto_u& \constraints[e/\alphaunifvar] \wedge \Psi \vdash \alphaunifvar \equiv e &(\alphaunifvar \notin e \land\nexists\,\alphaunifvar\equiv t)
+        &\mapsto_u& \constraints[e/\alphaunifvar] \wedge \Psi \vdash \alphaunifvar \equiv e &(\alphaunifvar \notin e)% \land\nexists\,\alphaunifvar\equiv t)
         \tag{2}\label{unif2}\\
         &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e
-        &\mapsto_u& \bot &(\alphaunifvar\in e \lor \exists \,\alphaunifvar\equiv t )
-        \tag{3}\label{unif3}
+        &\mapsto_u& \bot &(\alphaunifvar\in e) %\lor \exists \,\alphaunifvar\equiv t )
+        \tag{3}\label{unif3}\\
+        &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e 
+        &\mapsto_u& \constraints \wedge \Psi\vdash e \leftarrow \alphaunifvar &(\nexists (\Psi\vdash\alphaunifvar\equiv t)\in \constraints)
+        \tag{4}\label{unif4}\\
+        &\constraints \wedge \Psi\vdash \alphaunifvar \equiv e 
+        &\mapsto_u& \bot &(\exists (\Psi\vdash\alphaunifvar\equiv t) \in \constraints)
+        \tag{5}\label{unif5}    
     \end{align*}
-Step 2 and 3 are the occurs check, which ensures that we don't infinitely substitute terms for unification variables 
-and stops us from finding two different solutions for the same unification variable.
+Rule 2 and 3 are the occurs check, which ensures that we don't infinitely substitute terms for unification variables.
+Rule 4 is for when we have found a solution for a unification variable. The conditions for rule 4 and rule 5 
+ensure that we don't find two different solutions for the same unification variable.
+In rule 4 and 5, $e\neq t$.
+These rules only work correctly if they are applied in a certain manner and order. 
+I expand on this in \cref{sec:The Algorithm}. 
 \end{definition}
 
 \begin{example}[Failing the occurs check]
     \begin{align*}
         &\vdash\alphaunifvar \equiv \; \vdash \mathsfbrackets{List}{\alphaunifvar} \xmapsto{(\ref{unif3})}_u \bot\tag{1}\\
         &\vdash\alphaunifvar \equiv \expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow \alphaunifvar}\xmapsto{(\ref{unif3})}_u \bot\tag{2}
-    \end{align*}%TODO: examples of failing the occurs check bc of same unif variable
+    \end{align*}
 \end{example}
+
+%TODO: step 4+5 examples
 
 We should be careful of one other thing we could introduce with unification step:
 \begin{example}[Introducing simplifiable constraints through unificiation steps]
@@ -1271,7 +1283,7 @@ We should be careful of one other thing we could introduce with unification step
     Here, the first unification step introduces another constraint we can simplify! 
 \end{example}
 
-\subsection{The Algorithm}
+\subsection{The Algorithm}\label{sec:The Algorithm}
 Having described all the steps of our algorithm, the given examples lead us to a question:
 How and when do we apply these steps?
 
@@ -1281,9 +1293,33 @@ Next, we decompose the constraints, removing redundancies and potentially termin
 We do this non-deterministically, since the order doesn't matter.
 This makes our algorithm dynamic, since we hold off on solving certain equations until we know more.
 
-When we can't further simplify, we non-deterministically apply unification steps, beta-reduce our terms and apply decomposition steps.
-When we have found an assigned term for each unification variable, we terminate and give the solution
-by formulating a substitution for each assigned term.
+When we can't simplify anymore, we start to apply unification steps.
+Here, the order \textbf{does} matter. If we applied the steps in an arbitrary order, 
+we could find incomplete solutions or conclude that there is no solution, even though there is one:
+
+\begin{example}[Applying \cref{unif4} too early]
+    Consider this unification problem with three constraints:
+    \begin{align*}
+        \constraints = \;\vdash \alphaunifvar &\equiv \betaunifvar.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}\\
+        \wedge \vdash \alphaunifvar &\equiv \mathtt{5}\\
+        \wedge \vdash \betaunifvar &\equiv \mathtt{Tup(5,3)}
+    \end{align*}
+    If we could chose what unification steps to apply when, we could now apply \cref{unif5} and conclude that there is no solution.
+    This is what we should do instead:
+    \begin{align*}
+        \constraints &\xmapsto{\cref{unif2}}_u& &\vdash \alphaunifvar \equiv \mathtt{Tup(5,3)}.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}\wedge \vdash \alphaunifvar \equiv \mathtt{5}\\
+        &&\wedge &\vdash \betaunifvar \equiv \mathtt{Tup(5,3)}\\
+        &\xmapsto{\betaconv}& &\vdash \alphaunifvar \equiv \mathtt{5}\wedge \vdash \alphaunifvar\equiv \mathtt{5}\wedge \vdash \betaunifvar \equiv \mathtt{Tup(5,3)}\\
+        &\xmapsto{\cref{unif2}}_u& &\vdash \mathtt{5}\equiv \mathtt{5}\wedge \alphaunifvar\equiv\mathtt{5}\wedge \vdash \betaunifvar\equiv \mathtt{Tup(5, 3)}\\
+        &\xmapsto{\cref{3}}_d& &\vdash \alphaunifvar\equiv \mathtt{5}\wedge \mathtt{\betaunifvar\equiv Tup(5, 3)}\\
+        &\xmapsto{\cref{unif4}}_u& &\vdash \mathtt{5}\leftarrow\alphaunifvar\wedge \mathtt{Tup(5, 3)}\leftarrow \betaunifvar
+    \end{align*}
+    and conclude with the following solution: $[\mathtt{5, Tup(5, 3)}/\alphaunifvar, \betaunifvar]$.
+\end{example}%TODO: better spacing!
+We learn from this example that we not only need to continually check if we have introduced beta-redexes or simplifiable constraints, 
+but that we need to first substitute unification variables wherever we can before applying \cref{unif4} or (\ref{unif5}) to solve.
+
+
 
 This algorithm works on any pattern unification problem, and in particular, any unification problem that can be reduced to a pattern unification problem. %TODO: how?
 
