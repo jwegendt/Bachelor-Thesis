@@ -1268,7 +1268,11 @@ which I expand on in \cref{sec:Putting it together}.
     \end{align*}
 \end{example}
 
-%TODO: step 4+5 examples
+\begin{example}[Failing the meta-variable occurs check]
+    \begin{align*}
+        \constraints &= \alphaunifvar \equiv \mathtt{5}\wedge \alphaunifvar \equiv \excopatmatch{\mathtt{hd\Rightarrow 5, tl\Rightarrow 7}}\xmapsto{\cref{unif5}}\bot
+    \end{align*}
+\end{example}
 
 We should be careful of one other thing we could introduce with unification steps:
 \begin{example}[Introducing simplifiable constraints through unificiation steps]
@@ -1283,7 +1287,7 @@ We should be careful of one other thing we could introduce with unification step
     Here, the first unification step introduces another constraint we can simplify! 
 \end{example}
 
-\subsection{Putting it together}\label{sec:Putting it together}
+\subsection{Putting it together first}\label{sec:Putting it together}
 Having described all the steps of our algorithm, the given examples lead us to a question:
 How and when do we apply these steps?
 
@@ -1324,7 +1328,7 @@ This is the order in which we should apply transformations to our constraints:
 \begin{enumerate}
     \item perform beta-reductions
     \item simplify constraints
-    \item put unification variables to the left: \cref{unif1}
+    \item put unification variables on the left: \cref{unif1}
     \item instantiate equations with occurs check: \cref{unif2}, \cref{unif3}
     \item assign solution with meta-variable occurs check: \cref{unif4}, \cref{unif5}
 \end{enumerate}
