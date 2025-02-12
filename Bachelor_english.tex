@@ -1257,8 +1257,8 @@ Rule 2 and 3 are the occurs check, which ensures that we don't infinitely substi
 Rule 4 is for when we have found a solution for a unification variable. The conditions for rule 4 and rule 5 
 ensure that we don't find two different solutions for the same unification variable.
 In rule 4 and 5, $e\neq t$.
-These rules only work correctly if they are applied in a certain manner and order. 
-I expand on this in \cref{sec:The Algorithm}. 
+These rules only work correctly if they are applied in a certain manner and order, 
+which I expand on in \cref{sec:Putting it together}. 
 \end{definition}
 
 \begin{example}[Failing the occurs check]
@@ -1270,7 +1270,7 @@ I expand on this in \cref{sec:The Algorithm}.
 
 %TODO: step 4+5 examples
 
-We should be careful of one other thing we could introduce with unification step:
+We should be careful of one other thing we could introduce with unification steps:
 \begin{example}[Introducing simplifiable constraints through unificiation steps]
     \begin{align*}
         \constraints &=& \betaunifvar \equiv \excopatmatch{\ap{x}\Rightarrow\alphaunifvar}
@@ -1283,7 +1283,7 @@ We should be careful of one other thing we could introduce with unification step
     Here, the first unification step introduces another constraint we can simplify! 
 \end{example}
 
-\subsection{The Algorithm}\label{sec:The Algorithm}
+\subsection{Putting it together}\label{sec:Putting it together}
 Having described all the steps of our algorithm, the given examples lead us to a question:
 How and when do we apply these steps?
 
@@ -1293,7 +1293,7 @@ Next, we decompose the constraints, removing redundancies and potentially termin
 We do this non-deterministically, since the order doesn't matter.
 This makes our algorithm dynamic, since we hold off on solving certain equations until we know more.
 
-When we can't simplify anymore, we start to apply unification steps.
+When we can't simplify anymore, we start applying  unification steps.
 Here, the order \textbf{does} matter. If we applied the steps in an arbitrary order, 
 we could find incomplete solutions or conclude that there is no solution, even though there is one:
 
@@ -1304,7 +1304,7 @@ we could find incomplete solutions or conclude that there is no solution, even t
         \wedge \vdash \alphaunifvar &\equiv \mathtt{5}\\
         \wedge \vdash \betaunifvar &\equiv \mathtt{Tup(5,3)}
     \end{align*}
-    If we could chose what unification steps to apply when, we could now apply \cref{unif5} and conclude that there is no solution.
+    If we could chose what unification steps to apply when, we could now apply \cref{unif5} and conclude that there is no solution, even though the problem clearly has a solution.
     This is what we should do instead:
     \begin{align*}
         \constraints &\xmapsto{\cref{unif2}}_u& &\vdash \alphaunifvar \equiv \mathtt{Tup(5,3)}.\expatmatch{\mathttbrackets{Tup}{x, y}\Rightarrow x}\wedge \vdash \alphaunifvar \equiv \mathtt{5}\\
@@ -1314,12 +1314,25 @@ we could find incomplete solutions or conclude that there is no solution, even t
         &\xmapsto{\cref{3}}_d& &\vdash \alphaunifvar\equiv \mathtt{5}\wedge \mathtt{\betaunifvar\equiv Tup(5, 3)}\\
         &\xmapsto{\cref{unif4}}_u& &\vdash \mathtt{5}\leftarrow\alphaunifvar\wedge \mathtt{Tup(5, 3)}\leftarrow \betaunifvar
     \end{align*}
-    and conclude with the following solution: $[\mathtt{5, Tup(5, 3)}/\alphaunifvar, \betaunifvar]$.
+    Now we conclude with the following solution: $[\mathtt{5, Tup(5, 3)}/\alphaunifvar, \betaunifvar]$.
 \end{example}%TODO: better spacing!
 We learn from this example that we not only need to continually check if we have introduced beta-redexes or simplifiable constraints, 
 but that we need to first substitute unification variables wherever we can before applying \cref{unif4} or (\ref{unif5}) to solve.
 
-
+\subsection{Getting our priorities straight}
+This is the order in which we should apply transformations to our constraints:
+\begin{enumerate}
+    \item perform beta-reductions
+    \item simplify constraints
+    \item put unification variables to the left: \cref{unif1}
+    \item instantiate equations with occurs check: \cref{unif2}, \cref{unif3}
+    \item assign solution with meta-variable occurs check: \cref{unif4}, \cref{unif5}
+\end{enumerate}
+After each transformation, we go through the list from top to bottom and perform the next possible transformation with the highest priority.
+If we can't transform our constraints any further, we terminate.
+At this point, we have either we have found an equation $\Psi \vdash e \leftarrow \alphaunifvar$ for each unification variable,
+and turn those into a simultaneous substitution --- our solution,
+or we go stuck and we report that our search was inconclusive.
 
 This algorithm works on any pattern unification problem, and in particular, any unification problem that can be reduced to a pattern unification problem. %TODO: how?
 
