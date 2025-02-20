@@ -1071,7 +1071,7 @@ $\constraints \sigma = (C \wedge \constraints')\sigma = C \sigma \wedge \constra
 It is helpful to simplify our equations a bit before starting the unification process.
 We do this by taking out redundant equations, spotting clearly contradictory equations and splitting our equations into smaller parts which we can further simplify and unify.
 
-Let's look at some examples. We would like the following to be True:
+Let's look at some examples. We would like the following to be true:
 \begin{example}[There are two kinds of variables!]
     \begin{align*}
     &x \vdash x.\mathtt{fst} \equiv x.\mathtt{fst} &\mapsto& \top
@@ -1156,9 +1156,14 @@ and spot redundancies to stop the solving process as early as possible.
     &\textbf{Removing contradictions}\\ 
     &\Psi \vdash x\equiv y &\mapsto_c& \bot 
     \tag{11}\\
-    &\text{non-matching $\circ$-equation}&\mapsto_c&\bot\tag{12}\\
+    &\Psi \vdash \copatmatch \equiv \constructor &\mapsto_c& \bot 
+    \tag{12}\\
+    &\Psi \vdash \constructor \equiv \copatmatch &\mapsto_c& \bot
+    \tag{13}\\
+    &\text{non-matching $\circ$-equation}&\mapsto_c&\bot
+    \tag{14}\\
     &\text{non-matching *-equation}&\mapsto_c& \bot
-    \tag{13}\label{13}
+    \tag{15}\label{15}
     \end{align*}
 \end{definition}
 Rules 6-8 are taken from \cite{10.5555/2021953.2021960}, adapted to our syntax. 
@@ -1182,16 +1187,16 @@ See the following examples for further clarification:
 
 \begin{example}[Removing contradictions in *-equations]
     \begin{align*}
-        &x\vdash x.\expatmatch{\mathttbrackets{Cons}{y_1, y_2}} 
+        &x&\vdash& x.\expatmatch{\mathttbrackets{Cons}{y_1, y_2}} 
         \equiv x.\expatmatch{\True \Rightarrow\alphaunifvar, \False\Rightarrow \betaunifvar}
         &\mapsto_c& \bot \tag{1}\\
-        &\vdash \excopatmatch{\ap{x}\Rightarrow \mathtt{1}}
+        &&\vdash& \excopatmatch{\ap{x}\Rightarrow \mathtt{1}}
         \equiv \excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}
         &\mapsto_c& \bot \tag{2}\\
-        &x\vdash x.\expatmatch{\mathttbrackets{Cons}{x_1, x_2}\Rightarrow \True} 
+        &x&\vdash& x.\expatmatch{\mathttbrackets{Cons}{x_1, x_2}\Rightarrow \True} 
         \equiv x.\expatmatch{\mathttbrackets{Cons}{y_1, y_2}\Rightarrow\True}
         &\mapsto_c& \bot \tag{3}\\
-        &\vdash \excopatmatch{\ap{x}\Rightarrow x}
+        &&\vdash& \excopatmatch{\ap{x}\Rightarrow x}
         \equiv \excopatmatch{\ap{y}\Rightarrow y}
         &\mapsto_c& \bot \tag{4}
     \end{align*}
@@ -1199,7 +1204,16 @@ See the following examples for further clarification:
     In example 3 and 4, even though the constructors or destructors match, we can still simplify to $\bot$, because the variables don't match.
 \end{example}
 
-Also note that \cref{7} (as well as \cref{8} wich is just the mirror of \cref{7}) are possible through eta-conversion:
+The other instances of removing contradictions are more straightforward:
+
+\begin{example}[Removing other contradictions]
+    \begin{align*}
+        &\vdash x_1 \equiv x_2 &\mapsto_c&\bot\tag{1}\\ 
+        &\vdash \mathtt{5}\equiv \excopatmatch{\mathtt{fst\Rightarrow 1, snd\Rightarrow 2}}&\mapsto_c& \bot\tag{2}
+    \end{align*}
+\end{example}
+
+Also note that \cref{7} (as well as \cref{8} which is just the mirror of \cref{7}) are possible through eta-conversion:
 \begin{align*}
     \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv t \\
     \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}&\equiv \excopatmatch{\overline{d(\overline{x})\Rightarrow t.d(\overline{x})}}\\
@@ -1245,20 +1259,9 @@ These are the unification steps:
         \tag{2}\label{unif2}\\
         &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e
         &\mapsto_u& \bot &(\alphaunifvar\in e) %\lor \exists \,\alphaunifvar\equiv t )
-        \tag{3}\label{unif3}\\
-        &\constraints \wedge \Psi \vdash \alphaunifvar \equiv e 
-        &\mapsto_u& \constraints \wedge \Psi\vdash e \leftarrow \alphaunifvar &(\nexists (\Psi\vdash\alphaunifvar\equiv t)\in \constraints)
-        \tag{4}\label{unif4}\\
-        &\constraints \wedge \Psi\vdash \alphaunifvar \equiv e 
-        &\mapsto_u& \bot &(\exists (\Psi\vdash\alphaunifvar\equiv t) \in \constraints)
-        \tag{5}\label{unif5}    
+        \tag{3}\label{unif3}    
     \end{align*}
 Rule 2 and 3 are the occurs check, which ensures that we don't infinitely substitute terms for unification variables.
-Rule 4 is for when we have found a solution for a unification variable. The conditions for rule 4 and rule 5 
-ensure that we don't find two different solutions for the same unification variable.
-In rule 4 and 5, $e\neq t$.
-These rules only work correctly if they are applied in a certain manner and order, 
-which I expand on in \cref{sec:Putting it together}. 
 \end{definition}
 
 \begin{example}[Failing the occurs check]
@@ -1268,11 +1271,13 @@ which I expand on in \cref{sec:Putting it together}.
     \end{align*}
 \end{example}
 
+\iffalse
 \begin{example}[Failing the meta-variable occurs check]
     \begin{align*}
-        \constraints &= \alphaunifvar \equiv \mathtt{5}\wedge \alphaunifvar \equiv \excopatmatch{\mathtt{hd\Rightarrow 5, tl\Rightarrow 7}}\xmapsto{\cref{unif5}}\bot
+        \constraints &= \alphaunifvar \equiv \mathtt{5}\wedge \alphaunifvar \equiv \excopatmatch{\mathtt{hd\Rightarrow 5, tl\Rightarrow 7}}\xmapsto{\cref{unif5}}_u\bot
     \end{align*}
 \end{example}
+\fi
 
 We should be careful of one other thing we could introduce with unification steps:
 \begin{example}[Introducing simplifiable constraints through unificiation steps]
@@ -1287,7 +1292,7 @@ We should be careful of one other thing we could introduce with unification step
     Here, the first unification step introduces another constraint we can simplify! 
 \end{example}
 
-\subsection{Putting it together first}\label{sec:Putting it together}
+\subsection{Putting it together}\label{sec:Putting it together}
 Having described all the steps of our algorithm, the given examples lead us to a question:
 How and when do we apply these steps?
 
@@ -1297,6 +1302,12 @@ Next, we decompose the constraints, removing redundancies and potentially termin
 We do this non-deterministically, since the order doesn't matter.
 This makes our algorithm dynamic, since we hold off on solving certain equations until we know more.
 
+When we can't simplify any further, we start applying unification steps. 
+Here the order \textbf{does} matter, as it influences what problems we can solve, and on which problems we get stuck.
+This is because we won't be able to find solutions to all problems, as higher-order unification is semi-decidable.
+Deciding the order of unification steps is a scheduling problem, and may be solved differently in different implementations of this algorithm.
+
+\iffalse
 When we can't simplify anymore, we start applying  unification steps.
 Here, the order \textbf{does} matter. If we applied the steps in an arbitrary order, 
 we could find incomplete solutions or conclude that there is no solution, even though there is one:
@@ -1323,6 +1334,7 @@ we could find incomplete solutions or conclude that there is no solution, even t
 We learn from this example that we not only need to continually check if we have introduced beta-redexes or simplifiable constraints, 
 but that we need to first substitute unification variables wherever we can before applying \cref{unif4} or (\ref{unif5}) to solve.
 
+
 \subsection{Getting our priorities straight}
 This is the order in which we should apply transformations to our constraints:
 \begin{enumerate}
@@ -1337,6 +1349,7 @@ If we can't transform our constraints any further, we terminate.
 At this point, we have either we have found an equation $\Psi \vdash e \leftarrow \alphaunifvar$ for each unification variable,
 and turn those into a simultaneous substitution --- our solution,
 or we go stuck and we report that our search was inconclusive.
+\fi
 
 This algorithm works on any pattern unification problem, and in particular, any unification problem that can be reduced to a pattern unification problem. %TODO: how?
 
