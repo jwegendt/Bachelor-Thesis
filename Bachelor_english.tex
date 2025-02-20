@@ -1055,6 +1055,9 @@ More precisely, the context maintains the following invariant:
 $\Psi \vdash e\equiv t \Rightarrow FV(e)\subseteq \Psi \wedge FV(t)\subseteq \Psi$, %TODO: zeilenumbruch verhindern?
 which means our expression remains well-scoped throughout our algorithm.
 This motivates the name context for $\Psi$, as well.
+There is no meta-variable context, since the presented algorithm is untyped. 
+A typed version of the algorithm with meta-variable context, like in \cite{10.5555/2021953.2021960}
+additionally ensures well-typedness throughout the algorithm. 
 
 We formulate our constraints from a given unification problem as follows:
 We take each given equation and turn it into a constraint $K$ with $\text{empty context }\Psi$. We join these constraints using ands:
@@ -1111,7 +1114,7 @@ Let's look at some more examples:
     &\vdash \excopatmatch{\ap{x}\Rightarrow \alphaunifvar} \equiv \excopatmatch{\ap{x}\Rightarrow\betaunifvar} \tag{2}
     \\ &\mapsto x\vdash \alphaunifvar \equiv \betaunifvar\\
     &\vdash\excopatmatch{\mathtt{fst \Rightarrow} \alphaunifvar, \mathtt{snd\Rightarrow F}}\equiv \betaunifvar \tag{3}
-    \\ &\mapsto \vdash \alphaunifvar\equiv \betaunifvar.\mathtt{fst}\, \wedge \,\vdash \mathtt{F\equiv\betaunifvar.snd}
+    \\ &\mapsto \vdash \betaunifvar.\mathtt{fst} \equiv\alphaunifvar\, \wedge \,\vdash \mathtt{\betaunifvar.snd\equiv F}
     \end{align*}
 \end{example}
 Note that all of these examples are in normal form, i.e. they don't contain redexes.
@@ -1134,7 +1137,7 @@ and spot redundancies to stop the solving process as early as possible.
     \tag{3}\label{3}\\
     \circ\,&\Psi \vdash e_1.d({\overline{e}})\equiv e_2.d({\overline{t}})\tag{4}\label{4}
     \\ &\mapsto_d \Psi\vdash e_1 \equiv e_2 \wedge \overline{\Psi\vdash e\equiv t}\\
-    *\,&\Psi \vdash e_1.\expatmatch{\overline{K(\overline{x})\Rightarrow e}}\equiv e_2.\expatmatch{\overline{K(\overline{x})\Rightarrow t}}\tag{5}
+    *\,&\Psi \vdash e_1.\expatmatch{\overline{K(\overline{x})\Rightarrow e}}\equiv e_2.\expatmatch{\overline{K(\overline{x})\Rightarrow t}}\tag{5}\label{5}
     \\ &\mapsto_d \Psi \vdash e_1 \equiv e_2\wedge \overline{\Psi, \overline{x}\vdash e\equiv t}\\
     *\, &\Psi\vdash \excopatmatch{\overline{d(\overline{x})\Rightarrow e}}\equiv 
     \excopatmatch{\overline{d(\overline{x})\Rightarrow t}}
@@ -1232,7 +1235,7 @@ Let's start with an example --- take a look at the following unification problem
     I will demonstrate how we want to solve this, and in the process introduces what to do when we found a solution.   
     \begin{align*}
         \constraints &= &\vdash\ & \mathtt{Tup(\alphaunifvar, F)}\equiv \mathtt{Tup(T, F)}&\wedge&
-        \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\footnotemark[1]\\
+        \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
         &\xmapsto{(\cref{3})}_d &\vdash\ & \mathtt{\alphaunifvar\equiv T}\qquad\wedge\vdash \mathtt{F\equiv F} &\wedge& 
         \vdash \betaunifvar\equiv \alphaunifvar.\expatmatch{\mathtt{T \Rightarrow 1, F\Rightarrow 5}}\\
         &\xmapsto{(\cref{3})}_d &\vdash\ & \mathtt{\alphaunifvar\equiv T} &\wedge& 
@@ -1352,6 +1355,19 @@ or we go stuck and we report that our search was inconclusive.
 \fi
 
 This algorithm works on any pattern unification problem, and in particular, any unification problem that can be reduced to a pattern unification problem. %TODO: how?
+
+%TODO: reformat???
+\begin{example}
+    \begin{align*}
+        \constraints =& \vdash \excopatmatch{\ap{x}\Rightarrow \gamma^?}\equiv \excopatmatch{\ap{x}\Rightarrow\betaunifvar.\expatmatch{\mathtt{T\Rightarrow 1,F\Rightarrow 2}}}\\
+        &\wedge \vdash\alphaunifvar.\expatmatch{\mathtt{T\Rightarrow F, F\Rightarrow T}}\equiv \mathtt{T}.\expatmatch{\mathtt{T\Rightarrow \betaunifvar, F\Rightarrow T}}\\
+        \xmapsto{\ref{5}}_d& x\vdash \gamma^?\equiv \alphaunifvar.\expatmatch{\mathtt{T\Rightarrow 1, F\Rightarrow 2}}\\
+        &\wedge \vdash\alphaunifvar.\expatmatch{\mathtt{T\Rightarrow F, F\Rightarrow T}}\equiv \mathtt{T}.\expatmatch{\mathtt{T\Rightarrow \betaunifvar, F\Rightarrow T}}\\
+        \xmapsto{\ref{15}}_d& x\vdash \gamma^?\equiv \alphaunifvar.\expatmatch{\mathtt{T\Rightarrow 1, F\Rightarrow 2}}\wedge \vdash \alphaunifvar \equiv \mathtt{T}\wedge \vdash \mathtt{F}\equiv \betaunifvar\\%TODO: ref
+        \xmapsto{\ref{unif2}}_u& x\vdash \gamma^?\equiv \mathtt{T}.\expatmatch{\mathtt{T\Rightarrow 1, F\Rightarrow 2}}\wedge \vdash \alphaunifvar \equiv \mathtt{T}\wedge \vdash \mathtt{F}\equiv \betaunifvar\\
+        \stackrel{\betaconv}{=}& x \vdash \gamma^? \equiv \mathtt{1}\wedge \vdash \alphaunifvar\equiv \mathtt{T} \wedge \betaunifvar\equiv \mathtt{F}\xmapsto{\ref{unif1}}_u x \vdash \gamma^? \equiv \mathtt{1}\wedge \vdash \alphaunifvar\equiv \mathtt{T} \wedge \mathtt{F}\equiv\betaunifvar 
+    \end{align*}
+\end{example}
 
 \section{Related Works}\label{sec:Related works}
 
